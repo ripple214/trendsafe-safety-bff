@@ -9,7 +9,8 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var starRouter = require('./routes/star');
-var adminRouter = require('./routes/admin');
+var clientsRouter = require('./routes/clients');
+var weightingsRouter = require('./routes/weightings');
 
 var app = express();
 
@@ -33,7 +34,8 @@ var corsOptions = {
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/admin', adminRouter);
+app.use('/clients', clientsRouter);
+app.use('/weightings', weightingsRouter);
 app.use('/star', starRouter);
 
 // catch 404 and forward to error handler
