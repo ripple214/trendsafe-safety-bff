@@ -28,10 +28,10 @@ router.post("/login", (req, res, next) => {
   }
 });
 
-router.get("/retrieve-password", (req, res, next) => {  
+router.post("/retrieve-password", (req, res, next) => {  
   var response = {
     account: {
-      email: res.body.email
+      email: req.body.email
     }
   };
 
