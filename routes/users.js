@@ -8,14 +8,14 @@ router.get('/', function(req, res, next) {
 });
 
 router.post("/login", (req, res, next) => {  
-  if(req.body.username == 'admin' && req.body.password == 'Singapore') {
+  if(req.body.email == 'admin' && req.body.password == 'Singapore') {
     var response = {
       accessToken: uuid.v4(),
       module: "ADMIN"
     };
   
     res.json(response);
-  } else if(req.body.username == 'client' && req.body.password == 'Singapore') {
+  } else if(req.body.email == 'client' && req.body.password == 'Singapore') {
     var response = {
       accessToken: uuid.v4(),
       module: "CLIENT"
@@ -27,6 +27,17 @@ router.post("/login", (req, res, next) => {
     res.json({ error: "Invalid username or password" });
   }
 });
+
+router.get("/retrieve-password", (req, res, next) => {  
+  var response = {
+    account: {
+      email: res.body.email
+    }
+  };
+
+  res.json(response);
+});
+
 
 router.get("/admin", (req, res, next) => {  
   var response = {
