@@ -9,6 +9,8 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var starRouter = require('./routes/star');
+var wearRouter = require('./routes/wear');
+var hrcRouter = require('./routes/hrc');
 var clientsRouter = require('./routes/clients');
 var weightingsRouter = require('./routes/weightings');
 
@@ -37,6 +39,8 @@ app.use('/users', usersRouter);
 app.use('/clients', clientsRouter);
 app.use('/weightings', weightingsRouter);
 app.use('/star', starRouter);
+app.use('/wear', wearRouter);
+app.use('/hrc', hrcRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

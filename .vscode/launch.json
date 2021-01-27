@@ -8,7 +8,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
+            "url": "http:/nonprod-trendsafe-bff-263369121.ap-southeast-2.elb.amazonaws.com",
             "webRoot": "${workspaceFolder}"
         }
     ]
