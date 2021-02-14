@@ -1,3 +1,5 @@
+var conf = require('config'); 
+
 var createError = require('http-errors');
 var cors = require('cors')
 var express = require('express');
@@ -9,6 +11,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
+var modulesRouter = require('./routes/modules');
 var usersRouter = require('./routes/users');
 var starRouter = require('./routes/star');
 var wearRouter = require('./routes/wear');
@@ -30,9 +33,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb', extended: true })); // support json encoded bodies
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // support encoded bodies
 
+console.log("BFF_URL", conf.get('BFF_URL'));
+
 var originsWhitelist = [
-  'http://localhost:8100',
-  'http://nonprod-trendsafe-bff-263369121.ap-southeast-2.elb.amazonaws.com'
+  conf.get('BFF_URL')
 ];
 var corsOptions = {
   origin: function(origin, callback){
@@ -43,16 +47,10 @@ var corsOptions = {
 }
 app.use(cors(corsOptions));
 
-var corsOptions = {
-  origin: 'http://localhost:8100',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
-
 app.set('etag', false);
 
 app.all('/*', (req, res, next) => {
   res.removeHeader('X-Powered-By');
-  //res.header('Access-Control-Allow-Origin', 'http://localhost:8100');
   next();
 });
 
@@ -69,7 +67,6 @@ const authenticateJWT = (req, res, next) => {
               return res.sendStatus(403);
           }
 
-          console.log("user", user);
           req.user = user;
 
           let response = {
@@ -90,7 +87,6 @@ const authenticateJWT = (req, res, next) => {
 // returns an object with the cookies' name as keys
 const getAppCookies = (req) => {
   const cookies = req.headers.cookie || "";
-  console.log("cookies", cookies);
   const rawCookies = cookies.split('; ');
 
   const parsedCookies = {};
@@ -105,6 +101,7 @@ app.use(function(req, res, next) {
   authenticateJWT(req, res, next);
 });
 
+app.use('/modules', modulesRouter);
 app.use('/users', usersRouter);
 app.use('/clients', clientsRouter);
 app.use('/weightings', weightingsRouter);

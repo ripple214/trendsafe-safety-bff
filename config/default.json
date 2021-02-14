@@ -1,0 +1,4 @@
+{
+    "BFF_URL": "http://localhost:8100",
+    "TABLE_MODULES": "NONPROD_MODULES"
+}
