@@ -3,10 +3,12 @@ var cors = require('cors')
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+var jwt = require('jsonwebtoken');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var authRouter = require('./routes/auth');
 var usersRouter = require('./routes/users');
 var starRouter = require('./routes/star');
 var wearRouter = require('./routes/wear');
@@ -35,6 +37,57 @@ var corsOptions = {
 }
 
 app.use('/', indexRouter);
+app.use('/auth', authRouter);
+
+// jwt validator
+ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
+const authenticateJWT = (req, res, next) => {
+  const authorization = getAppCookies(req, res)['Authorization'];  
+  if (authorization) {
+      jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
+          if (err) {
+              return res.sendStatus(403);
+          }
+
+          console.log("user", user);
+          req.user = user;
+
+          let response = {
+            sessionId: user.sessionId,
+            emailAddress: user.emailAddress,
+            module: user.module
+          };
+          let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "5m"});
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
+      
+          next();
+      });
+  } else {
+      res.sendStatus(401);
+  }
+};
+
+// returns an object with the cookies' name as keys
+const getAppCookies = (req) => {
+  // We extract the raw cookies from the request headers
+  const cookies = req.headers.cookie || "";
+  console.log("cookies", cookies);
+  const rawCookies = cookies.split('; ');
+  // rawCookies = ['myapp=secretcookie, 'analytics_cookie=beacon;']
+
+  const parsedCookies = {};
+  rawCookies.forEach(rawCookie=>{
+  const parsedCookie = rawCookie.split('=');
+  // parsedCookie = ['myapp', 'secretcookie'], ['analytics_cookie', 'beacon']
+    parsedCookies[parsedCookie[0]] = parsedCookie[1];
+  });
+  return parsedCookies;
+};
+
+app.use(function(req, res, next) {
+  authenticateJWT(req, res, next);
+});
+
 app.use('/users', usersRouter);
 app.use('/clients', clientsRouter);
 app.use('/weightings', weightingsRouter);
