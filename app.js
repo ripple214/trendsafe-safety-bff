@@ -27,14 +27,34 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json()); // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
-app.use(cors());
+app.use(bodyParser.json({ limit: '50mb', extended: true })); // support json encoded bodies
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // support encoded bodies
+
+var originsWhitelist = [
+  'http://localhost:8100',
+  'http://nonprod-trendsafe-bff-263369121.ap-southeast-2.elb.amazonaws.com'
+];
+var corsOptions = {
+  origin: function(origin, callback){
+        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+        callback(null, isWhitelisted);
+  },
+  credentials:true
+}
+app.use(cors(corsOptions));
 
 var corsOptions = {
-  origin: 'http://localhost',
+  origin: 'http://localhost:8100',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
+
+app.set('etag', false);
+
+app.all('/*', (req, res, next) => {
+  res.removeHeader('X-Powered-By');
+  //res.header('Access-Control-Allow-Origin', 'http://localhost:8100');
+  next();
+});
 
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
@@ -69,16 +89,13 @@ const authenticateJWT = (req, res, next) => {
 
 // returns an object with the cookies' name as keys
 const getAppCookies = (req) => {
-  // We extract the raw cookies from the request headers
   const cookies = req.headers.cookie || "";
   console.log("cookies", cookies);
   const rawCookies = cookies.split('; ');
-  // rawCookies = ['myapp=secretcookie, 'analytics_cookie=beacon;']
 
   const parsedCookies = {};
   rawCookies.forEach(rawCookie=>{
   const parsedCookie = rawCookie.split('=');
-  // parsedCookie = ['myapp', 'secretcookie'], ['analytics_cookie', 'beacon']
     parsedCookies[parsedCookie[0]] = parsedCookie[1];
   });
   return parsedCookies;
