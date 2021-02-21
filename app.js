@@ -11,7 +11,10 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
+var kvpsRouter = require('./routes/kvps');
 var modulesRouter = require('./routes/modules');
+var risksRouter = require('./routes/risks');
+var rulesRouter = require('./routes/rules');
 var usersRouter = require('./routes/users');
 var starRouter = require('./routes/star');
 var wearRouter = require('./routes/wear');
@@ -60,7 +63,8 @@ app.use('/auth', authRouter);
 // jwt validator
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
 const authenticateJWT = (req, res, next) => {
-  const authorization = getAppCookies(req, res)['Authorization'];  
+  const authorization = getAppCookies(req, res)['Authorization'];
+  //console.log("authorization", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
           if (err) {
@@ -71,12 +75,13 @@ const authenticateJWT = (req, res, next) => {
 
           let response = {
             sessionId: user.sessionId,
+            clientId: user.clientId,
             emailAddress: user.emailAddress,
             module: user.module
           };
-          let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "5m"});
+          let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
           res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
-      
+
           next();
       });
   } else {
@@ -101,7 +106,10 @@ app.use(function(req, res, next) {
   authenticateJWT(req, res, next);
 });
 
+app.use('/kvps', kvpsRouter);
 app.use('/modules', modulesRouter);
+app.use('/risks', risksRouter);
+app.use('/rules', rulesRouter);
 app.use('/users', usersRouter);
 app.use('/clients', clientsRouter);
 app.use('/weightings', weightingsRouter);

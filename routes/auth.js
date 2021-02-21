@@ -10,17 +10,22 @@ router.post("/login", (req, res, next) => {
       emailAddress: req.body.email,
       module: "ADMIN"
     };
-  
+
+    // Generate an access token
+    let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
+    res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
+
     res.json(response);
   } else if(req.body.email == 'client' && req.body.password == 'Singapore') {
     var response = {
       sessionId: uuid.v4(),
+      clientId: "dummy-client",
       emailAddress: req.body.email,
       module: "CLIENT"
     };
   
     // Generate an access token
-    let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "5m"});
+    let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
     res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
 
     res.json(response);

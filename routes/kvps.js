@@ -5,15 +5,15 @@ var moment = require('moment');
 
 var ddb = require('./ddb');
 
-var tableName = conf.get('TABLE_MODULES');
+var tableName = conf.get('TABLE_KVPS');
 
-/* GET modules listing. */
+/* GET kvps listing. */
 router.get('/', function(req, res, next) {
   let clientId = req.user.clientId;
 
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, description, is_activated, is_activatable, no_of_users, max_licenses, sort_num',
+    ProjectionExpression: 'id, #name',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -27,7 +27,7 @@ router.get('/', function(req, res, next) {
   ddb.query(params, function(response) {
     
     if (response.data) {
-      var resp = {"modules": response.data};
+      var resp = {"kvps": response.data};
       res.status(200);
       res.json(resp);
     } else {
@@ -37,21 +37,23 @@ router.get('/', function(req, res, next) {
   });
 });
 
-/* PUT update module. */
-router.put('/:moduleId', function(req, res, next) {
+/* PUT update kvp. */
+router.put('/:kvpId', function(req, res, next) {
   let clientId = req.user.clientId;
-  let moduleId = req.params.moduleId;
+  let kvpId = req.params.kvpId;
 
   var params = {
     TableName: tableName,
     Key: {
       "partition_key": clientId,
-      "sort_key": moduleId,
+      "sort_key": kvpId,
     },
-    UpdateExpression: 'set is_activated = :is_activated, max_licenses = :max_licenses, updated_ts = :updated_ts, updated_by = :updated_by',
+    UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
+    ExpressionAttributeNames:{
+      "#name": "name",
+    },
     ExpressionAttributeValues: {
-      ":is_activated": req.body.is_activated,
-      ":max_licenses": req.body.max_licenses,
+      ":name": req.body.name,
       ":updated_ts": moment().format(),
       ":updated_by": req.user.emailAddress,
     },

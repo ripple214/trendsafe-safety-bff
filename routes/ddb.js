@@ -15,6 +15,7 @@ const docClient = new AWS.DynamoDB.DocumentClient({
 });
 
 module.exports = {
+
     queryAll: async function(tableName, callback) {
         let params = { TableName: tableName };
 
@@ -29,25 +30,84 @@ module.exports = {
     
         callback(data);
     },
+
     query: function(params, callback) {
-        ddb.query(params, function(error, data) {
+        docClient.query(params, function(error, data) {
         
             var response = {};
     
             if (error) {
                 console.log("Error", error);
-                response.error = error;
+                console.log("params", params);
+                response.error = {
+                    "message": "Error in query",
+                    "code": "400",
+                };
             } else {
-                console.log("data", data);
-
-                data.Items.forEach(function(element, index, array) {
-                    console.log(element.id.S + " (" + element.name.S + ")");
-                });
-                
-                response.data = data;
+                response.data = data.Items;
             }
 
             callback(response);
         });
-    }
+    }, 
+
+    update: function(params, callback) {
+        docClient.update(params, function(error, data) {
+        
+            var response = {};
+    
+            if (error) {
+                console.log("Error", error);
+                console.log("params", params);
+                response.error = {
+                    "message": "Error in update",
+                    "code": "400",
+                };
+            } else {
+                response.data = data.Attributes;
+            }
+
+            callback(response);
+        });
+    }, 
+
+    insert: function(params, callback) {
+        docClient.put(params, function(error, data) {
+        
+            var response = {};
+    
+            if (error) {
+                console.log("Error", error);
+                console.log("params", params);
+                response.error = {
+                    "message": "Error in insert",
+                    "code": "400",
+                };
+            } else {
+                response.data = params.Item;
+            }
+
+            callback(response);
+        });
+    }, 
+
+    delete: function(params, callback) {
+        docClient.delete(params, function(error, data) {
+        
+            var response = {};
+    
+            if (error) {
+                console.log("Error", error);
+                console.log("params", params);
+                response.error = {
+                    "message": "Error in delete",
+                    "code": "400",
+                };
+            } else {
+                response.data = params.Item;
+            }
+
+            callback(response);
+        });
+    }, 
 }
