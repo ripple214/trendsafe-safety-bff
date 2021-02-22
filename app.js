@@ -12,6 +12,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var kvpsRouter = require('./routes/kvps');
+var hierarchiessRouter = require('./routes/hierarchies');
 var modulesRouter = require('./routes/modules');
 var risksRouter = require('./routes/risks');
 var rulesRouter = require('./routes/rules');
@@ -107,6 +108,7 @@ app.use(function(req, res, next) {
 });
 
 app.use('/kvps', kvpsRouter);
+app.use('/hierarchies', hierarchiessRouter);
 app.use('/modules', modulesRouter);
 app.use('/risks', risksRouter);
 app.use('/rules', rulesRouter);
