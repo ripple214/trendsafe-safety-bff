@@ -8,6 +8,7 @@ var cookieParser = require('cookie-parser');
 var jwt = require('jsonwebtoken');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
+var nocache = require('nocache');
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
@@ -36,6 +37,11 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb', extended: true })); // support json encoded bodies
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // support encoded bodies
+app.use(nocache());
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store')
+  next()
+})
 
 console.log("BFF_URL", conf.get('BFF_URL'));
 
