@@ -15,7 +15,7 @@ var SUBSITE = "SUBSITE";
 var DEPARTMENT = "DEPARTMENT";
 
 //var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE, DEPARTMENT];
-var LEVELS = [DIVISION, PROJECT];
+var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE];
 var LEVEL_DESCRIPTIONS = {
   DIVISION: "divisions", 
   PROJECT: "projects", 
@@ -27,84 +27,87 @@ var LEVEL_DESCRIPTIONS = {
 /* GET hierarchies listing. */
 router.get('/', function(req, res, next) {
 
-  var divisions = [];
+  retrieve(req, LEVELS, (dataMap) => {
+    console.log("done getting data");
 
-  var allMap = {};
-  var parentsMap = undefined;
+    var divisions = [];
 
-  var looper = new Promise((resolve, reject) => {
-    var total = 0;
-
+    var allMap = {};
+    var parentsMap = undefined;
+  
     LEVELS.forEach((level, index) => {
-      let levelDescription = LEVEL_DESCRIPTIONS[level];
-  
-      divisions[levelDescription] = [];
-      objectMap = {};
-  
-      var dbLooper = new Promise((resolveDBLoop, rejectDBLoop) => {
-        ddb.query(getParams(req, level), function(response) {
-          if (response.data) {
-            response.data.forEach((entity, counter) => {
-              if(level == DIVISION) {
-                divisions.push(entity);
+      var objectMap = {};
+
+      var levelDescription = LEVEL_DESCRIPTIONS[level];
+      console.log("processing", levelDescription);
+
+      dataMap[level].forEach((entity) => {
+        if(level == DIVISION) {
+          divisions.push(entity);
+        }
+
+        objectMap[entity.id] = entity;
+        var parentId = undefined;
+
+        if(parentsMap != undefined) {
+
+          var parents = entity.parents.split(DELIMITER);
+          var ancestor = entity.parents;
+          for(var i=parents.length; i>0; i--) {
+            var currentParentId = parents[i-1];
+
+            if(parentId == undefined) {
+              if(currentParentId == -1) {
+                parentId = ancestor;
+              } else {
+                parentId = currentParentId;
               }
-    
-              allMap[entity.id] = entity;
-              objectMap[entity.id] = entity;
-    
-              if(parentsMap != undefined) {
-                var parents = entity.parents.split(DELIMITER);
-                var parent = undefined;
-                for(var i=parents.length-1; i>=0; i--) {
-                  var parentId = parents[parents.length-1];
-                  var currentParent = parentsMap[parentId];
-                  if(currentParent == undefined) {
-                    currentParent = {id: -1, name: "Skipped" + level};
-                    allMap[currentParent.id] = currentParent;
-                  }
-    
-                  if(parent == undefined) {
-                    parentsMap[currentParent.id] = currentParent;
-                    parent = currentParent;
-                  }
+            }
+
+            if(currentParentId == -1) {
+              if(allMap[ancestor] == undefined) {
+                console.log("creating skipped");
+                var parent = {id: -1, name: "Skipped " + LEVELS[i-1]};
+                allMap[ancestor] = parent;
+                if(ancestor == -1) {
+                  divisions.push(parent);
                 }
-    
-                if(parent == undefined) {
-                  console.error("Parent is missing. Hierarchy might be invalid.", entity);
-                }
-    
-                var children = parent[levelDescription];
-                if(children == undefined) {
-                  children = []
-                  currentParent[levelDescription] = children;
-                }
-                children.push(entity);
               }
-    
-              if(counter == response.data.length-1) {
-                console.log("looped", counter, response.data.length, index, LEVELS.length);
-                parentsMap = objectMap;
-                resolveDBLoop();
-              }
-            });
-          } else {
-            res.status(400);
-            res.json(response);
-            return;
+
+              ancestor = ancestor.substring(0, ancestor.length-(currentParentId.length+1));
+              console.log("ancestor", ancestor);
+            } else {
+              break;
+            }
           }
-        });
-      });
-  
-      dbLooper.then(() => {
-        total++;
-        if(total == LEVELS.length) {
-          resolve();
+
+          // make sure skipped levels are added as children as well
+          var ancestor = entity.parents;
+          for(var i=parents.length; i>0; i--) {
+            var currentParentId = parents[i-1];
+            if(currentParentId == -1) {
+              ancestor = ancestor.substring(0, ancestor.length-(currentParentId.length+1));
+            } else {
+              break;
+            }
+          }
+
+          var parent = parentsMap[parentId];
+          if(parent == undefined) {
+            parent = allMap[parentId];
+          }
+
+          var children = parent[levelDescription];
+          if(children == undefined) {
+            children = []
+            parent[levelDescription] = children;
+          }
+          children.push(entity);
         }
       });
+      parentsMap = objectMap;
     });
-  });
 
-  looper.then(() => {
     var resp = {"hierarchies": { "divisions": divisions } };
     res.status(200);
     res.json(resp);
@@ -113,8 +116,35 @@ router.get('/', function(req, res, next) {
   });
 });
 
-const sendResponse = () => {
+const retrieve = (req, levels, callback) => {
+  recursiveRetrieve(req, levels, 0, {}, callback);
+};
 
+const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
+
+  var dbLooper = new Promise((resolveDBLoop, rejectDBLoop) => {
+    var level = levels[index]
+
+    console.log("retrieving", level);
+
+    ddb.query(getParams(req, level), function(response) {
+      if (response.data) {
+        dataMap[level] = response.data;
+      } else {
+        dataMap[level] = [];
+      }
+
+      resolveDBLoop();
+    });
+  });
+
+  dbLooper.then(() => {
+    if(index == levels.length-1) {
+      callback(dataMap);
+    } else {
+      recursiveRetrieve(req, levels, ++index, dataMap, callback)
+    }
+  });
 };
 
 const getParams = (req, level) =>  {
