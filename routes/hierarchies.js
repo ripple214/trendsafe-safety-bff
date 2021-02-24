@@ -82,6 +82,7 @@ router.get('/', function(req, res, next) {
           }
 
           // make sure skipped levels are added as children as well
+          // TODO
           var ancestor = entity.parents;
           for(var i=parents.length; i>0; i--) {
             var currentParentId = parents[i-1];
@@ -129,6 +130,9 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
 
     ddb.query(getParams(req, level), function(response) {
       if (response.data) {
+        response.data.sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
         dataMap[level] = response.data;
       } else {
         dataMap[level] = [];
@@ -164,6 +168,178 @@ const getParams = (req, level) =>  {
   };
 
   return params;
+};
+
+/* POST insert division. */
+router.post('/divisions', function(req, res) {
+  insertHierarchy(DIVISION, req.body.name, "", req, res);
+});
+
+/* PUT update division. */
+router.put('/divisions/:hierarchyId', function(req, res) {
+  updateHierarchy(DIVISION, req, res);
+});
+
+/* DELETE delete division. */
+router.delete('/divisions/:hierarchyId', function(req, res) {
+  deleteHierarchy(DIVISION, req, res);
+});
+
+/* POST insert project. */
+router.post('/projects', function(req, res) {
+  insertHierarchy(PROJECT, req.body.name, req.body.parents, req, res);
+});
+
+/* PUT update project. */
+router.put('/projects/:hierarchyId', function(req, res) {
+  updateHierarchy(PROJECT, req, res);
+});
+
+/* DELETE delete project. */
+router.delete('/projects/:hierarchyId', function(req, res) {
+  deleteHierarchy(PROJECT, req, res);
+});
+
+/* POST insert site. */
+router.post('/sites', function(req, res) {
+  insertHierarchy(SITE, req.body.name, req.body.parents, req, res);
+});
+
+/* PUT update site. */
+router.put('/sites/:hierarchyId', function(req, res) {
+  updateHierarchy(SITE, req, res);
+});
+
+/* DELETE delete site. */
+router.delete('/sites/:hierarchyId', function(req, res) {
+  deleteHierarchy(SITE, req, res);
+});
+
+/* POST insert subsite. */
+router.post('/subsites', function(req, res) {
+  insertHierarchy(SUBSITE, req.body.name, req.body.parents, req, res);
+});
+
+/* PUT update subsite. */
+router.put('/subsites/:hierarchyId', function(req, res) {
+  updateHierarchy(SUBSITE, req, res);
+});
+
+/* DELETE delete subsite. */
+router.delete('/subsites/:hierarchyId', function(req, res) {
+  deleteHierarchy(SUBSITE, req, res);
+});
+
+/* POST insert department. */
+router.post('/departments', function(req, res) {
+  insertHierarchy(DEPARTMENT, req.body.name, req.body.parents, req, res);
+});
+
+/* PUT update department. */
+router.put('/departments/:hierarchyId', function(req, res) {
+  updateHierarchy(DEPARTMENT, req, res);
+});
+
+/* DELETE delete department. */
+router.delete('/departments/:hierarchyId', function(req, res) {
+  deleteHierarchy(DEPARTMENT, req, res);
+});
+
+const insertHierarchy = (level, name, parents, req, res) => {
+  let clientId = req.user.clientId;
+  let createTime = moment().format();
+  let id = uuid.v4();
+
+  var params = {
+    TableName: tableName,
+    Item: {
+      "partition_key": clientId + DELIMITER + level,
+      "sort_key": id,
+      "id": id,
+      "name": name,
+      "parents": parents,
+      "created_ts": createTime, 
+      "created_by": req.user.emailAddress,
+      "updated_ts": createTime,
+      "updated_by": req.user.emailAddress
+    }
+  };
+
+  ddb.insert(params, function(response) {
+    if (response.data) {
+      var resp = response.data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
+}
+
+const updateHierarchy = (level, req, res) => {
+  let clientId = req.user.clientId;
+  let hierarchyId = req.params.hierarchyId;
+
+  var params = {
+    TableName: tableName,
+    Key: {
+      "partition_key": clientId + DELIMITER + level,
+      "sort_key": hierarchyId,
+    },
+    UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
+    ExpressionAttributeNames:{
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":name": req.body.name,
+      ":updated_ts": moment().format(),
+      ":updated_by": req.user.emailAddress,
+    },
+    ReturnValues:"ALL_NEW"
+  };
+
+  ddb.update(params, function(response) {
+    
+    if (response.data) {
+      var resp = response.data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
+}
+
+/* DELETE delete hierarchy. */
+// TODO check if there are assessments. Also delete children
+const deleteHierarchy = (level, req, res) => {
+  let clientId = req.user.clientId;
+  let hierarchyId = req.params.hierarchyId;
+
+  var params = {
+    TableName: tableName,
+    Key: {
+      "partition_key": clientId + DELIMITER + level,
+      "sort_key": hierarchyId,
+    },
+  };
+
+  ddb.delete(params, function(response) {
+    console.log("response", response);
+    if (!response.error) {
+      res.status(204);
+      res.json();
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
 };
 
 /* GET divisions listing. */
@@ -264,105 +440,6 @@ router.get('/departments', function(req, res, next) {
       var resp = {"departments": response.data};
       res.status(200);
       res.json(resp);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
-
-
-/* PUT update hierarchy. */
-router.put('/:hierarchyId', function(req, res, next) {
-  let clientId = req.user.clientId;
-  let hierarchyId = req.params.hierarchyId;
-
-  var params = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId,
-      "sort_key": hierarchyId,
-    },
-    UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
-    ExpressionAttributeNames:{
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":name": req.body.name,
-      ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
-    },
-    ReturnValues:"ALL_NEW"
-  };
-
-  ddb.update(params, function(response) {
-    
-    if (response.data) {
-      var resp = response.data;
-      delete resp['partition_key'];
-      delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
-
-/* POST insert hierarchy. */
-router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
-  let createTime = moment().format();
-  let id = uuid.v4();
-
-  var params = {
-    TableName: tableName,
-    Item: {
-      "partition_key": clientId,
-      "sort_key": id,
-      "id": id,
-      "name": req.body.name,
-      "sort_num": req.body.sort_num,
-      "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
-      "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
-    }
-  };
-
-  ddb.insert(params, function(response) {
-    if (response.data) {
-      var resp = response.data;
-      delete resp['partition_key'];
-      delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
-
-/* DELETE delete hierarchy. */
-router.delete('/:hierarchyId', function(req, res) {
-  let clientId = req.user.clientId;
-  let hierarchyId = req.params.hierarchyId;
-
-  var params = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId,
-      "sort_key": hierarchyId,
-    },
-  };
-
-  ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
     } else {
       res.status(400);
       res.json(response);
