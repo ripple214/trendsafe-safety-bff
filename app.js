@@ -13,7 +13,11 @@ var nocache = require('nocache');
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
 var kvpsRouter = require('./routes/kvps');
-var hierarchiessRouter = require('./routes/hierarchies');
+var hierarchiesRouter = require('./routes/hierarchies');
+var locationAreasRouter = require('./routes/location-areas');
+var equipmentsRouter = require('./routes/equipments');
+var tasksRouter = require('./routes/tasks');
+var sourcesRouter = require('./routes/sources');
 var modulesRouter = require('./routes/modules');
 var risksRouter = require('./routes/risks');
 var rulesRouter = require('./routes/rules');
@@ -114,7 +118,11 @@ app.use(function(req, res, next) {
 });
 
 app.use('/kvps', kvpsRouter);
-app.use('/hierarchies', hierarchiessRouter);
+app.use('/hierarchies', hierarchiesRouter);
+app.use('/location-areas', locationAreasRouter);
+app.use('/equipments', equipmentsRouter);
+app.use('/tasks', tasksRouter);
+app.use('/sources', sourcesRouter);
 app.use('/modules', modulesRouter);
 app.use('/risks', risksRouter);
 app.use('/rules', rulesRouter);

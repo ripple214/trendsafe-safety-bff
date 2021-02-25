@@ -2,6 +2,10 @@
     "BFF_URL": "http://nonprod-trendsafe-bff-263369121.ap-southeast-2.elb.amazonaws.com",
     "TABLE_KVPS": "KVPS",
     "TABLE_HIERARCHIES": "HIERARCHIES",
+    "TABLE_LOCATION_AREAS": "LOCATION_AREAS",
+    "TABLE_EQUIPMENTS": "EQUIPMENTS",
+    "TABLE_TASKS": "TASKS",
+    "TABLE_SOURCES": "SOURCES",
     "TABLES_MODULES": "MODULES",
     "TABLE_RISKS": "RISKS",
     "TABLE_RULES": "RULES"
