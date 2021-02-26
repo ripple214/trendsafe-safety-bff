@@ -12,18 +12,17 @@ var DELIMITER = "$";
 /* GET sources listing. */
 router.get('/', function(req, res) {
   let clientId = req.user.clientId;
-  let siteId = req.query.siteId;
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, site_name, parent',
+    ProjectionExpression: 'id, #name',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + siteId
+      ":clientId": clientId
     },
   };
 
@@ -48,11 +47,10 @@ router.get('/', function(req, res) {
 router.get('/:sourceId', function(req, res) {
   let clientId = req.user.clientId;
   let sourceId = req.params.sourceId;
-  let siteId = req.query.siteId;
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, site_name, parent',
+    ProjectionExpression: 'id, #name',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :sourceId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -60,7 +58,7 @@ router.get('/:sourceId', function(req, res) {
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + siteId,
+      ":clientId": clientId,
       ":sourceId": sourceId
     },
   };
@@ -85,21 +83,17 @@ router.get('/:sourceId', function(req, res) {
 /* POST insert source. */
 router.post('/', function(req, res) {
   let clientId = req.user.clientId;
-  let siteId = req.body.siteId;
   let createTime = moment().format();
   let id = uuid.v4();
   let name = req.body.name;
-  let site_name = "";
 
   var params = {
     TableName: tableName,
     Item: {
-      "partition_key": clientId + DELIMITER + siteId,
+      "partition_key": clientId,
       "sort_key": id,
       "id": id,
       "name": name,
-      "site_name": site_name, 
-      "parent": siteId,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
       "updated_ts": createTime,
@@ -125,13 +119,12 @@ router.post('/', function(req, res) {
 router.put('/:id', function(req, res) {
   let clientId = req.user.clientId;
   let id = req.params.id;
-  let siteId = req.query.siteId;
   let name = req.body.name;
 
   var params = {
     TableName: tableName,
     Key: {
-      "partition_key": clientId + DELIMITER + siteId,
+      "partition_key": clientId,
       "sort_key": id,
     },
     UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
@@ -165,12 +158,11 @@ router.put('/:id', function(req, res) {
 router.delete('/:id', function(req, res) {
   let clientId = req.user.clientId;
   let id = req.params.id;
-  let siteId = req.query.siteId;
 
   var params = {
     TableName: tableName,
     Key: {
-      "partition_key": clientId + DELIMITER + siteId,
+      "partition_key": clientId,
       "sort_key": id,
     },
   };
