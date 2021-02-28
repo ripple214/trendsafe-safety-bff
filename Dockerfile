@@ -17,5 +17,5 @@ COPY . .
 
 #EXPOSE 8080
 #EXPOSE 3000
-ENV NODE_ENV production
+ENV NODE_ENV staging
 CMD [ "node", "app.js" ]
