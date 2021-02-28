@@ -99,8 +99,8 @@ app.use('/auth', authRouter);
 // jwt validator
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
 const authenticateJWT = (req, res, next) => {
-  console.log("Get modules", req, '-', req.user, '-');
   console.log("tableName", conf.get('TABLE_MODULES'));
+  console.log("Get modules", '-', req.user, '-');
 
   const authorization = getAppCookies(req, res)['Authorization'];
   console.log("authorization", authorization);
@@ -131,6 +131,7 @@ const authenticateJWT = (req, res, next) => {
 // returns an object with the cookies' name as keys
 const getAppCookies = (req) => {
   const cookies = req.headers.cookie || "";
+  console.log("rigs cookies", cookies);
   const rawCookies = cookies.split('; ');
 
   const parsedCookies = {};
