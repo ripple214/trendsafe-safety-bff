@@ -99,8 +99,11 @@ app.use('/auth', authRouter);
 // jwt validator
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
 const authenticateJWT = (req, res, next) => {
+  console.log("Get modules", req, '-', req.user, '-');
+  console.log("tableName", conf.get('TABLE_MODULES'));
+
   const authorization = getAppCookies(req, res)['Authorization'];
-  //console.log("authorization", authorization);
+  console.log("authorization", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
           if (err) {
