@@ -17,4 +17,5 @@ COPY . .
 
 #EXPOSE 8080
 #EXPOSE 3000
-CMD [ "NODE_ENV=production", "node", "app.js" ]
+ENV NODE_ENV production
+CMD [ "node", "app.js" ]
