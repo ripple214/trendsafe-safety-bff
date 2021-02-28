@@ -16,14 +16,16 @@ router.get('/', function(req, res) {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, site_name, parent',
-    KeyConditionExpression: '#partition_key = :clientId',
+    ProjectionExpression: 'id, #name, parent',
+    KeyConditionExpression: '#partition_key = :clientId and begins_with(#sort_key, :siteId)',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
+      "#sort_key": "sort_key",
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + siteId
+      ":clientId": clientId,
+      ":siteId": siteId + DELIMITER
     },
   };
 
@@ -46,24 +48,7 @@ router.get('/', function(req, res) {
 
 /* GET equipment. */
 router.get('/:equipmentId', function(req, res) {
-  let clientId = req.user.clientId;
-  let equipmentId = req.params.equipmentId;
-  let siteId = req.query.siteId;
-  
-  var params = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, site_name, parent',
-    KeyConditionExpression: '#partition_key = :clientId and #sort_key = :equipmentId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#sort_key": "sort_key",
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + siteId,
-      ":equipmentId": equipmentId
-    },
-  };
+  var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
     
@@ -82,6 +67,30 @@ router.get('/:equipmentId', function(req, res) {
   });
 });
 
+const getQueryParams = (req) => {
+  let clientId = req.user.clientId;
+  let equipmentId = req.params.equipmentId;
+  
+  var params = {
+    TableName: tableName,
+    IndexName: "IdIndex",
+    ProjectionExpression: 'id, #name, parent',
+    KeyConditionExpression: '#partition_key = :clientId and #id = :equipmentId',
+    ExpressionAttributeNames:{
+      "#partition_key": "partition_key",
+      "#id": "id",
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":clientId": clientId,
+      ":equipmentId": equipmentId
+    },
+  };
+
+  return params;
+}
+
+
 /* POST insert equipment. */
 router.post('/', function(req, res) {
   let clientId = req.user.clientId;
@@ -89,16 +98,14 @@ router.post('/', function(req, res) {
   let createTime = moment().format();
   let id = uuid.v4();
   let name = req.body.name;
-  let site_name = "";
 
   var params = {
     TableName: tableName,
     Item: {
-      "partition_key": clientId + DELIMITER + siteId,
-      "sort_key": id,
+      "partition_key": clientId,
+      "sort_key": siteId + DELIMITER + id,
       "id": id,
       "name": name,
-      "site_name": site_name, 
       "parent": siteId,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
@@ -122,68 +129,106 @@ router.post('/', function(req, res) {
 });
 
 /* PUT update equipment. */
-router.put('/:id', function(req, res) {
-  let clientId = req.user.clientId;
-  let id = req.params.id;
-  let siteId = req.query.siteId;
-  let name = req.body.name;
+router.put('/:equipmentId', function(req, res) {
+  var queryParams = getQueryParams(req);
 
-  var params = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId + DELIMITER + siteId,
-      "sort_key": id,
-    },
-    UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
-    ExpressionAttributeNames:{
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":name": name,
-      ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
-    },
-    ReturnValues:"ALL_NEW"
-  };
-
-  ddb.update(params, function(response) {
+  let siteId = undefined;
+  var synCaller = new Promise((resolveCall, rejectCall) => {
+    ddb.query(queryParams, function(response) {
     
-    if (response.data) {
-      var resp = response.data;
-      delete resp['partition_key'];
-      delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
+      if (response.data && response.data.length == 1) {
+        var equipment = response.data[0];
+        siteId = equipment.parent;
+        resolveCall();
+      } else {
+        res.status(404);
+        res.json();
+        rejectCall();
+      }
+    });
+  });
+
+  synCaller.then(() => {
+    let clientId = req.user.clientId;
+    let equipmentId = req.params.equipmentId;
+    let name = req.body.name;
+  
+    var updateParams = {
+      TableName: tableName,
+      Key: {
+        "partition_key": clientId,
+        "sort_key": siteId + DELIMITER + equipmentId,
+      },
+      UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
+      ExpressionAttributeNames:{
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":name": name,
+        ":updated_ts": moment().format(),
+        ":updated_by": req.user.emailAddress,
+      },
+      ReturnValues:"ALL_NEW"
+    };
+  
+    ddb.update(updateParams, function(response) {
+      
+      if (response.data) {
+        var resp = response.data;
+        delete resp['partition_key'];
+        delete resp['sort_key'];
+        res.status(200);
+        res.json(resp);
+      } else {
+        res.status(400);
+        res.json(response);
+      }
+    });
   });
 });
 
 /* DELETE delete equipment. */
-router.delete('/:id', function(req, res) {
-  let clientId = req.user.clientId;
-  let id = req.params.id;
-  let siteId = req.query.siteId;
+router.delete('/:equipmentId', function(req, res) {
+  var queryParams = getQueryParams(req);
+  
+  let siteId = undefined;
+  var synCaller = new Promise((resolveCall, rejectCall) => {
+    ddb.query(queryParams, function(response) {
+    
+      if (response.data && response.data.length == 1) {
+        var equipment = response.data[0];
+        siteId = equipment.parent;
+        resolveCall();
+      } else {
+        res.status(404);
+        res.json();
+        rejectCall();
+      }
+    });
+  });
 
-  var params = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId + DELIMITER + siteId,
-      "sort_key": id,
-    },
-  };
+  synCaller.then(() => {
+    let clientId = req.user.clientId;
+    let equipmentId = req.params.equipmentId;
 
-  ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
-    } else {
-      res.status(400);
-      res.json(response);
-    }
+    var deleteParams = {
+      TableName: tableName,
+      Key: {
+        "partition_key": clientId,
+        "sort_key": siteId + DELIMITER + equipmentId,
+      },
+    };
+
+    ddb.delete(deleteParams, function(response) {
+      console.log("response", response);
+      if (!response.error) {
+        res.status(204);
+        res.json();
+      } else {
+        res.status(400);
+        res.json(response);
+      }
+    });
   });
 });
 
