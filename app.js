@@ -119,7 +119,7 @@ const authenticateJWT = (req, res, next) => {
             module: user.module
           };
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=None; Secure=true;');
 
           next();
       });
