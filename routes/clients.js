@@ -1,180 +1,195 @@
 var express = require('express');
-var uuid = require('uuid');
 var router = express.Router();
+var conf = require('config'); 
+var uuid = require('uuid');
+var moment = require('moment');
 
-// temp values
-var clients = [
-  {
-    clientId: "1",
-    clientName: "Anglo Coal",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 10,
-    licenseMax: 20
-  },
-  {
-    clientId: "2",
-    clientName: "BHPB",
-    clientLastName: "Tony",
-    clientFirstName: "Stark",
-    clientEmail: "tstark@got.com",
-    clientPassword: "Password1234",
-    clientPasswordRepeat: "Password1234",
-    licenseCount: 20,
-    licenseMax: 30
-  },
-  {
-    clientId: "3",
-    clientName: "Centennial Coal",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 12,
-    licenseMax: 15
-  },
-  {
-    clientId: "4",
-    clientName: "Contract Resources",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 30,
-    licenseMax: 50
-  },
-  {
-    clientId: "5",
-    clientName: "DAA",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 33,
-    licenseMax: 50
-  },
-  {
-    clientId: "6",
-    clientName: "Dana Petrolium",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 3,
-    licenseMax: 10
-  },
-  {
-    clientId: "7",
-    clientName: "Goldfields",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 21,
-    licenseMax: 30
-  },
-  {
-    clientId: "8",
-    clientName: "Iluka Resources",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 45,
-    licenseMax: 60
-  },
-  {
-    clientId: "9",
-    clientName: "John Holland",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 12,
-    licenseMax: 30
-  },
-  {
-    clientId: "10",
-    clientName: "Leighton Construction",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 34,
-    licenseMax: 50
-  },
-  {
-    clientId: "11",
-    clientName: "Leighton Contractors",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 10,
-    licenseMax: 30
-  },
-  {
-    clientId: "12",
-    clientName: "Minara Resources",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 89,
-    licenseMax: 100
-  },
-  {
-    clientId: "13",
-    clientName: "Railway Builders",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 55,
-    licenseMax: 60
-  },
-  {
-    clientId: "14",
-    clientName: "RECEO",
-    clientLastName: "",
-    clientFirstName: "",
-    clientEmail: "",
-    clientPassword: "",
-    clientPasswordRepeat: "",
-    licenseCount: 23,
-    licenseMax: 30
-  }
-];
+var ddb = require('./ddb');
 
-/* GET dashboard data. */
-router.get('/', function(req, res, next) {
-  var response = {
-    clients: clients
+var tableName = conf.get('TABLE_CLIENTS');
+
+/* GET clients listing. */
+router.get('/', function(req, res) {
+  let adminId = 'ALL';
+  
+  var params = {
+    TableName: tableName,
+    ProjectionExpression: 'id, #name, license_count, license_max',
+    KeyConditionExpression: '#partition_key = :adminId',
+    ExpressionAttributeNames:{
+      "#partition_key": "partition_key",
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":adminId": adminId
+    },
   };
 
-  res.json(response);
+  ddb.query(params, function(response) {
+    
+    if (response.data) {
+      response.data.sort(function (a, b) {
+        return a.name.localeCompare(b.name);
+      });
+
+      var resp = {"clients": response.data};
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
 });
 
-router.get("/:clientId", function(req, res, next) {
-  var response = {
-    client: clients.filter(function(x){return x.clientId==req.params.clientId})[0]
+/* GET client. */
+router.get('/:clientId', function(req, res) {
+  let adminId = 'ALL';
+  let clientId = req.params.clientId;
+  
+  var params = {
+    TableName: tableName,
+    ProjectionExpression: 'id, #name, first_name, last_name, email, license_count, license_max',
+    KeyConditionExpression: '#partition_key = :adminId and #sort_key = :clientId',
+    ExpressionAttributeNames:{
+      "#partition_key": "partition_key",
+      "#sort_key": "sort_key",
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":adminId": adminId,
+      ":clientId": clientId
+    },
   };
 
-  res.json(response);
+  ddb.query(params, function(response) {
+    
+    if (response.data && response.data.length == 1) {
+      response.data.sort(function (a, b) {
+        return a.name.localeCompare(b.name);
+      });
+
+      var resp = response.data[0];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(404);
+      res.json();
+    }
+  });
+});
+
+/* POST insert client. */
+router.post('/', function(req, res) {
+  let adminId = 'ALL';
+  let createTime = moment().format();
+  let id = uuid.v4();
+  let name = req.body.name;
+  let first_name = req.body.first_name;
+  let last_name = req.body.last_name;
+  let email = req.body.email;
+
+  var params = {
+    TableName: tableName,
+    Item: {
+      "partition_key": adminId,
+      "sort_key": id,
+      "id": id,
+      "name": name,
+      "first_name": first_name,
+      "last_name": last_name,
+      "email": email,
+      "license_count": 0,
+      "license_max": 20,
+      "created_ts": createTime, 
+      "created_by": req.user.emailAddress,
+      "updated_ts": createTime,
+      "updated_by": req.user.emailAddress
+    }
+  };
+
+  ddb.insert(params, function(response) {
+    if (response.data) {
+      var resp = response.data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
+});
+
+/* PUT update client. */
+router.put('/:id', function(req, res) {
+  let adminId = 'ALL';
+  let id = req.params.id;
+  let name = req.body.name;
+  let first_name = req.body.first_name;
+  let last_name = req.body.last_name;
+  let email = req.body.email;
+
+  var params = {
+    TableName: tableName,
+    Key: {
+      "partition_key": adminId,
+      "sort_key": id,
+    },
+    UpdateExpression: 'set #name = :name, first_name = :first_name, last_name = :last_name, email = :email, updated_ts = :updated_ts, updated_by = :updated_by',
+    ExpressionAttributeNames:{
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":name": name,
+      ":first_name": first_name,
+      ":last_name": last_name,
+      ":email": email,
+      ":updated_ts": moment().format(),
+      ":updated_by": req.user.emailAddress,
+    },
+    ReturnValues:"ALL_NEW"
+  };
+
+  ddb.update(params, function(response) {
+    
+    if (response.data) {
+      var resp = response.data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
+});
+
+/* DELETE delete client. */
+router.delete('/:id', function(req, res) {
+  let adminId = 'ALL';
+  let id = req.params.id;
+
+  var params = {
+    TableName: tableName,
+    Key: {
+      "partition_key": adminId,
+      "sort_key": id,
+    },
+  };
+
+  ddb.delete(params, function(response) {
+    console.log("response", response);
+    if (!response.error) {
+      res.status(204);
+      res.json();
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
 });
 
 module.exports = router;

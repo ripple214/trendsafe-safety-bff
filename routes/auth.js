@@ -4,7 +4,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 
 router.post("/login", (req, res, next) => {  
-  if(req.body.email == 'admin' && req.body.password == 'Singapore') {
+  if(req.body.email == 'admin' && req.body.password == 'Singapore1') {
     var response = {
       sessionId: uuid.v4(),
       emailAddress: req.body.email,
@@ -16,7 +16,7 @@ router.post("/login", (req, res, next) => {
     res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
 
     res.json(response);
-  } else if(req.body.email == 'client' && req.body.password == 'Singapore') {
+  } else if(req.body.email == 'client' && req.body.password == 'Singapore1') {
     var response = {
       sessionId: uuid.v4(),
       clientId: "dummy-client",

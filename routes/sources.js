@@ -7,7 +7,6 @@ var moment = require('moment');
 var ddb = require('./ddb');
 
 var tableName = conf.get('TABLE_SOURCES');
-var DELIMITER = "$";
 
 /* GET sources listing. */
 router.get('/', function(req, res) {
