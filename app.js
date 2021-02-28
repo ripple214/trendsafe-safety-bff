@@ -49,8 +49,10 @@ app.use((req, res, next) => {
 })
 
 console.log("BFF_URL", conf.get('BFF_URL'));
+console.log("APP_URL", conf.get('APP_URL'));
 
 var originsWhitelist = [
+  conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
 var corsOptions = {
@@ -73,7 +75,7 @@ app.all('/*', (req, res, next) => {
 app.use(function (req, res, next) {
 
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', conf.get('BFF_URL'));
+  res.setHeader('Access-Control-Allow-Origin', conf.get('APP_URL'));
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
