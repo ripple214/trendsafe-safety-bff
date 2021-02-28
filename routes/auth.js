@@ -13,7 +13,8 @@ router.post("/login", (req, res, next) => {
 
     // Generate an access token
     let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-    res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/;SameSite=None; Secure=true;');
+    //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/;SameSite=None; Secure=true;');
+    res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';');
 
     res.json(response);
   } else if(req.body.email == 'client' && req.body.password == 'Singapore1') {
@@ -26,7 +27,8 @@ router.post("/login", (req, res, next) => {
   
     // Generate an access token
     let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-    res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/;SameSite=None; Secure=true;');
+    //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/;SameSite=None; Secure=true;');
+    res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';');
 
     res.json(response);
   } else {
