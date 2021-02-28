@@ -55,11 +55,16 @@ var originsWhitelist = [
   conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
+
 var corsOptions = {
   origin: function(origin, callback){
         var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
         callback(null, isWhitelisted);
   },
+  methods: "GET,POST,OPTIONS,PUT,DELETE",
+  allowedHeaders: "Content-Type,Authorization,Set-Cookie",
+  preflightContinue: true,
+  optionsSuccessStatus: 200,
   credentials:true
 }
 
@@ -72,38 +77,17 @@ app.all('/*', (req, res, next) => {
   next();
 });
 
-// Add headers
-app.use(function (req, res, next) {
-
-  // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', conf.get('APP_URL'));
-
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // Pass to next layer of middleware
-  next();
-});
-
-
 app.use('/', indexRouter);
 app.use('/auth', authRouter);
 
 // jwt validator
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
 const authenticateJWT = (req, res, next) => {
-  console.log("tableName", conf.get('TABLE_MODULES'));
-  console.log("Get modules", '-', req.user, '-');
 
+  req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
+
+  /*
   const authorization = getAppCookies(req, res)['Authorization'];
-  console.log("authorization", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
           if (err) {
@@ -119,14 +103,14 @@ const authenticateJWT = (req, res, next) => {
             module: user.module
           };
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-          //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=None; Secure=true;');
-          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';');
-
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=None; Secure;');
+          
           next();
       });
   } else {
       res.sendStatus(401);
   }
+  */
 };
 
 // returns an object with the cookies' name as keys
