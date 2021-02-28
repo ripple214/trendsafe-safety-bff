@@ -53,10 +53,6 @@ router.get('/:taskId', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
       var resp = response.data[0];
       res.status(200);
       res.json(resp);

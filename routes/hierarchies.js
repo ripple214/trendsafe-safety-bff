@@ -14,14 +14,13 @@ var SITE = "SITE";
 var SUBSITE = "SUBSITE";
 var DEPARTMENT = "DEPARTMENT";
 
-//var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE, DEPARTMENT];
-var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE];
+var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE, DEPARTMENT];
 var LEVEL_DESCRIPTIONS = {
   DIVISION: "divisions", 
   PROJECT: "projects", 
   SITE: "sites", 
   SUBSITE: "subsites",
-  DEPARTMENTS: "departments"
+  DEPARTMENT: "departments"
 };
 
 /* GET hierarchies listing. */
