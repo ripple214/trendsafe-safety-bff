@@ -9,6 +9,7 @@ var tableName = conf.get('TABLE_MODULES');
 
 /* GET modules listing. */
 router.get('/', function(req, res, next) {
+  console.log("Get modules", req, '-', req.user, '-');
   let clientId = req.user.clientId;
 
   var params = {
