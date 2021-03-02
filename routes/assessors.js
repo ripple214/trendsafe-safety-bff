@@ -6,10 +6,10 @@ var moment = require('moment');
 
 var ddb = require('./ddb');
 
-var tableName = conf.get('TABLE_TASKS');
+var tableName = conf.get('TABLE_ASSESSORS');
 var DELIMITER = "$";
 
-/* GET tasks listing. */
+/* GET assessors listing. */
 router.get('/', function(req, res) {
   let clientId = req.user.clientId;
   let siteId = req.query.siteId;
@@ -41,7 +41,7 @@ router.get('/', function(req, res) {
         return a.name.localeCompare(b.name);
       });
 
-      var resp = {"tasks": response.data};
+      var resp = {"assessors": response.data};
       res.status(200);
       res.json(resp);
     } else {
@@ -51,8 +51,8 @@ router.get('/', function(req, res) {
   });
 });
 
-/* GET task. */
-router.get('/:taskId', function(req, res) {
+/* GET assessor. */
+router.get('/:assessorId', function(req, res) {
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -70,13 +70,13 @@ router.get('/:taskId', function(req, res) {
 
 const getQueryParams = (req) => {
   let clientId = req.user.clientId;
-  let taskId = req.params.taskId;
+  let assessorId = req.params.assessorId;
   
   var params = {
     TableName: tableName,
     IndexName: "IdIndex",
     ProjectionExpression: 'id, #name, parent',
-    KeyConditionExpression: '#partition_key = :clientId and #id = :taskId',
+    KeyConditionExpression: '#partition_key = :clientId and #id = :assessorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#id": "id",
@@ -84,7 +84,7 @@ const getQueryParams = (req) => {
     },
     ExpressionAttributeValues: {
       ":clientId": clientId,
-      ":taskId": taskId
+      ":assessorId": assessorId
     },
   };
 
@@ -92,7 +92,7 @@ const getQueryParams = (req) => {
 }
 
 
-/* POST insert task. */
+/* POST insert assessor. */
 router.post('/', function(req, res) {
   let clientId = req.user.clientId;
   let siteId = req.body.siteId;
@@ -129,8 +129,8 @@ router.post('/', function(req, res) {
   });
 });
 
-/* PUT update task. */
-router.put('/:taskId', function(req, res) {
+/* PUT update assessor. */
+router.put('/:assessorId', function(req, res) {
   var queryParams = getQueryParams(req);
 
   let siteId = undefined;
@@ -138,8 +138,8 @@ router.put('/:taskId', function(req, res) {
     ddb.query(queryParams, function(response) {
     
       if (response.data && response.data.length == 1) {
-        var task = response.data[0];
-        siteId = task.parent;
+        var assessor = response.data[0];
+        siteId = assessor.parent;
         resolveCall();
       } else {
         res.status(404);
@@ -151,14 +151,14 @@ router.put('/:taskId', function(req, res) {
 
   synCaller.then(() => {
     let clientId = req.user.clientId;
-    let taskId = req.params.taskId;
+    let assessorId = req.params.assessorId;
     let name = req.body.name;
   
     var updateParams = {
       TableName: tableName,
       Key: {
         "partition_key": clientId,
-        "sort_key": siteId + DELIMITER + taskId,
+        "sort_key": siteId + DELIMITER + assessorId,
       },
       UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
       ExpressionAttributeNames:{
@@ -188,8 +188,8 @@ router.put('/:taskId', function(req, res) {
   });
 });
 
-/* DELETE delete task. */
-router.delete('/:taskId', function(req, res) {
+/* DELETE delete assessor. */
+router.delete('/:assessorId', function(req, res) {
   var queryParams = getQueryParams(req);
   
   let siteId = undefined;
@@ -197,8 +197,8 @@ router.delete('/:taskId', function(req, res) {
     ddb.query(queryParams, function(response) {
     
       if (response.data && response.data.length == 1) {
-        var task = response.data[0];
-        siteId = task.parent;
+        var assessor = response.data[0];
+        siteId = assessor.parent;
         resolveCall();
       } else {
         res.status(404);
@@ -210,13 +210,13 @@ router.delete('/:taskId', function(req, res) {
 
   synCaller.then(() => {
     let clientId = req.user.clientId;
-    let taskId = req.params.taskId;
+    let assessorId = req.params.assessorId;
 
     var deleteParams = {
       TableName: tableName,
       Key: {
         "partition_key": clientId,
-        "sort_key": siteId + DELIMITER + taskId,
+        "sort_key": siteId + DELIMITER + assessorId,
       },
     };
 

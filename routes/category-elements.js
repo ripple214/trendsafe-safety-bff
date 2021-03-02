@@ -6,25 +6,25 @@ var moment = require('moment');
 
 var ddb = require('./ddb');
 
-var tableName = conf.get('TABLE_LOCATION_AREAS');
+var tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
 var DELIMITER = "$";
-var LOCATION = "LOCATION";
-var AREA = "AREA";
+var CATEGORY = "CATEGORY";
+var ELEMENT = "ELEMENT";
 
-var LEVELS = [LOCATION, AREA];
+var LEVELS = [CATEGORY, ELEMENT];
 var LEVEL_DESCRIPTIONS = {
-  LOCATION: "locations", 
-  AREA: "areas"
+  CATEGORY: "categories", 
+  ELEMENT: "elements"
 };
 
-/* GET location-area listing. */
+/* GET category-element listing. */
 router.get('/', function(req, res, next) {
 
   retrieve(req, LEVELS, (dataMap) => {
-    var locations = [];
+    var categories = [];
 
     var allMap = {};
-    var parentsMap = undefined;
+    var parentMap = undefined;
   
     LEVELS.forEach((level, index) => {
       var objectMap = {};
@@ -34,33 +34,33 @@ router.get('/', function(req, res, next) {
       dataMap[level].forEach((entity) => {
 
         objectMap[entity.id] = entity;
-        if(level == LOCATION) {
-          locations.push(entity);
+        if(level == CATEGORY) {
+          categories.push(entity);
 
         } else {
-          var parentsId = undefined;
+          var parentId = undefined;
 
-          if(parentsMap != undefined) {
+          if(parentMap != undefined) {
   
-            var parentsArray = entity.parents.split(DELIMITER);
-            var parentsId = parentsArray[parentsArray.length-1];
-            var parents = parentsMap[parentsId];
-            if(parents == undefined) {
-              parents = allMap[parentsId];
+            var parentArray = entity.parent.split(DELIMITER);
+            var parentId = parentArray[parentArray.length-1];
+            var parent = parentMap[parentId];
+            if(parent == undefined) {
+              parent = allMap[parentId];
             }
-            var children = parents[levelDescription];
+            var children = parent[levelDescription];
             if(children == undefined) {
               children = []
-              parents[levelDescription] = children;
+              parent[levelDescription] = children;
             }
             children.push(entity);
           }
         }
       });
-      parentsMap = objectMap;
+      parentMap = objectMap;
     });
 
-    var resp = { "locations": locations };
+    var resp = { "categories": categories };
     res.status(200);
     res.json(resp);
   });
@@ -78,7 +78,7 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
     ddb.query(getListParams(req, level), function(response) {
       if (response.data) {
         response.data.sort(function (a, b) {
-          return a.name.localeCompare(b.name);
+          return a.sort_num - b.sort_num;
         });
         dataMap[level] = response.data;
       } else {
@@ -98,9 +98,9 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
   });
 };
 
-/* GET locations listing. */
-router.get('/locations', function(req, res) {
-  var params = getListParams(req, LOCATION);
+/* GET categories listing. */
+router.get('/categories', function(req, res) {
+  var params = getListParams(req, CATEGORY);
 
   ddb.query(params, function(response) {
     
@@ -109,7 +109,7 @@ router.get('/locations', function(req, res) {
         return a.name.localeCompare(b.name);
       });
 
-      var resp = {"locations": response.data};
+      var resp = {"categories": response.data};
       res.status(200);
       res.json(resp);
     } else {
@@ -119,9 +119,9 @@ router.get('/locations', function(req, res) {
   });
 });
 
-/* GET areas listing. */
-router.get('/areas', function(req, res) {
-  var params = getListParams(req, AREA);
+/* GET elements listing. */
+router.get('/elements', function(req, res) {
+  var params = getListParams(req, ELEMENT);
 
   ddb.query(params, function(response) {
     
@@ -130,7 +130,7 @@ router.get('/areas', function(req, res) {
         return a.name.localeCompare(b.name);
       });
 
-      var resp = {"areas": response.data};
+      var resp = {"elements": response.data};
       res.status(200);
       res.json(resp);
     } else {
@@ -142,11 +142,11 @@ router.get('/areas', function(req, res) {
 
 const getListParams = (req, level) =>  {
   let clientId = req.user.clientId;
-  let siteId = req.query.siteId;
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, parents',
+    ProjectionExpression: 'id, #name, parent',
+    KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#name": "name",
@@ -156,20 +156,12 @@ const getListParams = (req, level) =>  {
     },
   };
 
-  if(siteId) {
-    params.KeyConditionExpression = '#partition_key = :clientId and begins_with(#sort_key, :siteId)';
-    params.ExpressionAttributeNames["#sort_key"] = "sort_key";
-    params.ExpressionAttributeValues[":siteId"] = siteId + DELIMITER;
-  } else {
-    params.KeyConditionExpression = '#partition_key = :clientId';
-  }
-
   return params;
 };
 
-/* GET location. */
-router.get('/locations/:id', function(req, res) {
-  var params = getQueryParams(req, LOCATION);
+/* GET category. */
+router.get('/categories/:id', function(req, res) {
+  var params = getQueryParams(req, CATEGORY);
 
   ddb.query(params, function(response) {
     
@@ -184,9 +176,9 @@ router.get('/locations/:id', function(req, res) {
   });
 });
 
-/* GET area. */
-router.get('/areas/:id', function(req, res) {
-  var params = getQueryParams(req, AREA);
+/* GET element. */
+router.get('/elements/:id', function(req, res) {
+  var params = getQueryParams(req, ELEMENT);
 
   ddb.query(params, function(response) {
     
@@ -201,41 +193,41 @@ router.get('/areas/:id', function(req, res) {
   });
 });
 
-/* POST insert location. */
-router.post('/locations', function(req, res) {
-  insertLocationArea(LOCATION, req, res);
+/* POST insert category. */
+router.post('/categories', function(req, res) {
+  insertCategoryElement(CATEGORY, req, res);
 });
 
-/* PUT update location. */
-router.put('/locations/:id', function(req, res) {
-  updateLocationArea(LOCATION, req, res);
+/* PUT update category. */
+router.put('/categories/:id', function(req, res) {
+  updateCategoryElement(CATEGORY, req, res);
 });
 
-/* DELETE delete location. */
-router.delete('/locations/:id', function(req, res) {
-  deleteLocationArea(LOCATION, req, res);
+/* DELETE delete category. */
+router.delete('/categories/:id', function(req, res) {
+  deleteCategoryElement(CATEGORY, req, res);
 });
 
-/* POST insert area. */
-router.post('/areas', function(req, res) {
-  insertLocationArea(AREA, req, res);
+/* POST insert element. */
+router.post('/elements', function(req, res) {
+  insertCategoryElement(ELEMENT, req, res);
 });
 
-/* PUT update area. */
-router.put('/areas/:id', function(req, res) {
-  updateLocationArea(AREA, req, res);
+/* PUT update element. */
+router.put('/elements/:id', function(req, res) {
+  updateCategoryElement(ELEMENT, req, res);
 });
 
-/* DELETE delete area. */
-router.delete('/areas/:id', function(req, res) {
-  deleteLocationArea(AREA, req, res);
+/* DELETE delete element. */
+router.delete('/elements/:id', function(req, res) {
+  deleteCategoryElement(ELEMENT, req, res);
 });
 
-const insertLocationArea = (level, req, res) => {
+const insertCategoryElement = (level, req, res) => {
   let clientId = req.user.clientId;
   let name = req.body.name;
-  let parents = req.body.parents;
-  let siteId = parents.split(DELIMITER)[0];
+  let parent = req.body.parent;
+  let siteId = parent.split(DELIMITER)[0];
   let createTime = moment().format();
   let id = uuid.v4();
 
@@ -246,7 +238,7 @@ const insertLocationArea = (level, req, res) => {
       "sort_key": siteId + DELIMITER + id,
       "id": id,
       "name": name,
-      "parents": parents,
+      "parent": parent,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
       "updated_ts": createTime,
@@ -268,7 +260,7 @@ const insertLocationArea = (level, req, res) => {
   });
 }
 
-const updateLocationArea = (level, req, res) => {
+const updateCategoryElement = (level, req, res) => {
   var queryParams = getQueryParams(req, level);
 
   let siteId = undefined;
@@ -276,9 +268,9 @@ const updateLocationArea = (level, req, res) => {
     ddb.query(queryParams, function(response) {
 
       if (response.data && response.data.length == 1) {
-        let locationArea = response.data[0];
-        let parents = locationArea.parents;
-        siteId = parents.split(DELIMITER)[0];
+        let categoryElement = response.data[0];
+        let parent = categoryElement.parent;
+        siteId = parent.split(DELIMITER)[0];
         resolveCall();
       } else {
         res.status(404);
@@ -333,7 +325,7 @@ const getQueryParams = (req, level) => {
   var params = {
     TableName: tableName,
     IndexName: "IdIndex",
-    ProjectionExpression: 'id, #name, parents',
+    ProjectionExpression: 'id, #name, parent',
     KeyConditionExpression: '#partition_key = :clientId and #id = :id',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -349,9 +341,9 @@ const getQueryParams = (req, level) => {
   return params;
 }
 
-/* DELETE delete location. */
+/* DELETE delete category. */
 // TODO check if there are assessments. Also delete children
-const deleteLocationArea = (level, req, res) => {
+const deleteCategoryElement = (level, req, res) => {
   var queryParams = getQueryParams(req, level);
 
   let siteId = undefined;
@@ -359,9 +351,9 @@ const deleteLocationArea = (level, req, res) => {
     ddb.query(queryParams, function(response) {
       console.log("sa delete", response);
       if (response.data && response.data.length == 1) {
-        let locationArea = response.data[0];
-        let parents = locationArea.parents;
-        siteId = parents.split(DELIMITER)[0];
+        let categoryElement = response.data[0];
+        let parent = categoryElement.parent;
+        siteId = parent.split(DELIMITER)[0];
         resolveCall();
       } else {
         res.status(404);

@@ -1,5 +1,5 @@
 {
-	"NONPROD_HIERARCHIES": [
+	"NONPROD_HIERARCHIES1": [
 		{"PutRequest": {"Item": {"partition_key": {"S": "dummy-client$DIVISION"},"sort_key": {"S": "division-1003"},"id": {"S": "division-1003"},"name": {"S": "Mining"}, "parents": {"S": ""}, "created_ts": {"S": ""}, "created_by": {"S": ""}, "updated_ts": {"S": ""}, "updated_by": {"S": ""}}}},
 		{"PutRequest": {"Item": {"partition_key": {"S": "dummy-client$DIVISION"},"sort_key": {"S": "division-1005"},"id": {"S": "division-1005"},"name": {"S": "Oil and Gas"}, "parents": {"S": ""}, "created_ts": {"S": ""}, "created_by": {"S": ""}, "updated_ts": {"S": ""}, "updated_by": {"S": ""}}}},
 		{"PutRequest": {"Item": {"partition_key": {"S": "dummy-client$DIVISION"},"sort_key": {"S": "division-1009"},"id": {"S": "division-1009"},"name": {"S": "Construction"}, "parents": {"S": ""}, "created_ts": {"S": ""}, "created_by": {"S": ""}, "updated_ts": {"S": ""}, "updated_by": {"S": ""}}}},

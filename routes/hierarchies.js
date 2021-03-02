@@ -152,19 +152,40 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
 
 const getParams = (req, level) =>  {
   let clientId = req.user.clientId;
+  let parent = req.query.parent;
 
-  var params = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, parents',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + level
-    },
-  };
+  var params = {};
+
+  if(parent) {
+    params = {
+      TableName: tableName,
+      IndexName: "IdIndex",
+      ProjectionExpression: 'id, #name, parents',
+      KeyConditionExpression: '#partition_key = :clientId and #parent = :parent',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#parent": "parent",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId + DELIMITER + level,
+        ":parent": parent
+      },
+    };  
+  } else {
+    params = {
+      TableName: tableName,
+      ProjectionExpression: 'id, #name, parents',
+      KeyConditionExpression: '#partition_key = :clientId',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId + DELIMITER + level
+      },
+    };
+  }
 
   return params;
 };

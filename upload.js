@@ -43,6 +43,22 @@ var batchWriteCounter = 0;
 var batchWriteSuccessCounter = 0;
 var batchWriteFailedCounter = 0;
 allRecords.every(function(putRequestItem, index) {
+	
+	//Add parent column
+	let item = putRequestItem.PutRequest.Item;
+	let id = item.id.S;
+	let parents = item.parents.S.split('$');
+	let parent = '';
+	if(parents.length == 4) {
+		parent = parents[parents.length-2];
+	} else {
+		parent = parents[parents.length-1]
+	}
+	if(parent == '') {
+		parent = '0';
+	}
+	item.parent = {'S': parent};
+
 	itemsArray.push(putRequestItem);
 	if(itemsArray.length == maxItemsSize || index == allRecords.length-1) {
 		if(itemsArray.length != maxItemsSize) {

@@ -23,7 +23,9 @@ var kpisRouter = require('./routes/kpis');
 var risksRouter = require('./routes/risks');
 var rulesRouter = require('./routes/rules');
 var usersRouter = require('./routes/users');
-var starRouter = require('./routes/star');
+var assessorsRouter = require('./routes/assessors');
+var categoryElementsRouter = require('./routes/category-elements');
+var assessmentsRouter = require('./routes/assessments');
 var wearRouter = require('./routes/wear');
 var hrcRouter = require('./routes/hrc');
 var clientsRouter = require('./routes/clients');
@@ -116,7 +118,6 @@ const authenticateJWT = (req, res, next) => {
 // returns an object with the cookies' name as keys
 const getAppCookies = (req) => {
   const cookies = req.headers.cookie || "";
-  console.log("rigs cookies", cookies);
   const rawCookies = cookies.split('; ');
 
   const parsedCookies = {};
@@ -144,7 +145,9 @@ app.use('/rules', rulesRouter);
 app.use('/users', usersRouter);
 app.use('/clients', clientsRouter);
 app.use('/weightings', weightingsRouter);
-app.use('/star', starRouter);
+app.use('/assessors', assessorsRouter);
+app.use('/category-elements', categoryElementsRouter);
+app.use('/assessments', assessmentsRouter);
 app.use('/wear', wearRouter);
 app.use('/hrc', hrcRouter);
 
