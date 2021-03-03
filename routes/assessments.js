@@ -15,7 +15,7 @@ router.get("/", (req, res, next) => {
         },
         risk_rating: {
           id: "1",
-          name: "MAJOR"
+          name: "MODERATE"
         },
         summary: "Fuel Farm - Kilwex - Installation of slab expansion joints"
       },
