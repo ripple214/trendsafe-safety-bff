@@ -26,6 +26,7 @@ var usersRouter = require('./routes/users');
 var assessorsRouter = require('./routes/assessors');
 var categoryElementsRouter = require('./routes/category-elements');
 var assessmentsRouter = require('./routes/assessments');
+var reportsRouter = require('./routes/reports');
 var wearRouter = require('./routes/wear');
 var hrcRouter = require('./routes/hrc');
 var clientsRouter = require('./routes/clients');
@@ -148,6 +149,7 @@ app.use('/weightings', weightingsRouter);
 app.use('/assessors', assessorsRouter);
 app.use('/category-elements', categoryElementsRouter);
 app.use('/assessments', assessmentsRouter);
+app.use('/reports', reportsRouter);
 app.use('/wear', wearRouter);
 app.use('/hrc', hrcRouter);
 
