@@ -28,6 +28,10 @@ router.get('/', function(req, res, next) {
   ddb.query(params, function(response) {
     
     if (response.data) {
+      response.data.sort(function (a, b) {
+        return b.completed_date.localeCompare(a.completed_date);
+      });
+
       var resp = {"assessments": response.data};
       res.status(200);
       res.json(resp);
@@ -88,12 +92,46 @@ router.put('/:assessmentId', function(req, res, next) {
       "partition_key": clientId,
       "sort_key": assessmentId,
     },
-    UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
+    UpdateExpression: 'set #name = :name, \
+      actions_taken = :actions_taken, \
+      key_findings = :key_findings, \
+      further_actions_required = :further_actions_required, \
+      completed_date = :completed_date, \
+      due_date = :due_date, \
+      summary = :summary, \
+      site_id = :site_id, \
+      department_id = :department_id, \
+      location_id = :location_id, \
+      task_id = :task_id, \
+      assessor = :assessor, \
+      person_responsible = :person_responsible, \
+      risk_rating = :risk_rating, \
+      element_compliance = :element_compliance, \
+      risk_compliance = :risk_compliance, \
+      rule_compliance = :rule_compliance, \
+      updated_ts = :updated_ts, \
+      updated_by = :updated_by',
     ExpressionAttributeNames:{
       "#name": "name",
     },
     ExpressionAttributeValues: {
       ":name": req.body.name,
+      ":actions_taken": req.body.actions_taken,
+      ":key_findings": req.body.key_findings,
+      ":further_actions_required": req.body.further_actions_required,
+      ":completed_date": req.body.completed_date,
+      ":due_date": req.body.due_date,
+      ":summary": req.body.summary,
+      ":site_id": req.body.site_id,
+      ":department_id": req.body.department_id,
+      ":location_id": req.body.location_id,
+      ":task_id": req.body.task_id,
+      ":assessor": req.body.assessor,
+      ":person_responsible": req.body.person_responsible,
+      ":risk_rating": req.body.risk_rating,
+      ":element_compliance": req.body.element_compliance,
+      ":risk_compliance": req.body.risk_compliance,
+      ":rule_compliance": req.body.rule_compliance,
       ":updated_ts": moment().format(),
       ":updated_by": req.user.emailAddress,
     },
@@ -120,6 +158,7 @@ router.post('/', function(req, res, next) {
   let clientId = req.user.clientId;
   let createTime = moment().format();
   let id = uuid.v4();
+  let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
 
   var params = {
     TableName: tableName,
@@ -127,8 +166,24 @@ router.post('/', function(req, res, next) {
       "partition_key": clientId,
       "sort_key": id,
       "id": id,
-      "name": req.body.name,
-      "sort_num": req.body.sort_num,
+      "name": name,
+      "actions_taken": req.body.actions_taken,
+      "key_findings": req.body.key_findings,
+      "further_actions_required": req.body.further_actions_required,
+      "completed_date": req.body.completed_date,
+      "due_date": req.body.due_date,
+      "summary": req.body.summary,
+      "site_id": req.body.site_id,
+      "department_id": req.body.department_id,
+      "location_id": req.body.location_id,
+      "task_id": req.body.task_id,
+      "assessor": req.body.assessor,
+      "person_responsible": req.body.person_responsible,
+      "risk_rating": req.body.risk_rating,
+      "element_compliance": req.body.element_compliance,
+      "risk_compliance": req.body.risk_compliance,
+      "rule_compliance": req.body.rule_compliance,
+      "sort_num": 1,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
       "updated_ts": createTime,
