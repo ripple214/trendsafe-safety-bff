@@ -61,7 +61,7 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, assessor, person_responsible, risk_rating, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, risk_rating, element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :assessmentId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
