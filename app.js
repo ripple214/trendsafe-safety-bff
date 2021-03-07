@@ -87,9 +87,8 @@ app.use('/auth', authRouter);
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
 const authenticateJWT = (req, res, next) => {
 
-  req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
+  //req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
-  /*
   const authorization = getAppCookies(req, res)['Authorization'];
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
@@ -106,14 +105,13 @@ const authenticateJWT = (req, res, next) => {
             module: user.module
           };
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=None; Secure;');
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Strict;');
           
           next();
       });
   } else {
       res.sendStatus(401);
   }
-  */
 };
 
 // returns an object with the cookies' name as keys

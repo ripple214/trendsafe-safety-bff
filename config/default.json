@@ -1,5 +1,5 @@
 {
-    "BFF_URL": "http://local.bff.com:3000",
+    "BFF_URL": "http://localhost:3000",
     "APP_URL": "http://localhost:8100",
     "TABLE_KVPS": "NONPROD_KVPS",
     "TABLE_HIERARCHIES": "NONPROD_HIERARCHIES1",
