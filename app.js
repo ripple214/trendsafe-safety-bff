@@ -90,8 +90,8 @@ const authenticateJWT = (req, res, next) => {
 
   //req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
-  console("path is", req.path);
-  if(req.path.startsWith("/auth")) {
+  console.log("path is", req.path, "indexOf is ", req.path.indexOf("/auth/"));
+  if(req.path.indexOf("/auth/")) {
     next();
   } else {
     const authorization = getAppCookies(req, res)['Authorization'];
