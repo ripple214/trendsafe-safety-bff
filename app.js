@@ -61,8 +61,9 @@ var originsWhitelist = [
 
 var corsOptions = {
   origin: function(origin, callback){
-        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
-        callback(null, isWhitelisted);
+    var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+    console.log("Origin is ", origin, "is this whitelisted?", isWhitelisted);
+    callback(null, isWhitelisted);
   },
   methods: "GET,POST,OPTIONS,PUT,DELETE",
   allowedHeaders: "Content-Type,Authorization,Set-Cookie",
@@ -90,6 +91,7 @@ const authenticateJWT = (req, res, next) => {
   //req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
   const authorization = getAppCookies(req, res)['Authorization'];
+  console.log("authorization is ", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
           if (err) {
