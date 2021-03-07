@@ -61,7 +61,7 @@ var originsWhitelist = [
 
 var corsOptions = {
   origin: function(origin, callback){
-    var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+    var isWhitelisted = !origin || originsWhitelist.indexOf(origin) !== -1;
     console.log("Origin is ", origin, "is this whitelisted?", isWhitelisted);
     callback(null, isWhitelisted);
   },
