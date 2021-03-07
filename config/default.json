@@ -1,6 +1,7 @@
 {
     "BFF_URL": "http://localhost:3000",
     "APP_URL": "http://localhost:8100",
+    "CONTEXT_PATH": "/bff",
     "TABLE_KVPS": "NONPROD_KVPS",
     "TABLE_HIERARCHIES": "NONPROD_HIERARCHIES1",
     "TABLE_LOCATION_AREAS": "NONPROD_LOCATION_AREAS",

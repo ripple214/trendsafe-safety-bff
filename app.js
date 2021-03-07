@@ -53,11 +53,14 @@ app.use((req, res, next) => {
 
 console.log("BFF_URL", conf.get('BFF_URL'));
 console.log("APP_URL", conf.get('APP_URL'));
+console.log("CONTEXT_PATH", conf.get('CONTEXT_PATH'));
 
 var originsWhitelist = [
   conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
+
+const contextPath = conf.get('CONTEXT_PATH');
 
 var corsOptions = {
   origin: function(origin, callback){
@@ -81,8 +84,8 @@ app.all('/*', (req, res, next) => {
   next();
 });
 
-app.use('/', indexRouter);
-app.use('/auth', authRouter);
+app.use(contextPath + '/', indexRouter);
+app.use(contextPath + '/auth', authRouter);
 
 // jwt validator
 ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
@@ -138,25 +141,25 @@ app.use(function(req, res, next) {
   authenticateJWT(req, res, next);
 });
 
-app.use('/kvps', kvpsRouter);
-app.use('/hierarchies', hierarchiesRouter);
-app.use('/location-areas', locationAreasRouter);
-app.use('/equipments', equipmentsRouter);
-app.use('/tasks', tasksRouter);
-app.use('/sources', sourcesRouter);
-app.use('/modules', modulesRouter);
-app.use('/kpis', kpisRouter);
-app.use('/risks', risksRouter);
-app.use('/rules', rulesRouter);
-app.use('/users', usersRouter);
-app.use('/clients', clientsRouter);
-app.use('/weightings', weightingsRouter);
-app.use('/assessors', assessorsRouter);
-app.use('/category-elements', categoryElementsRouter);
-app.use('/assessments', assessmentsRouter);
-app.use('/reports', reportsRouter);
-app.use('/wear', wearRouter);
-app.use('/hrc', hrcRouter);
+app.use(contextPath + '/kvps', kvpsRouter);
+app.use(contextPath + '/hierarchies', hierarchiesRouter);
+app.use(contextPath + '/location-areas', locationAreasRouter);
+app.use(contextPath + '/equipments', equipmentsRouter);
+app.use(contextPath + '/tasks', tasksRouter);
+app.use(contextPath + '/sources', sourcesRouter);
+app.use(contextPath + '/modules', modulesRouter);
+app.use(contextPath + '/kpis', kpisRouter);
+app.use(contextPath + '/risks', risksRouter);
+app.use(contextPath + '/rules', rulesRouter);
+app.use(contextPath + '/users', usersRouter);
+app.use(contextPath + '/clients', clientsRouter);
+app.use(contextPath + '/weightings', weightingsRouter);
+app.use(contextPath + '/assessors', assessorsRouter);
+app.use(contextPath + '/category-elements', categoryElementsRouter);
+app.use(contextPath + '/assessments', assessmentsRouter);
+app.use(contextPath + '/reports', reportsRouter);
+app.use(contextPath + '/wear', wearRouter);
+app.use(contextPath + '/hrc', hrcRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
