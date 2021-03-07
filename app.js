@@ -94,7 +94,7 @@ const authenticateJWT = (req, res, next) => {
   //req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
   const authorization = getAppCookies(req, res)['Authorization'];
-  console.log("authorization is ", authorization);
+  //console.log("authorization is ", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
           if (err) {
@@ -115,7 +115,11 @@ const authenticateJWT = (req, res, next) => {
           next();
       });
   } else {
+    if ('OPTIONS' == req.method) {
+      res.sendStatus(200);
+    } else {
       res.sendStatus(401);
+    }
   }
 };
 
