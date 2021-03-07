@@ -93,34 +93,29 @@ const authenticateJWT = (req, res, next) => {
 
   //req.user = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
-  console.log("path is", req.path, "indexOf is ", req.path.indexOf("/auth/"));
-  if(req.path.indexOf("/auth/")) {
-    next();
+  const authorization = getAppCookies(req, res)['Authorization'];
+  console.log("authorization is ", authorization);
+  if (authorization) {
+      jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
+          if (err) {
+              return res.sendStatus(403);
+          }
+
+          req.user = user;
+
+          let response = {
+            sessionId: user.sessionId,
+            clientId: user.clientId,
+            emailAddress: user.emailAddress,
+            module: user.module
+          };
+          let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
+          
+          next();
+      });
   } else {
-    const authorization = getAppCookies(req, res)['Authorization'];
-    console.log("authorization is ", authorization);
-    if (authorization) {
-        jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
-            if (err) {
-                return res.sendStatus(403);
-            }
-  
-            req.user = user;
-  
-            let response = {
-              sessionId: user.sessionId,
-              clientId: user.clientId,
-              emailAddress: user.emailAddress,
-              module: user.module
-            };
-            let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-            res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
-            
-            next();
-        });
-    } else {
-        res.sendStatus(401);
-    }
+      res.sendStatus(401);
   }
 };
 

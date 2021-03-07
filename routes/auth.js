@@ -4,7 +4,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 
 router.post("/login", (req, res, next) => {
-  console.log("reaced login endpoint", req.body);
+  console.log("Reached login endpoint");
   if(req.body.email == 'admin' && req.body.password == 'Singapore1') {
     var response = {
       sessionId: uuid.v4(),
