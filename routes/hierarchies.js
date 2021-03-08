@@ -152,24 +152,68 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
 
 const getParams = (req, level) =>  {
   let clientId = req.user.clientId;
-  let parent = req.query.parent;
+
+  let divisionId = req.query.division_id;
+  let projectId = req.query.project_id;
+  let siteId = req.query.site_id;
+  let subsiteId = req.query.subsite_id;
+  let departmentId = req.query.department_id;
 
   var params = {};
 
-  if(parent) {
+  if(divisionId || projectId || siteId || subsiteId || departmentId) {
+    let indexName = "DivisionIdIndex";
+    let parentField = "division_id";
+    let parentId = divisionId;
+    if(level == SITE) {
+      if(projectId) {
+        indexName = "ProjectIndex";
+        parentField = "project_id";
+        parentId = projectId;
+      }
+    } else if(level == SUBSITE) {
+      if(projectId) {
+        indexName = "ProjectIdIndex";
+        parentField = "project_id";
+        parentId = projectId;
+      }
+      if(siteId) {
+        indexName = "SiteIdIndex";
+        parentField = "site_id";
+        parentId = siteId;
+      }
+    } else if(level == DEPARTMENT) {
+      if(projectId) {
+        indexName = "ProjectIdIndex";
+        parentField = "project_id";
+        parentId = projectId;
+      }
+      if(siteId) {
+        indexName = "SiteIdIndex";
+        parentField = "site_id";
+        parentId = siteId;
+      }
+      if(subsiteId) {
+        indexName = "SubsiteIdIndex";
+        parentField = "subsite_id";
+        parentId = subsiteId;
+      }
+    }
+
+    console.log("here", indexName, parentField, parentId);
     params = {
       TableName: tableName,
-      IndexName: "IdIndex",
+      IndexName: indexName,
       ProjectionExpression: 'id, #name, parents',
       KeyConditionExpression: '#partition_key = :clientId and #parent = :parent',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
-        "#parent": "parent",
+        "#parent": parentField,
         "#name": "name",
       },
       ExpressionAttributeValues: {
         ":clientId": clientId + DELIMITER + level,
-        ":parent": parent
+        ":parent": parentId
       },
     };  
   } else {
@@ -270,6 +314,35 @@ const insertHierarchy = (level, name, parents, req, res) => {
   let createTime = moment().format();
   let id = uuid.v4();
 
+  let parentsArray = parents.split('$');
+	let divisionId = "0";
+	let projectId = "0";
+	let siteId = "0";
+	let subsiteId = "0";
+	let departmentId = "0";
+
+	if(level == DIVISION) {
+		divisionId = id;
+	} else if(level == PROJECT) {
+		divisionId = parentsArray[0];
+		projectId = id;
+	} else if(level == SITE) {
+		divisionId = parentsArray[0];
+		projectId = parentsArray[1];
+		siteId = id;
+	} else if(level == SUBSITE) {
+		divisionId = parentsArray[0];
+		projectId = parentsArray[1];
+		siteId = parentsArray[2];
+		subsiteId = id;
+	} else if(level == DEPARTMENT) {
+		divisionId = parentsArray[0];
+		projectId = parentsArray[1];
+		siteId = parentsArray[2];
+		subsiteId = parentsArray[3];
+		departmentId = id;
+  }
+
   var params = {
     TableName: tableName,
     Item: {
@@ -278,6 +351,11 @@ const insertHierarchy = (level, name, parents, req, res) => {
       "id": id,
       "name": name,
       "parents": parents,
+      "division_id": divisionId,
+      "project_id": projectId,
+      "site_id": siteId,
+      "subsite_id": subsiteId,
+      "department_id": departmentId,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
       "updated_ts": createTime,

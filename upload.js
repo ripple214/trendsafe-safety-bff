@@ -44,20 +44,62 @@ var batchWriteSuccessCounter = 0;
 var batchWriteFailedCounter = 0;
 allRecords.every(function(putRequestItem, index) {
 	
-	//Add parent column
+	////Add parent column
+	//let item = putRequestItem.PutRequest.Item;
+	//let id = item.id.S;
+	//let parents = item.parents.S.split('$');
+	//let parent = '';
+	//if(parents.length == 4) {
+	//	parent = parents[parents.length-2];
+	//} else {
+	//	parent = parents[parents.length-1]
+	//}
+	//if(parent == '') {
+	//	parent = '0';
+	//}
+	//item.parent = {'S': parent};
+
 	let item = putRequestItem.PutRequest.Item;
-	let id = item.id.S;
+	let partition_key = item.partition_key.S;
 	let parents = item.parents.S.split('$');
-	let parent = '';
-	if(parents.length == 4) {
-		parent = parents[parents.length-2];
-	} else {
-		parent = parents[parents.length-1]
+	let id = item.id.S;
+
+	let divisionId = "0";
+	let projectId = "0";
+	let siteId = "0";
+	let subsiteId = "0";
+	let departmentId = "0";
+
+	if(partition_key.indexOf('$DIVISION') > -1) {
+		divisionId = id;
+	} else if(partition_key.indexOf('$PROJECT') > -1) {
+		divisionId = parents[0];
+		projectId = id;
+	} else if(partition_key.indexOf('$SITE') > -1) {
+		divisionId = parents[0];
+		projectId = parents[1];
+		siteId = id;
+	} else if(partition_key.indexOf('$SUBSITE') > -1) {
+		divisionId = parents[0];
+		projectId = parents[1];
+		siteId = parents[2];
+		subsiteId = id;
+	} else if(partition_key.indexOf('$DEPARTMENT') > -1) {
+		divisionId = parents[0];
+		projectId = parents[1];
+		siteId = parents[2];
+		subsiteId = parents[3];
+		departmentId = id;
 	}
-	if(parent == '') {
-		parent = '0';
-	}
-	item.parent = {'S': parent};
+
+	item.division_id = {'S': divisionId};
+	item.project_id = {'S': projectId};
+	item.site_id = {'S': siteId};
+	item.subsite_id = {'S': subsiteId};
+	item.department_id = {'S': departmentId};
+
+	//console.log("parents", parents);
+	//console.log("item", item);
 
 	itemsArray.push(putRequestItem);
 	if(itemsArray.length == maxItemsSize || index == allRecords.length-1) {
@@ -84,7 +126,6 @@ allRecords.every(function(putRequestItem, index) {
 				console.log("\n\nDone!");
 			}
 		});
-		
 		itemsArray = [];
 	}
 	return true;
