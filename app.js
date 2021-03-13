@@ -31,6 +31,7 @@ var wearRouter = require('./routes/wear');
 var hrcRouter = require('./routes/hrc');
 var clientsRouter = require('./routes/clients');
 var weightingsRouter = require('./routes/weightings');
+var filesRouter = require('./routes/files');
 
 var app = express();
 
@@ -153,6 +154,7 @@ app.use(contextPath + '/rules', rulesRouter);
 app.use(contextPath + '/users', usersRouter);
 app.use(contextPath + '/clients', clientsRouter);
 app.use(contextPath + '/weightings', weightingsRouter);
+app.use(contextPath + '/files', filesRouter);
 app.use(contextPath + '/assessors', assessorsRouter);
 app.use(contextPath + '/category-elements', categoryElementsRouter);
 app.use(contextPath + '/assessments', assessmentsRouter);

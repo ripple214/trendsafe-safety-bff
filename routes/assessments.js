@@ -5,6 +5,7 @@ var uuid = require('uuid');
 var moment = require('moment');
 
 var ddb = require('./ddb');
+var s3 = require('./s3');
 
 var tableName = conf.get('TABLE_ASSESSMENTS');
 
@@ -50,14 +51,35 @@ router.get('/:assessmentId', function(req, res) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
-      res.status(200);
-      res.json(resp);
+      
+      getPhotographs(req, res, (data) => {
+        console.log()
+        resp.photographs = data;
+        res.status(200);
+        res.json(resp);
+      });
     } else {
       res.status(404);
       res.json();
     }
   });
 });
+
+const getPhotographs = (req, res, callback) => {
+  let clientId = req.user.clientId;
+  let group = "assessments";
+  let subgroup = req.params.assessmentId;
+  let key = clientId + '/' + group + '/' + subgroup;
+
+  s3.list(key, function(response) {
+    if (response.data) {
+      callback(response.data);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
+  });
+} 
 
 const getQueryParams = (req) => {
   let clientId = req.user.clientId;
@@ -160,6 +182,8 @@ router.post('/', function(req, res, next) {
   let id = uuid.v4();
   let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
 
+  let tempId = req.body.id;
+
   var params = {
     TableName: tableName,
     Item: {
@@ -196,14 +220,35 @@ router.post('/', function(req, res, next) {
       var resp = response.data;
       delete resp['partition_key'];
       delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
+
+      let group = "assessments";
+      let fromSubgroup = tempId;
+      let toSubgroup = id;
+      let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';
+      let toKey = clientId + '/' + group + '/' + toSubgroup;
+    
+      movePhotographs(fromKey, toKey, (moveResponse) => {
+        if (moveResponse.error) {
+          res.status(400);
+          res.json(response);
+        } else {
+          res.status(200);
+          res.json(resp);
+        }
+      });
     } else {
       res.status(400);
       res.json(response);
     }
   });
 });
+
+const movePhotographs = (fromKey, toKey, callback) => {
+  console.log("moving photographs from", fromKey, "to", toKey);
+  s3.move(fromKey, toKey, function(response) {
+    callback(response);
+  });
+};
 
 /* DELETE delete assessment. */
 router.delete('/:assessmentId', function(req, res) {
