@@ -18,7 +18,7 @@ var LEVEL_DESCRIPTIONS = {
 };
 
 /* GET category-element listing. */
-router.get('/', function(req, res, next) {
+router.get('/:type', function(req, res, next) {
 
   retrieve(req, LEVELS, (dataMap) => {
     var categories = [];
@@ -142,6 +142,7 @@ router.get('/elements', function(req, res) {
 
 const getListParams = (req, level) =>  {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   
   var params = {
     TableName: tableName,
@@ -152,7 +153,7 @@ const getListParams = (req, level) =>  {
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + level
+      ":clientId": clientId + DELIMITER + type + DELIMITER + level
     },
   };
 
@@ -177,7 +178,7 @@ router.get('/categories/:id', function(req, res) {
 });
 
 /* GET element. */
-router.get('/elements/:id', function(req, res) {
+router.get('/:type/elements/:id', function(req, res) {
   var params = getQueryParams(req, ELEMENT);
 
   ddb.query(params, function(response) {
@@ -194,37 +195,38 @@ router.get('/elements/:id', function(req, res) {
 });
 
 /* POST insert category. */
-router.post('/categories', function(req, res) {
+router.post('/:type/categories', function(req, res) {
   insertCategoryElement(CATEGORY, req, res);
 });
 
 /* PUT update category. */
-router.put('/categories/:id', function(req, res) {
+router.put('/:type/categories/:id', function(req, res) {
   updateCategoryElement(CATEGORY, req, res);
 });
 
 /* DELETE delete category. */
-router.delete('/categories/:id', function(req, res) {
+router.delete('/:type/categories/:id', function(req, res) {
   deleteCategoryElement(CATEGORY, req, res);
 });
 
 /* POST insert element. */
-router.post('/elements', function(req, res) {
+router.post('/:type/elements', function(req, res) {
   insertCategoryElement(ELEMENT, req, res);
 });
 
 /* PUT update element. */
-router.put('/elements/:id', function(req, res) {
+router.put('/:type/elements/:id', function(req, res) {
   updateCategoryElement(ELEMENT, req, res);
 });
 
 /* DELETE delete element. */
-router.delete('/elements/:id', function(req, res) {
+router.delete('/:type/elements/:id', function(req, res) {
   deleteCategoryElement(ELEMENT, req, res);
 });
 
 const insertCategoryElement = (level, req, res) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let name = req.body.name;
   let parent = req.body.parent;
   let siteId = parent.split(DELIMITER)[0];
@@ -234,7 +236,7 @@ const insertCategoryElement = (level, req, res) => {
   var params = {
     TableName: tableName,
     Item: {
-      "partition_key": clientId + DELIMITER + level,
+      "partition_key": clientId + DELIMITER + type + DELIMITER + level,
       "sort_key": siteId + DELIMITER + id,
       "id": id,
       "name": name,
@@ -282,12 +284,13 @@ const updateCategoryElement = (level, req, res) => {
 
   synCaller.then(() => {
     let clientId = req.user.clientId;
+    let type = req.params.type;
     let id = req.params.id;
   
     var params = {
       TableName: tableName,
       Key: {
-        "partition_key": clientId + DELIMITER + level,
+        "partition_key": clientId + DELIMITER + type + DELIMITER + level,
         "sort_key": siteId + DELIMITER + id,
       },
       UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
@@ -320,6 +323,7 @@ const updateCategoryElement = (level, req, res) => {
 
 const getQueryParams = (req, level) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let id = req.params.id;
   
   var params = {
@@ -333,7 +337,7 @@ const getQueryParams = (req, level) => {
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + level,
+      ":clientId": clientId + DELIMITER + type + DELIMITER + level,
       ":id": id
     },
   };
@@ -349,7 +353,6 @@ const deleteCategoryElement = (level, req, res) => {
   let siteId = undefined;
   var synCaller = new Promise((resolveCall, rejectCall) => {
     ddb.query(queryParams, function(response) {
-      console.log("sa delete", response);
       if (response.data && response.data.length == 1) {
         let categoryElement = response.data[0];
         let parent = categoryElement.parent;
@@ -365,12 +368,13 @@ const deleteCategoryElement = (level, req, res) => {
 
   synCaller.then(() => {
     let clientId = req.user.clientId;
+    let type = req.params.type;
     let id = req.params.id;
   
     var params = {
       TableName: tableName,
       Key: {
-        "partition_key": clientId + DELIMITER + level,
+        "partition_key": clientId + DELIMITER + type + DELIMITER + level,
         "sort_key": siteId + DELIMITER + id,
       },
     };

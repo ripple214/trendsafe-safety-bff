@@ -59,6 +59,7 @@ allRecords.every(function(putRequestItem, index) {
 	//}
 	//item.parent = {'S': parent};
 
+	/* this is the last uncommented block for hierarchies
 	let item = putRequestItem.PutRequest.Item;
 	let partition_key = item.partition_key.S;
 	let parents = item.parents.S.split('$');
@@ -97,6 +98,7 @@ allRecords.every(function(putRequestItem, index) {
 	item.site_id = {'S': siteId};
 	item.subsite_id = {'S': subsiteId};
 	item.department_id = {'S': departmentId};
+	*/
 
 	//console.log("parents", parents);
 	//console.log("item", item);

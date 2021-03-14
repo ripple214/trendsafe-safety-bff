@@ -17,17 +17,22 @@ router.get('/', function(req, res) {
   var params = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, parent',
-    KeyConditionExpression: '#partition_key = :clientId and begins_with(#sort_key, :siteId)',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
-      "#sort_key": "sort_key",
       "#name": "name",
     },
     ExpressionAttributeValues: {
       ":clientId": clientId,
-      ":siteId": siteId + DELIMITER
     },
   };
+
+  if(siteId) {
+    params.KeyConditionExpression = '#partition_key = :clientId and begins_with(#sort_key, :siteId)';
+    params.ExpressionAttributeNames["#sort_key"] = "sort_key";
+    params.ExpressionAttributeValues[":siteId"] = siteId + DELIMITER;
+  } else {
+    params.KeyConditionExpression = '#partition_key = :clientId';
+  }
 
   ddb.query(params, function(response) {
     
