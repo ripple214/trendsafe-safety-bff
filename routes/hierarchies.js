@@ -167,7 +167,7 @@ const getParams = (req, level) =>  {
     let parentId = divisionId;
     if(level == SITE) {
       if(projectId) {
-        indexName = "ProjectIndex";
+        indexName = "ProjectIdIndex";
         parentField = "project_id";
         parentId = projectId;
       }
