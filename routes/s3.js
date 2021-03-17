@@ -7,7 +7,7 @@ AWS.config.getCredentials(function(err) {
 AWS.config.update({region: 'ap-southeast-2'});
 
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
-const BUCKET_NAME = "trendsafe-images";
+const BUCKET_NAME = "trendsafe-files";
 
 module.exports = {
 
@@ -97,7 +97,7 @@ module.exports = {
                 let keyArray = [];
                 contents.forEach((content) => {
                     let key = content.Key;
-                    let id = key.split("/")[3];
+                    let id = key.split("/")[4];
                     keyArray.push(id);
                 });
                 console.log("List Success", key);
@@ -152,7 +152,7 @@ module.exports = {
         
             contents.forEach((content) => {
                 let key = content.Key;
-                let id = key.split("/")[3];
+                let id = key.split("/")[4];
 
                 s3.copyObject({
                     Bucket: BUCKET_NAME,

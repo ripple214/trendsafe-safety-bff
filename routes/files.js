@@ -12,14 +12,19 @@ const upload = multer({
   }),
 }).single('file');
 
-router.post("/", upload, (req, res, next) => {
+router.post("/:type", upload, (req, res, next) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let group = req.body.group;
   let subgroup = req.body.subgroup;
   let file = req.file;
   let id = uuid.v4();
   let ext = path.extname(file.originalname);
-  let key = clientId + '/' + group + '/' + subgroup + '/' + id + ext;
+  if(type != "images") {
+    id = file.originalname;
+    ext = "";
+  }
+  let key = clientId + '/' + type + '/' + group + '/' + subgroup + '/' + id + ext;
 
   s3.upload(file.path, key, function(response) {
     if (response.data) {
@@ -37,13 +42,14 @@ router.post("/", upload, (req, res, next) => {
   });
 });
 
-router.put("/", (req, res, next) => {
+router.put("/:type", (req, res, next) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let group = req.body.group;
   let fromSubgroup = req.body.fromSubgroup;
   let toSubgroup = req.body.toSubgroup;
   let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';
-  let toKey = clientId + '/' + group + '/' + toSubgroup;
+  let toKey = clientId + '/' + type + '/' + group + '/' + toSubgroup;
 
   s3.move(fromKey, toKey, function(response) {
     if (response.error) {
@@ -56,12 +62,13 @@ router.put("/", (req, res, next) => {
   });
 });
 
-router.get("/:group/:subgroup/:file", (req, res, next) => {
+router.get("/:type/:group/:subgroup/:file", (req, res, next) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;
   let file = req.params.file;
-  let key = clientId + '/' + group + '/' + subgroup + '/' + file;
+  let key = clientId + '/' + type + '/' + group + '/' + subgroup + '/' + file;
 
   s3.download(key, function(response) {
     if (response.data) {
@@ -79,11 +86,12 @@ router.get("/:group/:subgroup/:file", (req, res, next) => {
   });
 });
 
-router.get("/:group/:subgroup", (req, res, next) => {
+router.get("/:type/:group/:subgroup", (req, res, next) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;
-  let key = clientId + '/' + group + '/' + subgroup;
+  let key = clientId + '/' + type + '/' + group + '/' + subgroup;
 
   s3.list(key, function(response) {
     if (response.data) {
@@ -97,12 +105,13 @@ router.get("/:group/:subgroup", (req, res, next) => {
   });
 });
 
-router.delete("/:group/:subgroup/:file", (req, res, next) => {
+router.delete("/:type/:group/:subgroup/:file", (req, res, next) => {
   let clientId = req.user.clientId;
+  let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;
   let file = req.params.file;
-  let key = clientId + '/' + group + '/' + subgroup + '/' + file;
+  let key = clientId + '/' + type + '/' + group + '/' + subgroup + '/' + file;
 
   s3.delete(key, function(response) {
     if (response.data) {

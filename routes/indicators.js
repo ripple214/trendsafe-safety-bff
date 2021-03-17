@@ -67,7 +67,7 @@ router.get('/:indicatorId', function(req, res) {
 
 const getPhotographs = (req, res, callback) => {
   let clientId = req.user.clientId;
-  let group = "indicators";
+  let group = "images/indicators";
   let subgroup = req.params.indicatorId;
   let key = clientId + '/' + group + '/' + subgroup;
 
@@ -221,7 +221,7 @@ router.post('/', function(req, res, next) {
       delete resp['partition_key'];
       delete resp['sort_key'];
 
-      let group = "indicators";
+      let group = "images/indicators";
       let fromSubgroup = tempId;
       let toSubgroup = id;
       let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';

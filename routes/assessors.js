@@ -7,16 +7,16 @@ var moment = require('moment');
 var ddb = require('./ddb');
 
 var tableName = conf.get('TABLE_ASSESSORS');
-var DELIMITER = "$";
 
 /* GET assessors listing. */
 router.get('/', function(req, res) {
   let clientId = req.user.clientId;
   let siteId = req.query.siteId;
+  let isLeader = req.query.isLeader;
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, parent',
+    ProjectionExpression: 'id, #name, site_id, is_leader',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#name": "name",
@@ -27,19 +27,26 @@ router.get('/', function(req, res) {
   };
 
   if(siteId) {
-    params.KeyConditionExpression = '#partition_key = :clientId and begins_with(#sort_key, :siteId)';
-    params.ExpressionAttributeNames["#sort_key"] = "sort_key";
-    params.ExpressionAttributeValues[":siteId"] = siteId + DELIMITER;
+    params.IndexName = "SiteIndex",
+    params.KeyConditionExpression = '#partition_key = :clientId and #site_id = :siteId';
+    params.ExpressionAttributeNames["#site_id"] = "site_id";
+    params.ExpressionAttributeValues[":siteId"] = siteId;
   } else {
     params.KeyConditionExpression = '#partition_key = :clientId';
   }
 
   ddb.query(params, function(response) {
     
-    if (response.data) {
+    if(response.data) {
       response.data.sort(function (a, b) {
         return a.name.localeCompare(b.name);
       });
+
+      if(isLeader != undefined) {
+        response.data = response.data.filter(function(el,i,a){
+          return el.is_leader.toString() == isLeader;
+        });
+      }
 
       var resp = {"assessors": response.data};
       res.status(200);
@@ -74,12 +81,11 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    IndexName: "IdIndex",
-    ProjectionExpression: 'id, #name, parent',
-    KeyConditionExpression: '#partition_key = :clientId and #id = :assessorId',
+    ProjectionExpression: 'id, #name, site_id, is_leader',
+    KeyConditionExpression: '#partition_key = :clientId and #sort_key = :assessorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
-      "#id": "id",
+      "#sort_key": "sort_key",
       "#name": "name",
     },
     ExpressionAttributeValues: {
@@ -99,15 +105,17 @@ router.post('/', function(req, res) {
   let createTime = moment().format();
   let id = uuid.v4();
   let name = req.body.name;
+  let is_leader = req.body.is_leader;
 
   var params = {
     TableName: tableName,
     Item: {
       "partition_key": clientId,
-      "sort_key": siteId + DELIMITER + id,
+      "sort_key": id,
       "id": id,
       "name": name,
-      "parent": siteId,
+      "is_leader": is_leader,
+      "site_id": siteId,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,
       "updated_ts": createTime,
@@ -131,105 +139,67 @@ router.post('/', function(req, res) {
 
 /* PUT update assessor. */
 router.put('/:assessorId', function(req, res) {
-  var queryParams = getQueryParams(req);
+  let clientId = req.user.clientId;
+  let assessorId = req.params.assessorId;
+  let name = req.body.name;
+  let is_leader = req.body.is_leader;
 
-  let siteId = undefined;
-  var synCaller = new Promise((resolveCall, rejectCall) => {
-    ddb.query(queryParams, function(response) {
+  var updateParams = {
+    TableName: tableName,
+    Key: {
+      "partition_key": clientId,
+      "sort_key": assessorId,
+    },
+    UpdateExpression: 'set #name = :name, is_leader, :is_leader, updated_ts = :updated_ts, updated_by = :updated_by',
+    ExpressionAttributeNames:{
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":name": name,
+      ":is_leader": is_leader,
+      ":updated_ts": moment().format(),
+      ":updated_by": req.user.emailAddress,
+    },
+    ReturnValues:"ALL_NEW"
+  };
+
+  ddb.update(updateParams, function(response) {
     
-      if (response.data && response.data.length == 1) {
-        var assessor = response.data[0];
-        siteId = assessor.parent;
-        resolveCall();
-      } else {
-        res.status(404);
-        res.json();
-        rejectCall();
-      }
-    });
-  });
-
-  synCaller.then(() => {
-    let clientId = req.user.clientId;
-    let assessorId = req.params.assessorId;
-    let name = req.body.name;
-  
-    var updateParams = {
-      TableName: tableName,
-      Key: {
-        "partition_key": clientId,
-        "sort_key": siteId + DELIMITER + assessorId,
-      },
-      UpdateExpression: 'set #name = :name, updated_ts = :updated_ts, updated_by = :updated_by',
-      ExpressionAttributeNames:{
-        "#name": "name",
-      },
-      ExpressionAttributeValues: {
-        ":name": name,
-        ":updated_ts": moment().format(),
-        ":updated_by": req.user.emailAddress,
-      },
-      ReturnValues:"ALL_NEW"
-    };
-  
-    ddb.update(updateParams, function(response) {
-      
-      if (response.data) {
-        var resp = response.data;
-        delete resp['partition_key'];
-        delete resp['sort_key'];
-        res.status(200);
-        res.json(resp);
-      } else {
-        res.status(400);
-        res.json(response);
-      }
-    });
+    if (response.data) {
+      var resp = response.data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    } else {
+      res.status(400);
+      res.json(response);
+    }
   });
 });
 
 /* DELETE delete assessor. */
 router.delete('/:assessorId', function(req, res) {
-  var queryParams = getQueryParams(req);
-  
-  let siteId = undefined;
-  var synCaller = new Promise((resolveCall, rejectCall) => {
-    ddb.query(queryParams, function(response) {
-    
-      if (response.data && response.data.length == 1) {
-        var assessor = response.data[0];
-        siteId = assessor.parent;
-        resolveCall();
-      } else {
-        res.status(404);
-        res.json();
-        rejectCall();
-      }
-    });
-  });
+  let clientId = req.user.clientId;
+  let assessorId = req.params.assessorId;
 
-  synCaller.then(() => {
-    let clientId = req.user.clientId;
-    let assessorId = req.params.assessorId;
+  var deleteParams = {
+    TableName: tableName,
+    Key: {
+      "partition_key": clientId,
+      "sort_key": assessorId,
+    },
+  };
 
-    var deleteParams = {
-      TableName: tableName,
-      Key: {
-        "partition_key": clientId,
-        "sort_key": siteId + DELIMITER + assessorId,
-      },
-    };
-
-    ddb.delete(deleteParams, function(response) {
-      console.log("response", response);
-      if (!response.error) {
-        res.status(204);
-        res.json();
-      } else {
-        res.status(400);
-        res.json(response);
-      }
-    });
+  ddb.delete(deleteParams, function(response) {
+    console.log("response", response);
+    if (!response.error) {
+      res.status(204);
+      res.json();
+    } else {
+      res.status(400);
+      res.json(response);
+    }
   });
 });
 

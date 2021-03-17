@@ -1201,6 +1201,1354 @@
 					"updated_by": {"S": ""}
 				}
 			}
+		},
+
+
+
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1076"},
+					"id": {"S": "1076"},
+					"name": {"S": "General"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "63"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1077"},
+					"id": {"S": "1077"},
+					"name": {"S": "Test before touch"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "64"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1078"},
+					"id": {"S": "1078"},
+					"name": {"S": "Job rotation"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "65"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1079"},
+					"id": {"S": "1079"},
+					"name": {"S": "Clean area"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "66"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1080"},
+					"id": {"S": "1080"},
+					"name": {"S": "Regular fluid intake"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "67"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1081"},
+					"id": {"S": "1081"},
+					"name": {"S": "Manual handling techniques"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "68"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1082"},
+					"id": {"S": "1082"},
+					"name": {"S": "Work rest regime"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "69"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1083"},
+					"id": {"S": "1083"},
+					"name": {"S": "Time restrictions"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "70"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1084"},
+					"id": {"S": "1084"},
+					"name": {"S": "Gas monitoring"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "71"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1085"},
+					"id": {"S": "1085"},
+					"name": {"S": "Use mechanical lifting equipment"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "72"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1086"},
+					"id": {"S": "1086"},
+					"name": {"S": "Establish clear exit route"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "73"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1087"},
+					"id": {"S": "1087"},
+					"name": {"S": "User spotter"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "74"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1088"},
+					"id": {"S": "1088"},
+					"name": {"S": "Elevate leads"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "75"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1089"},
+					"id": {"S": "1089"},
+					"name": {"S": "Clearance distance"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "76"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1090"},
+					"id": {"S": "1090"},
+					"name": {"S": "Lighting"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "77"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1091"},
+					"id": {"S": "1091"},
+					"name": {"S": "Tool layard"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "78"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1092"},
+					"id": {"S": "1092"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1076"},
+					"sort_num": {"N": "79"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1093"},
+					"id": {"S": "1093"},
+					"name": {"S": "Engineering Barriers"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "80"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1094"},
+					"id": {"S": "1094"},
+					"name": {"S": "Isolate"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "81"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1095"},
+					"id": {"S": "1095"},
+					"name": {"S": "Place lock and tag"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "82"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1096"},
+					"id": {"S": "1096"},
+					"name": {"S": "Hazard barricades"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "83"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1097"},
+					"id": {"S": "1097"},
+					"name": {"S": "Local exhaust ventillation"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "84"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1098"},
+					"id": {"S": "1098"},
+					"name": {"S": "Ventillation"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "85"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1099"},
+					"id": {"S": "1099"},
+					"name": {"S": "Depressurize, vent, drain"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "86"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1100"},
+					"id": {"S": "1100"},
+					"name": {"S": "Erect Screen"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "87"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1101"},
+					"id": {"S": "1101"},
+					"name": {"S": "Residual Current Device"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "88"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1102"},
+					"id": {"S": "1102"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1093"},
+					"sort_num": {"N": "89"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1103"},
+					"id": {"S": "1103"},
+					"name": {"S": "Plant and Equipment"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "90"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1104"},
+					"id": {"S": "1104"},
+					"name": {"S": "Check interlocks / deadman"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "91"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1105"},
+					"id": {"S": "1105"},
+					"name": {"S": "Prestart check"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "92"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1106"},
+					"id": {"S": "1106"},
+					"name": {"S": "Logbook inspection"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "93"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1107"},
+					"id": {"S": "1107"},
+					"name": {"S": "Check inspection tags"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "94"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1108"},
+					"id": {"S": "1108"},
+					"name": {"S": "Check condition"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "95"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1109"},
+					"id": {"S": "1109"},
+					"name": {"S": "Check workload limit"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "96"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1110"},
+					"id": {"S": "1110"},
+					"name": {"S": "Integrity inspection"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "97"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1111"},
+					"id": {"S": "1111"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1103"},
+					"sort_num": {"N": "98"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1112"},
+					"id": {"S": "1112"},
+					"name": {"S": "Emergency Preparedness"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "99"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1113"},
+					"id": {"S": "1113"},
+					"name": {"S": "Test safety shower"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "100"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1114"},
+					"id": {"S": "1114"},
+					"name": {"S": "Test eyewash station"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "101"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1115"},
+					"id": {"S": "1115"},
+					"name": {"S": "Position fire extinguisher"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "102"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1116"},
+					"id": {"S": "1116"},
+					"name": {"S": "Test alarm"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "103"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1117"},
+					"id": {"S": "1117"},
+					"name": {"S": "Fire blanket"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "104"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1118"},
+					"id": {"S": "1118"},
+					"name": {"S": "Rescue plan"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "105"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1119"},
+					"id": {"S": "1119"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1112"},
+					"sort_num": {"N": "106"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1120"},
+					"id": {"S": "1120"},
+					"name": {"S": "Plant and Equipment"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "107"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1121"},
+					"id": {"S": "1121"},
+					"name": {"S": "Restrain items, tie down, secure"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "108"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1122"},
+					"id": {"S": "1122"},
+					"name": {"S": "Correct storage"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "109"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1123"},
+					"id": {"S": "1123"},
+					"name": {"S": "Label"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "110"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1124"},
+					"id": {"S": "1124"},
+					"name": {"S": "Segregate"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "111"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1125"},
+					"id": {"S": "1125"},
+					"name": {"S": "Bunding"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "112"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1126"},
+					"id": {"S": "1126"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1120"},
+					"sort_num": {"N": "113"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1127"},
+					"id": {"S": "1127"},
+					"name": {"S": "Document / Procedure"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "114"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1128"},
+					"id": {"S": "1128"},
+					"name": {"S": "Permit"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "115"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1129"},
+					"id": {"S": "1129"},
+					"name": {"S": "Risk Assessment / Procedure"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "116"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1130"},
+					"id": {"S": "1130"},
+					"name": {"S": "Safety Data Sheet"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "117"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1131"},
+					"id": {"S": "1131"},
+					"name": {"S": "Review manufacturer manual"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "118"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1132"},
+					"id": {"S": "1132"},
+					"name": {"S": "Lift Study"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "119"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1133"},
+					"id": {"S": "1133"},
+					"name": {"S": "Service / process drawings"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "120"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1134"},
+					"id": {"S": "1134"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1127"},
+					"sort_num": {"N": "121"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1135"},
+					"id": {"S": "1135"},
+					"name": {"S": "Workplace Notification"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "122"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1136"},
+					"id": {"S": "1136"},
+					"name": {"S": "Signs"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "123"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1137"},
+					"id": {"S": "1137"},
+					"name": {"S": "Warning tape"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "124"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1138"},
+					"id": {"S": "1138"},
+					"name": {"S": "Cones"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "125"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1139"},
+					"id": {"S": "1139"},
+					"name": {"S": "Flagging"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "126"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1140"},
+					"id": {"S": "1140"},
+					"name": {"S": "Notify emergency service"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "127"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1141"},
+					"id": {"S": "1141"},
+					"name": {"S": "Communication / Signals"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "128"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1142"},
+					"id": {"S": "1142"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1135"},
+					"sort_num": {"N": "129"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		
+		
+		
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$CATEGORY"},
+					"sort_key": {"S": "1143"},
+					"id": {"S": "1143"},
+					"name": {"S": "PPE"},
+					"parent": {"S": ""},
+					"sort_num": {"N": "130"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1144"},
+					"id": {"S": "1144"},
+					"name": {"S": "Face shield"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "131"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1145"},
+					"id": {"S": "1145"},
+					"name": {"S": "Goggles"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "132"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1146"},
+					"id": {"S": "1146"},
+					"name": {"S": "Chemical gloves"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "133"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1147"},
+					"id": {"S": "1147"},
+					"name": {"S": "General purpose gloves"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "134"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1148"},
+					"id": {"S": "1148"},
+					"name": {"S": "Disposable respirator"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "135"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1149"},
+					"id": {"S": "1149"},
+					"name": {"S": "Cartridge respirator"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "136"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1150"},
+					"id": {"S": "1150"},
+					"name": {"S": "Air Supply Breathing Apparatus"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "137"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1151"},
+					"id": {"S": "1151"},
+					"name": {"S": "Chemical suit"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "138"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1152"},
+					"id": {"S": "1152"},
+					"name": {"S": "Disposable suit"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "139"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1153"},
+					"id": {"S": "1153"},
+					"name": {"S": "Welding gloves"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "140"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1154"},
+					"id": {"S": "1154"},
+					"name": {"S": "Welding jacket / apron"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "141"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1155"},
+					"id": {"S": "1155"},
+					"name": {"S": "Welding helmet"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "142"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1156"},
+					"id": {"S": "1156"},
+					"name": {"S": "Hearing protection"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "143"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
+		},
+		{
+			"PutRequest": {
+				"Item": {
+					"partition_key": {"S": "dummy-client$controls$ELEMENT"},
+					"sort_key": {"S": "1157"},
+					"id": {"S": "1157"},
+					"name": {"S": "Other"},
+					"parent": {"S": "1143"},
+					"sort_num": {"N": "144"},
+					"created_ts": {"S": ""},
+					"created_by": {"S": ""},
+					"updated_ts": {"S": ""},
+					"updated_by": {"S": ""}
+				}
+			}
 		}
 
 	]
