@@ -66,7 +66,7 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, description, site_id, department_id, location_id, task_id, members, leader, element_compliance, control_element_compliance, risk_rating',
+    ProjectionExpression: 'id, #name, completed_date, description, site_id, department_id, location_id, task_id, members, leader, element_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :managementId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -103,8 +103,6 @@ router.put('/:managementId', function(req, res, next) {
       leader = :leader, \
       members = :members, \
       element_compliance = :element_compliance, \
-      control_element_compliance = :control_element_compliance, \
-      risk_rating = :risk_rating, \
       updated_ts = :updated_ts, \
       updated_by = :updated_by',
     ExpressionAttributeNames:{
@@ -121,8 +119,6 @@ router.put('/:managementId', function(req, res, next) {
       ":leader": req.body.leader,
       ":members": req.body.members,
       ":element_compliance": req.body.element_compliance,
-      ":control_element_compliance": req.body.control_element_compliance,
-      ":risk_rating": req.body.risk_rating,
       ":updated_ts": moment().format(),
       ":updated_by": req.user.emailAddress,
     },
@@ -169,8 +165,6 @@ router.post('/', function(req, res, next) {
       "leader": req.body.leader,
       "members": req.body.members,
       "element_compliance": req.body.element_compliance,
-      "control_element_compliance": req.body.control_element_compliance,
-      "risk_rating": req.body.risk_rating,
       "sort_num": 1,
       "created_ts": createTime, 
       "created_by": req.user.emailAddress,

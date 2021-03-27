@@ -87,7 +87,7 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, risk_rating, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, recipients, risk_rating, element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :assessmentId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -127,6 +127,7 @@ router.put('/:assessmentId', function(req, res, next) {
       task_id = :task_id, \
       assessor = :assessor, \
       person_responsible = :person_responsible, \
+      recipients = :recipients, \
       risk_rating = :risk_rating, \
       element_compliance = :element_compliance, \
       risk_compliance = :risk_compliance, \
@@ -150,6 +151,7 @@ router.put('/:assessmentId', function(req, res, next) {
       ":task_id": req.body.task_id,
       ":assessor": req.body.assessor,
       ":person_responsible": req.body.person_responsible,
+      ":recipients": req.body.recipients,
       ":risk_rating": req.body.risk_rating,
       ":element_compliance": req.body.element_compliance,
       ":risk_compliance": req.body.risk_compliance,
@@ -203,6 +205,7 @@ router.post('/', function(req, res, next) {
       "task_id": req.body.task_id,
       "assessor": req.body.assessor,
       "person_responsible": req.body.person_responsible,
+      "recipients": req.body.recipients,
       "risk_rating": req.body.risk_rating,
       "element_compliance": req.body.element_compliance,
       "risk_compliance": req.body.risk_compliance,

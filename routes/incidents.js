@@ -107,7 +107,7 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, #comments, #action, completed_date, due_date, description, summary, site_id, department_id, location_id, task_id, key_findings, assessor, members, leader, closer, person_responsible, element_compliance, task_element_compliance, area_element_compliance, system_element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, #comments, #action, completed_date, due_date, description, summary, site_id, department_id, location_id, task_id, key_findings, assessor, members, leader, closer, person_responsible, element_compliance, task_causes, area_element_compliance, system_element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :incidentId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -154,7 +154,7 @@ router.put('/:incidentId', function(req, res, next) {
       members = :members, \
       closer = :closer, \
       element_compliance = :element_compliance, \
-      task_element_compliance = :task_element_compliance, \
+      task_causes = :task_causes, \
       area_element_compliance = :area_element_compliance, \
       system_element_compliance = :system_element_compliance, \
       risk_compliance = :risk_compliance, \
@@ -184,7 +184,7 @@ router.put('/:incidentId', function(req, res, next) {
       ":members": req.body.members,
       ":closer": req.body.closer,
       ":element_compliance": req.body.element_compliance,
-      ":task_element_compliance": req.body.task_element_compliance,
+      ":task_causes": req.body.task_causes,
       ":area_element_compliance": req.body.area_element_compliance,
       ":system_element_compliance": req.body.system_element_compliance,
       ":risk_compliance": req.body.risk_compliance,
@@ -243,7 +243,7 @@ router.post('/', function(req, res, next) {
       "person_responsible": req.body.person_responsible,
       "closer": req.body.closer,
       "element_compliance": req.body.element_compliance,
-      "task_element_compliance": req.body.task_element_compliance,
+      "task_causes": req.body.task_causes,
       "area_element_compliance": req.body.area_element_compliance,
       "system_element_compliance": req.body.system_element_compliance,
       "risk_compliance": req.body.risk_compliance,
