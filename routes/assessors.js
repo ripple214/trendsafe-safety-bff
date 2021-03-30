@@ -10,7 +10,7 @@ var tableName = conf.get('TABLE_ASSESSORS');
 
 /* GET assessors listing. */
 router.get('/', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let siteId = req.query.siteId;
   let isLeader = req.query.isLeader;
   
@@ -76,7 +76,7 @@ router.get('/:assessorId', function(req, res) {
 });
 
 const getQueryParams = (req) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let assessorId = req.params.assessorId;
   
   var params = {
@@ -100,7 +100,7 @@ const getQueryParams = (req) => {
 
 /* POST insert assessor. */
 router.post('/', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let siteId = req.body.siteId;
   let createTime = moment().format();
   let id = uuid.v4();
@@ -117,9 +117,9 @@ router.post('/', function(req, res) {
       "is_leader": is_leader,
       "site_id": siteId,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -139,7 +139,7 @@ router.post('/', function(req, res) {
 
 /* PUT update assessor. */
 router.put('/:assessorId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let assessorId = req.params.assessorId;
   let name = req.body.name;
   let is_leader = req.body.is_leader;
@@ -158,7 +158,7 @@ router.put('/:assessorId', function(req, res) {
       ":name": name,
       ":is_leader": is_leader,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -180,7 +180,7 @@ router.put('/:assessorId', function(req, res) {
 
 /* DELETE delete assessor. */
 router.delete('/:assessorId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let assessorId = req.params.assessorId;
 
   var deleteParams = {

@@ -141,7 +141,7 @@ router.get('/elements', function(req, res) {
 });
 
 const getListParams = (req, level) =>  {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   
   var params = {
@@ -225,7 +225,7 @@ router.delete('/:type/elements/:id', function(req, res) {
 });
 
 const insertCategoryElement = (level, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let name = req.body.name;
   let parent = req.body.parent;
@@ -242,9 +242,9 @@ const insertCategoryElement = (level, req, res) => {
       "name": name,
       "parent": parent,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -283,7 +283,7 @@ const updateCategoryElement = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let type = req.params.type;
     let id = req.params.id;
   
@@ -300,7 +300,7 @@ const updateCategoryElement = (level, req, res) => {
       ExpressionAttributeValues: {
         ":name": req.body.name,
         ":updated_ts": moment().format(),
-        ":updated_by": req.user.emailAddress,
+        ":updated_by": req.user.email,
       },
       ReturnValues:"ALL_NEW"
     };
@@ -322,7 +322,7 @@ const updateCategoryElement = (level, req, res) => {
 }
 
 const getQueryParams = (req, level) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let id = req.params.id;
   
@@ -367,7 +367,7 @@ const deleteCategoryElement = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let type = req.params.type;
     let id = req.params.id;
   

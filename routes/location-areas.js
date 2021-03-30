@@ -141,7 +141,7 @@ router.get('/areas', function(req, res) {
 });
 
 const getListParams = (req, level) =>  {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let siteId = req.query.siteId;
   
   var params = {
@@ -232,7 +232,7 @@ router.delete('/areas/:id', function(req, res) {
 });
 
 const insertLocationArea = (level, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let name = req.body.name;
   let parents = req.body.parents;
   let siteId = parents.split(DELIMITER)[0];
@@ -248,9 +248,9 @@ const insertLocationArea = (level, req, res) => {
       "name": name,
       "parents": parents,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -289,7 +289,7 @@ const updateLocationArea = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let id = req.params.id;
   
     var params = {
@@ -305,7 +305,7 @@ const updateLocationArea = (level, req, res) => {
       ExpressionAttributeValues: {
         ":name": req.body.name,
         ":updated_ts": moment().format(),
-        ":updated_by": req.user.emailAddress,
+        ":updated_by": req.user.email,
       },
       ReturnValues:"ALL_NEW"
     };
@@ -327,7 +327,7 @@ const updateLocationArea = (level, req, res) => {
 }
 
 const getQueryParams = (req, level) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let id = req.params.id;
   
   var params = {
@@ -372,7 +372,7 @@ const deleteLocationArea = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let id = req.params.id;
   
     var params = {

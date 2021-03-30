@@ -26,6 +26,7 @@ var rulesRouter = require('./routes/rules');
 var usersRouter = require('./routes/users');
 var assessorsRouter = require('./routes/assessors');
 var categoryElementsRouter = require('./routes/category-elements');
+var actionsRouter = require('./routes/actions');
 var assessmentsRouter = require('./routes/assessments');
 var inspectionsRouter = require('./routes/inspections');
 var hazardsRouter = require('./routes/hazards');
@@ -113,11 +114,32 @@ const authenticateJWT = (req, res, next) => {
           req.user = user;
 
           let response = {
-            sessionId: user.sessionId,
-            clientId: user.clientId,
-            emailAddress: user.emailAddress,
+            session_id: user.session_id,
+            client_id: user.client_id,
+            email: user.email,
             module: user.module
           };
+          if(user.module == 'CLIENT') {
+            response.user_id = user.user_id;
+            response.last_name = user.last_name;
+            response.first_name = user.first_name;
+            response.email = user.email;
+            response.administrator = user.administrator;
+            response.leader = user.leader;
+            response.user = user.user;
+            response.authorizer = user.authorizer;
+            response.recipient = user.recipient;
+            response.dataEntryDivisionIds = user.dataEntryDivisionIds;
+            response.dataEntryProjectIds = user.dataEntryProjectIds;
+            response.dataEntrySiteIds = user.dataEntrySiteIds;
+            response.dataEntrySubsiteIds = user.dataEntrySubsiteIds;
+            response.dataEntryDepartmentIds = user.dataEntryDepartmentIds;
+            response.reportingDivisionIds = user.reportingDivisionIds;
+            response.reportingProjectIds = user.reportingProjectIds;
+            response.reportingSiteIds = user.reportingSiteIds;
+            response.reportingSubsiteIds = user.reportingSubsiteIds;
+            response.reportingDepartmentIds = user.reportingDepartmentIds;
+          }
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
           res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
           
@@ -166,6 +188,7 @@ app.use(contextPath + '/weightings', weightingsRouter);
 app.use(contextPath + '/files', filesRouter);
 app.use(contextPath + '/assessors', assessorsRouter);
 app.use(contextPath + '/category-elements', categoryElementsRouter);
+app.use(contextPath + '/actions', actionsRouter);
 app.use(contextPath + '/assessments', assessmentsRouter);
 app.use(contextPath + '/inspections', inspectionsRouter);
 app.use(contextPath + '/hazards', hazardsRouter);

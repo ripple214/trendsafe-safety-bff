@@ -10,7 +10,7 @@ var tableName = conf.get('TABLE_RULES');
 
 /* GET rules listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -40,7 +40,7 @@ router.get('/', function(req, res, next) {
 
 /* PUT update rule. */
 router.put('/:ruleId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let ruleId = req.params.ruleId;
 
   var params = {
@@ -56,7 +56,7 @@ router.put('/:ruleId', function(req, res, next) {
     ExpressionAttributeValues: {
       ":name": req.body.name,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -78,7 +78,7 @@ router.put('/:ruleId', function(req, res, next) {
 
 /* POST insert rule. */
 router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
 
@@ -91,9 +91,9 @@ router.post('/', function(req, res, next) {
       "name": req.body.name,
       "sort_num": req.body.sort_num,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -113,7 +113,7 @@ router.post('/', function(req, res, next) {
 
 /* DELETE delete rule. */
 router.delete('/:ruleId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let ruleId = req.params.ruleId;
 
   var params = {

@@ -90,7 +90,7 @@ router.get('/compliance-by-element', function(req, res, next) {
 
 const getAssessmentsParam = (req) => {
   let tableName = conf.get('TABLE_ASSESSMENTS');
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -196,7 +196,7 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
 
 const getCategoryElementsListParams = (req, level) =>  {
   let tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   
   var params = {
     TableName: tableName,

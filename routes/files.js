@@ -13,7 +13,7 @@ const upload = multer({
 }).single('file');
 
 router.post("/:type", upload, (req, res, next) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let group = req.body.group;
   let subgroup = req.body.subgroup;
@@ -25,7 +25,7 @@ router.post("/:type", upload, (req, res, next) => {
     ext = "";
   }
   let key = clientId + '/' + type + '/' + group + '/' + subgroup + '/' + id + ext;
-
+  
   s3.upload(file.path, key, function(response) {
     if (response.data) {
       response.data = {
@@ -43,7 +43,7 @@ router.post("/:type", upload, (req, res, next) => {
 });
 
 router.put("/:type", (req, res, next) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let group = req.body.group;
   let fromSubgroup = req.body.fromSubgroup;
@@ -63,7 +63,7 @@ router.put("/:type", (req, res, next) => {
 });
 
 router.get("/:type/:group/:subgroup/:file", (req, res, next) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;
@@ -87,7 +87,7 @@ router.get("/:type/:group/:subgroup/:file", (req, res, next) => {
 });
 
 router.get("/:type/:group/:subgroup", (req, res, next) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;
@@ -106,7 +106,7 @@ router.get("/:type/:group/:subgroup", (req, res, next) => {
 });
 
 router.delete("/:type/:group/:subgroup/:file", (req, res, next) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let type = req.params.type;
   let group = req.params.group;
   let subgroup = req.params.subgroup;

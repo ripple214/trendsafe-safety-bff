@@ -11,7 +11,7 @@ var tableName = conf.get('TABLE_MANAGEMENTS');
 
 /* GET managements listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -61,7 +61,7 @@ router.get('/:managementId', function(req, res) {
 });
 
 const getQueryParams = (req) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let managementId = req.params.managementId;
   
   var params = {
@@ -84,7 +84,7 @@ const getQueryParams = (req) => {
 
 /* PUT update management. */
 router.put('/:managementId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let managementId = req.params.managementId;
 
   var params = {
@@ -120,7 +120,7 @@ router.put('/:managementId', function(req, res, next) {
       ":members": req.body.members,
       ":element_compliance": req.body.element_compliance,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -142,7 +142,7 @@ router.put('/:managementId', function(req, res, next) {
 
 /* POST insert management. */
 router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
   let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
@@ -167,9 +167,9 @@ router.post('/', function(req, res, next) {
       "element_compliance": req.body.element_compliance,
       "sort_num": 1,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -189,7 +189,7 @@ router.post('/', function(req, res, next) {
 
 /* DELETE delete management. */
 router.delete('/:managementId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let managementId = req.params.managementId;
 
   var params = {

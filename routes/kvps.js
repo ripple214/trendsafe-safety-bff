@@ -9,7 +9,7 @@ var tableName = conf.get('TABLE_KVPS');
 
 /* GET kvps listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -39,7 +39,7 @@ router.get('/', function(req, res, next) {
 
 /* PUT update kvp. */
 router.put('/:kvpId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let kvpId = req.params.kvpId;
 
   var params = {
@@ -55,7 +55,7 @@ router.put('/:kvpId', function(req, res, next) {
     ExpressionAttributeValues: {
       ":name": req.body.name,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };

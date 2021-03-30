@@ -9,7 +9,7 @@ var tableName = conf.get('TABLE_MODULES');
 
 /* GET modules listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -39,7 +39,7 @@ router.get('/', function(req, res, next) {
 
 /* PUT update module. */
 router.put('/:moduleId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let moduleId = req.params.moduleId;
 
   var params = {
@@ -53,7 +53,7 @@ router.put('/:moduleId', function(req, res, next) {
       ":is_activated": req.body.is_activated,
       ":max_licenses": req.body.max_licenses,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };

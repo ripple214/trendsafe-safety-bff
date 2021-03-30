@@ -11,7 +11,7 @@ var tableName = conf.get('TABLE_PERFORMANCES');
 
 /* GET performances listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -66,7 +66,7 @@ router.get('/:performanceId', function(req, res) {
 });
 
 const getPhotographs = (req, res, callback) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let group = "images/performances";
   let subgroup = req.params.performanceId;
   let key = clientId + '/' + group + '/' + subgroup;
@@ -82,7 +82,7 @@ const getPhotographs = (req, res, callback) => {
 } 
 
 const getQueryParams = (req) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let performanceId = req.params.performanceId;
   
   var params = {
@@ -105,7 +105,7 @@ const getQueryParams = (req) => {
 
 /* PUT update performance. */
 router.put('/:performanceId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let performanceId = req.params.performanceId;
 
   var params = {
@@ -155,7 +155,7 @@ router.put('/:performanceId', function(req, res, next) {
       ":risk_compliance": req.body.risk_compliance,
       ":rule_compliance": req.body.rule_compliance,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -177,7 +177,7 @@ router.put('/:performanceId', function(req, res, next) {
 
 /* POST insert performance. */
 router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
   let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
@@ -209,9 +209,9 @@ router.post('/', function(req, res, next) {
       "rule_compliance": req.body.rule_compliance,
       "sort_num": 1,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -252,7 +252,7 @@ const movePhotographs = (fromKey, toKey, callback) => {
 
 /* DELETE delete performance. */
 router.delete('/:performanceId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let performanceId = req.params.performanceId;
 
   var params = {

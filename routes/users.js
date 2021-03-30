@@ -10,7 +10,7 @@ var tableName = conf.get('TABLE_USERS');
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -46,7 +46,7 @@ router.get('/', function(req, res, next) {
 
 /* GET administrators listing. */
 router.get('/admins', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -85,7 +85,7 @@ router.get('/admins', function(req, res, next) {
 
 /* GET users listing. */
 router.get('/users', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -124,7 +124,7 @@ router.get('/users', function(req, res, next) {
 
 /* GET user. */
 router.get('/:userId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let userId = req.params.userId;
 
   var params = {
@@ -159,7 +159,7 @@ router.get('/:userId', function(req, res) {
 
 /* PUT update user. */
 router.put('/:userId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let userId = req.params.userId;
 
   var params = {
@@ -211,7 +211,7 @@ router.put('/:userId', function(req, res, next) {
       ":reportingDepartmentIds": req.body.reportingDepartmentIds,
 
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -233,7 +233,7 @@ router.put('/:userId', function(req, res, next) {
 
 /* POST insert user. */
 router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
 
@@ -266,9 +266,9 @@ router.post('/', function(req, res, next) {
       "reportingDepartmentIds": req.body.reportingDepartmentIds,
 
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -288,7 +288,7 @@ router.post('/', function(req, res, next) {
 
 /* DELETE delete user. */
 router.delete('/:userId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let userId = req.params.userId;
 
   var params = {

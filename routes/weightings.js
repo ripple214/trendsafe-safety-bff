@@ -50,7 +50,7 @@ router.put('/:weightingId', function(req, res, next) {
     ExpressionAttributeValues: {
       ":weighting": req.body.weighting,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };

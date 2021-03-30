@@ -9,7 +9,7 @@ var tableName = conf.get('TABLE_KPIS');
 
 /* GET kpis listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -39,7 +39,7 @@ router.get('/', function(req, res, next) {
 
 /* PUT update kpi. */
 router.put('/:kpiId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let kpiId = req.params.kpiId;
 
   var params = {
@@ -55,7 +55,7 @@ router.put('/:kpiId', function(req, res, next) {
       ":low": req.body.low,
       ":moderate": req.body.moderate,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };

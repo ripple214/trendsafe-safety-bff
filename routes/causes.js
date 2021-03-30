@@ -141,7 +141,7 @@ router.get('/items', function(req, res) {
 });
 
 const getListParams = (req, level) =>  {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   
   var params = {
     TableName: tableName,
@@ -224,7 +224,7 @@ router.delete('/items/:id', function(req, res) {
 });
 
 const insertCause = (level, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let name = req.body.name;
   let parents = req.body.parents;
   let createTime = moment().format();
@@ -239,9 +239,9 @@ const insertCause = (level, req, res) => {
       "name": name,
       "parents": parents,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -276,7 +276,7 @@ const updateCause = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let id = req.params.id;
   
     var params = {
@@ -292,7 +292,7 @@ const updateCause = (level, req, res) => {
       ExpressionAttributeValues: {
         ":name": req.body.name,
         ":updated_ts": moment().format(),
-        ":updated_by": req.user.emailAddress,
+        ":updated_by": req.user.email,
       },
       ReturnValues:"ALL_NEW"
     };
@@ -314,7 +314,7 @@ const updateCause = (level, req, res) => {
 }
 
 const getQueryParams = (req, level) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let id = req.params.id;
   
   var params = {
@@ -354,7 +354,7 @@ const deleteCause = (level, req, res) => {
   });
 
   synCaller.then(() => {
-    let clientId = req.user.clientId;
+    let clientId = req.user.client_id;
     let id = req.params.id;
   
     var params = {

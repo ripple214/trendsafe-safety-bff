@@ -10,7 +10,7 @@ var tableName = conf.get('TABLE_SOURCES');
 
 /* GET sources listing. */
 router.get('/', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   
   var params = {
     TableName: tableName,
@@ -44,7 +44,7 @@ router.get('/', function(req, res) {
 
 /* GET source. */
 router.get('/:sourceId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let sourceId = req.params.sourceId;
   
   var params = {
@@ -81,7 +81,7 @@ router.get('/:sourceId', function(req, res) {
 
 /* POST insert source. */
 router.post('/', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
   let name = req.body.name;
@@ -94,9 +94,9 @@ router.post('/', function(req, res) {
       "id": id,
       "name": name,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -116,7 +116,7 @@ router.post('/', function(req, res) {
 
 /* PUT update source. */
 router.put('/:id', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let id = req.params.id;
   let name = req.body.name;
 
@@ -133,7 +133,7 @@ router.put('/:id', function(req, res) {
     ExpressionAttributeValues: {
       ":name": name,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -155,7 +155,7 @@ router.put('/:id', function(req, res) {
 
 /* DELETE delete source. */
 router.delete('/:id', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let id = req.params.id;
 
   var params = {

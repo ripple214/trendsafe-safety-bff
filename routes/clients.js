@@ -102,9 +102,9 @@ router.post('/', function(req, res) {
       "license_count": 0,
       "license_max": 20,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -147,7 +147,7 @@ router.put('/:id', function(req, res) {
       ":last_name": last_name,
       ":email": email,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };

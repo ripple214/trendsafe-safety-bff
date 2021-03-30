@@ -151,7 +151,7 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
 };
 
 const getParams = (req, level) =>  {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   let divisionId = req.query.division_id;
   let projectId = req.query.project_id;
@@ -310,7 +310,7 @@ router.delete('/departments/:hierarchyId', function(req, res) {
 });
 
 const insertHierarchy = (level, name, parents, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
 
@@ -357,9 +357,9 @@ const insertHierarchy = (level, name, parents, req, res) => {
       "subsite_id": subsiteId,
       "department_id": departmentId,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -378,7 +378,7 @@ const insertHierarchy = (level, name, parents, req, res) => {
 }
 
 const updateHierarchy = (level, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let hierarchyId = req.params.hierarchyId;
 
   var params = {
@@ -394,7 +394,7 @@ const updateHierarchy = (level, req, res) => {
     ExpressionAttributeValues: {
       ":name": req.body.name,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -417,7 +417,7 @@ const updateHierarchy = (level, req, res) => {
 /* DELETE delete hierarchy. */
 // TODO check if there are assessments. Also delete children
 const deleteHierarchy = (level, req, res) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let hierarchyId = req.params.hierarchyId;
 
   var params = {

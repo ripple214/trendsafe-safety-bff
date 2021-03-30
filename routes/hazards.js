@@ -11,7 +11,7 @@ var tableName = conf.get('TABLE_HAZARDS');
 
 /* GET hazards listing. */
 router.get('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
 
   var params = {
     TableName: tableName,
@@ -66,7 +66,7 @@ router.get('/:hazardId', function(req, res) {
 });
 
 const getPhotographs = (req, res, callback) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let group = "images/hazards";
   let subgroup = req.params.hazardId;
   let key = clientId + '/' + group + '/' + subgroup;
@@ -82,7 +82,7 @@ const getPhotographs = (req, res, callback) => {
 } 
 
 const getQueryParams = (req) => {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let hazardId = req.params.hazardId;
   
   var params = {
@@ -105,7 +105,7 @@ const getQueryParams = (req) => {
 
 /* PUT update hazard. */
 router.put('/:hazardId', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let hazardId = req.params.hazardId;
 
   var params = {
@@ -159,7 +159,7 @@ router.put('/:hazardId', function(req, res, next) {
       ":risk_compliance": req.body.risk_compliance,
       ":rule_compliance": req.body.rule_compliance,
       ":updated_ts": moment().format(),
-      ":updated_by": req.user.emailAddress,
+      ":updated_by": req.user.email,
     },
     ReturnValues:"ALL_NEW"
   };
@@ -170,8 +170,35 @@ router.put('/:hazardId', function(req, res, next) {
       var resp = response.data;
       delete resp['partition_key'];
       delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
+      
+      var actionsParams = {
+        TableName: conf.get('TABLE_ACTIONS'),
+        Key: {
+          "partition_key": clientId,
+          "sort_key": hazardId,
+        },
+        UpdateExpression: 'set summary = :summary, assessor = :assessor, assigned_to = :assigned_to, date_due = :date_due, updated_ts = :updated_ts, updated_by = :updated_by',
+        ExpressionAttributeValues: {
+          ":summary": req.body.further_actions_required,
+          ":assessor": req.body.assessor,
+          ":assigned_to": req.body.person_responsible,
+          ":date_due": req.body.due_date, 
+          ":updated_ts": moment().format(),
+          ":updated_by": req.user.email,
+        },
+        ReturnValues:"ALL_NEW"
+      };
+    
+      ddb.update(actionsParams, function(response) {
+        
+        if (response.data) {
+          res.status(200);
+          res.json(resp);
+        } else {
+          res.status(400);
+          res.json(response);
+        }
+      });
     } else {
       res.status(400);
       res.json(response);
@@ -181,7 +208,7 @@ router.put('/:hazardId', function(req, res, next) {
 
 /* POST insert hazard. */
 router.post('/', function(req, res, next) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let createTime = moment().format();
   let id = uuid.v4();
   let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
@@ -215,9 +242,9 @@ router.post('/', function(req, res, next) {
       "rule_compliance": req.body.rule_compliance,
       "sort_num": 1,
       "created_ts": createTime, 
-      "created_by": req.user.emailAddress,
+      "created_by": req.user.email,
       "updated_ts": createTime,
-      "updated_by": req.user.emailAddress
+      "updated_by": req.user.email
     }
   };
 
@@ -238,8 +265,36 @@ router.post('/', function(req, res, next) {
           res.status(400);
           res.json(response);
         } else {
-          res.status(200);
-          res.json(resp);
+
+          var actionsParams = {
+            TableName: conf.get('TABLE_ACTIONS'),
+            Item: {
+              "partition_key": clientId,
+              "sort_key": id,
+              "id": id,
+              "name": name,
+              "summary": req.body.further_actions_required,
+              "assessor": req.body.assessor,
+              "assigned_to": req.body.person_responsible,
+              "date_created": createTime, 
+              "date_due": req.body.due_date, 
+              "status": "Open",
+              "created_ts": createTime, 
+              "created_by": req.user.email,
+              "updated_ts": createTime,
+              "updated_by": req.user.email
+            }
+          };
+        
+          ddb.insert(actionsParams, function(response) {
+            if (response.data) {
+              res.status(200);
+              res.json(resp);
+            } else {
+              res.status(400);
+              res.json(response);
+            }
+          });
         }
       });
     } else {
@@ -258,7 +313,7 @@ const movePhotographs = (fromKey, toKey, callback) => {
 
 /* DELETE delete hazard. */
 router.delete('/:hazardId', function(req, res) {
-  let clientId = req.user.clientId;
+  let clientId = req.user.client_id;
   let hazardId = req.params.hazardId;
 
   var params = {
