@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
 
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, summary, assessor, risk_rating, sort_num',
+    ProjectionExpression: 'id, #name, report_date, site, departments, totals',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -30,7 +30,7 @@ router.get('/', function(req, res, next) {
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return b.completed_date.localeCompare(a.completed_date);
+        return b.report_date.localeCompare(a.report_date);
       });
 
       var resp = {"indicators": response.data};
@@ -51,13 +51,8 @@ router.get('/:indicatorId', function(req, res) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
-      
-      getPhotographs(req, res, (data) => {
-        console.log()
-        resp.photographs = data;
-        res.status(200);
-        res.json(resp);
-      });
+      res.status(200);
+      res.json(resp);
     } else {
       res.status(404);
       res.json();
@@ -65,29 +60,13 @@ router.get('/:indicatorId', function(req, res) {
   });
 });
 
-const getPhotographs = (req, res, callback) => {
-  let clientId = req.user.client_id;
-  let group = "images/indicators";
-  let subgroup = req.params.indicatorId;
-  let key = clientId + '/' + group + '/' + subgroup;
-
-  s3.list(key, function(response) {
-    if (response.data) {
-      callback(response.data);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-} 
-
 const getQueryParams = (req) => {
   let clientId = req.user.client_id;
   let indicatorId = req.params.indicatorId;
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, risk_rating, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, report_date, site, departments, totals',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -115,22 +94,10 @@ router.put('/:indicatorId', function(req, res, next) {
       "sort_key": indicatorId,
     },
     UpdateExpression: 'set #name = :name, \
-      actions_taken = :actions_taken, \
-      key_findings = :key_findings, \
-      further_actions_required = :further_actions_required, \
-      completed_date = :completed_date, \
-      due_date = :due_date, \
-      summary = :summary, \
-      site_id = :site_id, \
-      department_id = :department_id, \
-      location_id = :location_id, \
-      task_id = :task_id, \
-      assessor = :assessor, \
-      person_responsible = :person_responsible, \
-      risk_rating = :risk_rating, \
-      element_compliance = :element_compliance, \
-      risk_compliance = :risk_compliance, \
-      rule_compliance = :rule_compliance, \
+      report_date = :report_date, \
+      site = :site, \
+      departments = :departments, \
+      totals = :totals, \
       updated_ts = :updated_ts, \
       updated_by = :updated_by',
     ExpressionAttributeNames:{
@@ -138,22 +105,10 @@ router.put('/:indicatorId', function(req, res, next) {
     },
     ExpressionAttributeValues: {
       ":name": req.body.name,
-      ":actions_taken": req.body.actions_taken,
-      ":key_findings": req.body.key_findings,
-      ":further_actions_required": req.body.further_actions_required,
-      ":completed_date": req.body.completed_date,
-      ":due_date": req.body.due_date,
-      ":summary": req.body.summary,
-      ":site_id": req.body.site_id,
-      ":department_id": req.body.department_id,
-      ":location_id": req.body.location_id,
-      ":task_id": req.body.task_id,
-      ":assessor": req.body.assessor,
-      ":person_responsible": req.body.person_responsible,
-      ":risk_rating": req.body.risk_rating,
-      ":element_compliance": req.body.element_compliance,
-      ":risk_compliance": req.body.risk_compliance,
-      ":rule_compliance": req.body.rule_compliance,
+      ":report_date": req.body.report_date,
+      ":site": req.body.site,
+      ":departments": req.body.departments,
+      ":totals": req.body.totals,
       ":updated_ts": moment().format(),
       ":updated_by": req.user.email,
     },
@@ -182,8 +137,6 @@ router.post('/', function(req, res, next) {
   let id = uuid.v4();
   let name = id.replace(/-/g, "").substring(0, 12).toUpperCase();
 
-  let tempId = req.body.id;
-
   var params = {
     TableName: tableName,
     Item: {
@@ -191,23 +144,10 @@ router.post('/', function(req, res, next) {
       "sort_key": id,
       "id": id,
       "name": name,
-      "actions_taken": req.body.actions_taken,
-      "key_findings": req.body.key_findings,
-      "further_actions_required": req.body.further_actions_required,
-      "completed_date": req.body.completed_date,
-      "due_date": req.body.due_date,
-      "summary": req.body.summary,
-      "site_id": req.body.site_id,
-      "department_id": req.body.department_id,
-      "location_id": req.body.location_id,
-      "task_id": req.body.task_id,
-      "assessor": req.body.assessor,
-      "person_responsible": req.body.person_responsible,
-      "risk_rating": req.body.risk_rating,
-      "element_compliance": req.body.element_compliance,
-      "risk_compliance": req.body.risk_compliance,
-      "rule_compliance": req.body.rule_compliance,
-      "sort_num": 1,
+      "report_date": req.body.report_date,
+      "site": req.body.site,
+      "departments": req.body.departments,
+      "totals": req.body.totals,
       "created_ts": createTime, 
       "created_by": req.user.email,
       "updated_ts": createTime,
@@ -220,35 +160,14 @@ router.post('/', function(req, res, next) {
       var resp = response.data;
       delete resp['partition_key'];
       delete resp['sort_key'];
-
-      let group = "images/indicators";
-      let fromSubgroup = tempId;
-      let toSubgroup = id;
-      let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';
-      let toKey = clientId + '/' + group + '/' + toSubgroup;
-    
-      movePhotographs(fromKey, toKey, (moveResponse) => {
-        if (moveResponse.error) {
-          res.status(400);
-          res.json(response);
-        } else {
-          res.status(200);
-          res.json(resp);
-        }
-      });
+      res.status(200);
+      res.json(resp);
     } else {
       res.status(400);
       res.json(response);
     }
   });
 });
-
-const movePhotographs = (fromKey, toKey, callback) => {
-  console.log("moving photographs from", fromKey, "to", toKey);
-  s3.move(fromKey, toKey, function(response) {
-    callback(response);
-  });
-};
 
 /* DELETE delete indicator. */
 router.delete('/:indicatorId', function(req, res) {
