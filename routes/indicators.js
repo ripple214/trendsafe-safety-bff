@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
 
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, departments, totals',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -66,7 +66,7 @@ const getQueryParams = (req) => {
   
   var params = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, departments, totals',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -96,8 +96,7 @@ router.put('/:indicatorId', function(req, res, next) {
     UpdateExpression: 'set #name = :name, \
       report_date = :report_date, \
       site = :site, \
-      departments = :departments, \
-      totals = :totals, \
+      total_hours = :total_hours, \
       updated_ts = :updated_ts, \
       updated_by = :updated_by',
     ExpressionAttributeNames:{
@@ -107,8 +106,7 @@ router.put('/:indicatorId', function(req, res, next) {
       ":name": req.body.name,
       ":report_date": req.body.report_date,
       ":site": req.body.site,
-      ":departments": req.body.departments,
-      ":totals": req.body.totals,
+      ":total_hours": req.body.total_hours,
       ":updated_ts": moment().format(),
       ":updated_by": req.user.email,
     },
@@ -146,8 +144,7 @@ router.post('/', function(req, res, next) {
       "name": name,
       "report_date": req.body.report_date,
       "site": req.body.site,
-      "departments": req.body.departments,
-      "totals": req.body.totals,
+      "total_hours": req.body.total_hours,
       "created_ts": createTime, 
       "created_by": req.user.email,
       "updated_ts": createTime,

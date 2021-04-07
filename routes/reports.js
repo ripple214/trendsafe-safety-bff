@@ -10,11 +10,10 @@ router.get('/compliance-by-element', function(req, res, next) {
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
 
-  getCategories(req, (categories) => {
+  getCategories(req, "assessments", (categories) => {
     var params = getAssessmentsParam(req);
 
     ddb.query(params, function(response) {
-      
       if (response.data) {
         let chartData = [];
         let tableData = [];
@@ -117,8 +116,8 @@ var LEVEL_DESCRIPTIONS = {
   ELEMENT: "elements"
 };
 
-const getCategories = (req, callback) => {
-  retrieve(req, LEVELS, (dataMap) => {
+const getCategories = (req, type, callback) => {
+  retrieve(req, type, LEVELS, (dataMap) => {
     var categories = [];
 
     var allMap = {};
@@ -162,16 +161,16 @@ const getCategories = (req, callback) => {
   });
 }
 
-const retrieve = (req, levels, callback) => {
-  recursiveRetrieve(req, levels, 0, {}, callback);
+const retrieve = (req, type, levels, callback) => {
+  recursiveRetrieve(req, type, levels, 0, {}, callback);
 };
 
-const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
+const recursiveRetrieve = (req, type, levels, index, dataMap, callback) => {
 
   var dbLooper = new Promise((resolveDBLoop, rejectDBLoop) => {
     var level = levels[index]
 
-    ddb.query(getCategoryElementsListParams(req, level), function(response) {
+    ddb.query(getCategoryElementsListParams(req, type, level), function(response) {
       if (response.data) {
         response.data.sort(function (a, b) {
           return a.sort_num - b.sort_num;
@@ -189,12 +188,12 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
     if(index == levels.length-1) {
       callback(dataMap);
     } else {
-      recursiveRetrieve(req, levels, ++index, dataMap, callback)
+      recursiveRetrieve(req, type, levels, ++index, dataMap, callback)
     }
   });
 };
 
-const getCategoryElementsListParams = (req, level) =>  {
+const getCategoryElementsListParams = (req, type, level) =>  {
   let tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
   let clientId = req.user.client_id;
   
@@ -207,7 +206,7 @@ const getCategoryElementsListParams = (req, level) =>  {
       "#name": "name",
     },
     ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + level
+      ":clientId": clientId + DELIMITER + type + DELIMITER + level
     },
   };
 

@@ -12,20 +12,40 @@ var tableName = conf.get('TABLE_INSPECTIONS');
 /* GET inspections listing. */
 router.get('/', function(req, res, next) {
   let clientId = req.user.client_id;
+  let siteId = req.query.site_id;
 
-  var params = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, summary, assessor, sort_num',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId
-    },
-  };
+  var params = {};
 
+  if(siteId) {
+    params = {
+      TableName: tableName,
+      IndexName: "SiteIndex",
+      ProjectionExpression: 'id, #name, completed_date, assessor',
+      KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId,
+        ":site_id": siteId
+      },
+    };
+  } else {
+    params = {
+      TableName: tableName,
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, sort_num',
+      KeyConditionExpression: '#partition_key = :clientId',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId
+      },
+    };
+  }
+  
   ddb.query(params, function(response) {
     
     if (response.data) {

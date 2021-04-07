@@ -12,19 +12,39 @@ var tableName = conf.get('TABLE_HAZARDS');
 /* GET hazards listing. */
 router.get('/', function(req, res, next) {
   let clientId = req.user.client_id;
+  let siteId = req.query.site_id;
 
-  var params = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, summary, assessor, risk_rating, sort_num',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId
-    },
-  };
+  var params = {};
+
+  if(siteId) {
+    params = {
+      TableName: tableName,
+      IndexName: "SiteIndex",
+      ProjectionExpression: 'id, #name, completed_date, assessor, hazard_type',
+      KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId,
+        ":site_id": siteId
+      },
+    };
+  } else {
+    params = {
+      TableName: tableName,
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, risk_rating, sort_num',
+      KeyConditionExpression: '#partition_key = :clientId',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId
+      },
+    };
+  }
 
   ddb.query(params, function(response) {
     

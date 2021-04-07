@@ -200,11 +200,10 @@ const getParams = (req, level) =>  {
       }
     }
 
-    console.log("here", indexName, parentField, parentId);
     params = {
       TableName: tableName,
       IndexName: indexName,
-      ProjectionExpression: 'id, #name, parents',
+      ProjectionExpression: 'id, #name, parents, division_id, project_id, site_id, subsite_id, department_id',
       KeyConditionExpression: '#partition_key = :clientId and #parent = :parent',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -219,7 +218,7 @@ const getParams = (req, level) =>  {
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, parents',
+      ProjectionExpression: 'id, #name, parents, division_id, project_id, site_id, subsite_id, department_id',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
