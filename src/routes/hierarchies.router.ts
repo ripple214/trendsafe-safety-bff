@@ -124,7 +124,6 @@ const retrieve = (req, levels, callback) => {
 };
 
 const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
-
   var dbLooper = new Promise((resolveDBLoop:any, rejectDBLoop:any) => {
     var level = levels[index]
 
@@ -153,18 +152,21 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
   });
 };
 
-const getParams = (req, level) =>  {
+const getParams = (req, level) => {
   let clientId = req['user'].client_id;
 
-  let divisionId = req.query.division_id;
-  let projectId = req.query.project_id;
-  let siteId = req.query.site_id;
-  let subsiteId = req.query.subsite_id;
-  let departmentId = req.query.department_id;
+  let divisionId = req.query.divisionId;
+  let projectId = req.query.projectId;
+  let siteId = req.query.siteId;
+  let subsiteId = req.query.subsiteId;
 
+  return getParamsFiltered(clientId, level, divisionId, projectId, siteId, subsiteId);
+};
+
+const getParamsFiltered = (clientId, level, divisionId, projectId, siteId, subsiteId) =>  {
   var params:any = {};
 
-  if(divisionId || projectId || siteId || subsiteId || departmentId) {
+  if(divisionId || projectId || siteId || subsiteId) {
     let indexName = "DivisionIdIndex";
     let parentField = "division_id";
     let parentId = divisionId;
@@ -444,107 +446,113 @@ const deleteHierarchy = (level, req, res) => {
 
 /* GET divisions listing. */
 router.get('/divisions', function(req, res, next) {
-  var params = getParams(req, DIVISION);
-
-  ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"divisions": response.data};
+  getDivisions(req, 
+    (data) => {
+      var resp = {"divisions": data};
       res.status(200);
       res.json(resp);
-    } else {
+    }, 
+    (err) => {
       res.status(400);
-      res.json(response);
+      res.json(err);
     }
-  });
+  );
 });
 
 /* GET projects listing. */
 router.get('/projects', function(req, res, next) {
-  var params = getParams(req, PROJECT);
-
-  ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"projects": response.data};
+  getProjects(req, 
+    (data) => {
+      var resp = {"projects": data};
       res.status(200);
       res.json(resp);
-    } else {
+    }, 
+    (err) => {
       res.status(400);
-      res.json(response);
+      res.json(err);
     }
-  });
+  );
 });
 
 /* GET sites listing. */
 router.get('/sites', function(req, res, next) {
-  var params = getParams(req, SITE);
-
-  ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"sites": response.data};
+  getSites(req, 
+    (data) => {
+      var resp = {"sites": data};
       res.status(200);
       res.json(resp);
-    } else {
+    }, 
+    (err) => {
       res.status(400);
-      res.json(response);
+      res.json(err);
     }
-  });
+  );
 });
 
 /* GET subsites listing. */
 router.get('/subsites', function(req, res, next) {
-  var params = getParams(req, SUBSITE);
-
-  ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"subsites": response.data};
+  getSubsites(req, 
+    (data) => {
+      var resp = {"subsites": data};
       res.status(200);
       res.json(resp);
-    } else {
+    }, 
+    (err) => {
       res.status(400);
-      res.json(response);
+      res.json(err);
     }
-  });
+  );
 });
 
 /* GET department listing. */
 router.get('/departments', function(req, res, next) {
-  var params = getParams(req, DEPARTMENT);
+  getDepartments(req, 
+    (data) => {
+      var resp = {"departments": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (err) => {
+      res.status(400);
+      res.json(err);
+    }
+  );
+});
+
+export const getDivisions = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getHierarchy(req, DIVISION, onSuccess, onError);
+}
+
+export const getProjects = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getHierarchy(req, PROJECT, onSuccess, onError);
+}
+
+export const getSites = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getHierarchy(req, SITE, onSuccess, onError);
+}
+
+export const getSubsites = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getHierarchy(req, SUBSITE, onSuccess, onError);
+}
+
+export const getDepartments = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getHierarchy(req, DEPARTMENT, onSuccess, onError);
+}
+
+const getHierarchy = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+
+  var params = getParams(req, level);
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
+    if(response.data) {
       response.data.sort(function (a, b) {
         return a.name.localeCompare(b.name);
       });
-
-      var resp = {"departments": response.data};
-      res.status(200);
-      res.json(resp);
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+}
 
 

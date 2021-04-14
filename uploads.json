@@ -134,7 +134,7 @@
 					"partition_key": {"S": "dummy-client$assessments$ELEMENT"},
 					"sort_key": {"S": "1009"},
 					"id": {"S": "1009"},
-					"name": {"S": "PPE Conditiona and Suitability"},
+					"name": {"S": "PPE Conditional and Suitability"},
 					"parent": {"S": "1007"},
 					"sort_num": {"N": "9"},
 					"created_ts": {"S": ""},

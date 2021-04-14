@@ -13,15 +13,34 @@ var tableName = conf.get('TABLE_ASSESSMENTS');
 /* GET assessments listing. */
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
+
   let siteId = req.query.site_id;
 
+  getAssessments(clientId, siteId, 
+    (data) => {
+      data.sort(function (a, b) {
+        return b.completed_date.localeCompare(a.completed_date);
+      });
+
+      var resp = {"assessments": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {};
 
   if(siteId) {
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, completed_date, assessor',
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, site_id, department_id, task_id',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -35,7 +54,7 @@ router.get('/', function(req, res, next) {
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, risk_rating, sort_num',
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, site_id, department_id, task_id',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -48,21 +67,13 @@ router.get('/', function(req, res, next) {
   }
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return b.completed_date.localeCompare(a.completed_date);
-      });
-
-      var resp = {"assessments": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+};
 
 /* GET assessment. */
 router.get('/:assessmentId', function(req, res) {
@@ -74,7 +85,6 @@ router.get('/:assessmentId', function(req, res) {
       var resp = response.data[0];
       
       getPhotographs(req, res, (data) => {
-        console.log()
         resp.photographs = data;
         res.status(200);
         res.json(resp);

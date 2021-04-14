@@ -6,7 +6,7 @@
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc --build",
-    "start": "tsc --build && node --es-module-specifier-resolution=node dist/app.js"
+    "start": "rm -rf dist && tsc --build && node --es-module-specifier-resolution=node dist/app.js"
   },
   "dependencies": {
     "aws-sdk": "^2.843.0",

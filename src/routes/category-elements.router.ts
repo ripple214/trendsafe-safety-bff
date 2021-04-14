@@ -20,8 +20,17 @@ var LEVEL_DESCRIPTIONS = {
 
 /* GET category-element listing. */
 router.get('/:type', function(req, res, next) {
+  let type = req.params.type;
 
-  retrieve(req, LEVELS, (dataMap) => {
+  retrieve(req, type, (categories) => {
+    var resp = { "categories": categories };
+    res.status(200);
+    res.json(resp);
+  });
+});
+
+export const retrieve = (req, type, callback: (categories: any[]) => void) => {
+  recursiveRetrieve(req, type, 0, {}, (dataMap) => {
     var categories = [];
 
     var allMap = {};
@@ -61,22 +70,16 @@ router.get('/:type', function(req, res, next) {
       parentMap = objectMap;
     });
 
-    var resp = { "categories": categories };
-    res.status(200);
-    res.json(resp);
+    callback(categories);
   });
-});
-
-const retrieve = (req, levels: string[], callback) => {
-  recursiveRetrieve(req, levels, 0, {}, callback);
 };
 
-const recursiveRetrieve = (req, levels: string[], index, dataMap, callback) => {
+const recursiveRetrieve = (req, type, index, dataMap, callback) => {
 
   var dbLooper = new Promise((resolveDBLoop:any, rejectDBLoop:any) => {
-    var level = levels[index]
+    var level = LEVELS[index]
 
-    ddb.query(getListParams(req, level), function(response) {
+    ddb.query(getListParams(req, type, level), function(response) {
       if (response.data) {
         response.data.sort(function (a, b) {
           return a.sort_num - b.sort_num;
@@ -91,17 +94,19 @@ const recursiveRetrieve = (req, levels: string[], index, dataMap, callback) => {
   });
 
   dbLooper.then(() => {
-    if(index == levels.length-1) {
+    if(index == LEVELS.length-1) {
       callback(dataMap);
     } else {
-      recursiveRetrieve(req, levels, ++index, dataMap, callback)
+      recursiveRetrieve(req, type, ++index, dataMap, callback)
     }
   });
 };
 
 /* GET categories listing. */
 router.get('/categories', function(req, res) {
-  var params = getListParams(req, CATEGORY);
+  let type = req.params.type;
+
+  var params = getListParams(req, type, CATEGORY);
 
   ddb.query(params, function(response) {
     
@@ -122,7 +127,9 @@ router.get('/categories', function(req, res) {
 
 /* GET elements listing. */
 router.get('/elements', function(req, res) {
-  var params = getListParams(req, ELEMENT);
+  let type = req.params.type;
+
+  var params = getListParams(req, type, ELEMENT);
 
   ddb.query(params, function(response) {
     
@@ -141,9 +148,8 @@ router.get('/elements', function(req, res) {
   });
 });
 
-const getListParams = (req, level) =>  {
+const getListParams = (req, type, level) =>  {
   let clientId = req['user'].client_id;
-  let type = req.params.type;
   
   var params:any = {
     TableName: tableName,

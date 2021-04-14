@@ -1,216 +1,287 @@
-import { default as express } from 'express';
-import { default as conf } from 'config'; 
+import express from 'express';
+import moment from 'moment';
 
-import { db_service as ddb } from '../services/ddb.service';
+import { getAssessments } from './assessments.router';
+import { retrieve as getCategories } from './category-elements.router';
+import { SequentialExecutor } from '../common/sequential-executor';
+import { getDepartments, getSites } from './hierarchies.router';
 
 export const router = express.Router();
 
 /* GET compliance-by-element report */
 router.get('/compliance-by-element', function(req, res, next) {
-  let startDate = req.query.startDate;
-  let endDate = req.query.endDate;
-
-  getCategories(req, "assessments", (categories) => {
-    var params = getAssessmentsParam(req);
-
-    ddb.query(params, function(response) {
-      if (response.data) {
-        let chartData = [];
-        let tableData = [];
-        let assessments = response.data;
-  
-        categories.forEach((category) => {
-          category.elements.forEach((element) => {
-            let compliantCount = 0;
-            let nonCompliantCount = 0;
-            let notApplicableCount = 0;
-            let total = assessments.length;
-            assessments.forEach((assessment) => {
-              let isCompliant = assessment.element_compliance[element.id]['Y'];
-              if(isCompliant) {
-                compliantCount++;
-              }
-  
-              let isNonCompliant = assessment.element_compliance[element.id]['N'];
-              if(isNonCompliant) {
-                nonCompliantCount++;
-              }
-  
-              let isNotApplicable = assessment.element_compliance[element.id]['NA'];
-              if(isNotApplicable) {
-                notApplicableCount++;
-              }
-            });
-            var percentage = (compliantCount / total * 100).toFixed(2);
-            chartData.push({
-              name: element.name + ' ' + percentage + '%',
-              value: percentage
-            });
-  
-            tableData.push({
-              category: category.name,
-              element: element.name,
-              compliance: {
-                y: {
-                  total: compliantCount,
-                  percent_total: (compliantCount / total * 100).toFixed(0),
-                  percent_applicable: (compliantCount / (total-notApplicableCount) * 100).toFixed(0),
-                },
-                n: {
-                  total: nonCompliantCount,
-                  percent_total: (nonCompliantCount / total * 100).toFixed(0),
-                  percent_applicable: (nonCompliantCount / (total-notApplicableCount) * 100).toFixed(0),
-                },
-                na: {
-                  total: notApplicableCount,
-                  percent_total: (notApplicableCount / total * 100).toFixed(0)
-                }
-              }
-            });
-          });
-        });
-  
-        var resp = {"report-data": {
-          start_date: startDate,
-          end_date: endDate,
-          no_of_assessments: assessments.length, 
-          summary: chartData,
-          details: tableData
-        }};
-        res.status(200);
-        res.json(resp);
-      } else {
-        res.status(400);
-        res.json(response);
-      }
-    });    
-  });
-});
-
-const getAssessmentsParam = (req) => {
-  let tableName = conf.get('TABLE_ASSESSMENTS');
   let clientId = req['user'].client_id;
 
-  var params:any = {
-    TableName: tableName,
-    ProjectionExpression: 'id, element_compliance',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId
-    },
-  };
+  let startDate = req.query.startDate;
+  let endDate = req.query.endDate;
+  let taskId = req.query.taskId;
 
-  return params;
-};
+  let resp = undefined;
+  let error = undefined;
 
-var DELIMITER = "$";
-var CATEGORY = "CATEGORY";
-var ELEMENT = "ELEMENT";
-
-var LEVELS = [CATEGORY, ELEMENT];
-var LEVEL_DESCRIPTIONS = {
-  CATEGORY: "categories", 
-  ELEMENT: "elements"
-};
-
-const getCategories = (req, type, callback) => {
-  retrieve(req, type, LEVELS, (dataMap) => {
-    var categories = [];
-
-    var allMap = {};
-    var parentMap = undefined;
+  let categories = undefined;
+  let assessments = undefined;
+  let filter: HierarchyFilter = undefined;
   
-    LEVELS.forEach((level, index) => {
-      var objectMap = {};
+  new SequentialExecutor()
+  .chain((resolve, reject) => {
+    getHierarchyFilter(req,  
+      (data) => {
 
-      var levelDescription = LEVEL_DESCRIPTIONS[level];
+        filter = data;
+        filter.startDate = startDate;
+        filter.endDate = endDate;
+        filter.taskId = taskId;
 
-      dataMap[level].forEach((entity) => {
+        console.log(filter);
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
+    getAssessments(clientId, undefined, 
+      (data) => {
+        assessments = data;
 
-        objectMap[entity.id] = entity;
-        if(level == CATEGORY) {
-          categories.push(entity);
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
 
-        } else {
-          var parentId = undefined;
+        reject(error);
+      }
+    );
+  })
+  .then((resolve) => {
+    //console.log("raw", moment(filter.startDate), moment(filter.endDate), assessments);
+    assessments = filterAssessments(assessments, filter);
+    console.log("filtered", assessments);
+    resolve(true);
+  })
+  .then((resolve) => {
+    getCategories(req, "assessments", (data) => {
+      categories = data;
 
-          if(parentMap != undefined) {
-  
-            var parentArray = entity.parent.split(DELIMITER);
-            var parentId = parentArray[parentArray.length-1];
-            var parent = parentMap[parentId];
-            if(parent == undefined) {
-              parent = allMap[parentId];
-            }
-            var children = parent[levelDescription];
-            if(children == undefined) {
-              children = []
-              parent[levelDescription] = children;
-            }
-            children.push(entity);
+      resolve(true);
+    });
+  })
+  .then((resolve) => {
+    getChartData(categories, assessments, filter,  
+      (data) => {
+        resp = {"report-data": data};
+
+        resolve(true);
+      }
+    );
+  })
+  .fail(() => {
+    res.status(400);
+    res.json(error);
+  })
+  .success(() => {
+    res.status(200);
+    res.json(resp);
+  })
+  .execute();
+});
+
+const getChartData = (categories, assessments, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+  let chartData = [];
+  let tableData = [];
+
+  categories.forEach((category) => {
+    category.elements.forEach((element) => {
+      let compliantCount = 0;
+      let nonCompliantCount = 0;
+      let notApplicableCount = 0;
+      let total = assessments.length;
+
+      assessments.forEach((assessment) => {
+        let isCompliant = assessment.element_compliance[element.id]['Y'];
+        if(isCompliant) {
+          compliantCount++;
+        }
+
+        let isNonCompliant = assessment.element_compliance[element.id]['N'];
+        if(isNonCompliant) {
+          nonCompliantCount++;
+        }
+
+        let isNotApplicable = assessment.element_compliance[element.id]['NA'];
+        if(isNotApplicable) {
+          notApplicableCount++;
+        }
+      });
+      var percentage = checkNum(+(compliantCount / total * 100).toFixed(2));
+      chartData.push({
+        name: element.name + ' ' + percentage + '%',
+        value: percentage
+      });
+
+      tableData.push({
+        category: category.name,
+        element: element.name,
+        compliance: {
+          y: {
+            total: compliantCount,
+            percent_total: checkNum(+(compliantCount / total * 100).toFixed(0)),
+            percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+          },
+          n: {
+            total: nonCompliantCount,
+            percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(0)),
+            percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+          },
+          na: {
+            total: notApplicableCount,
+            percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(0))
           }
         }
       });
-      parentMap = objectMap;
     });
-
-    callback(categories);
   });
+
+  onSuccess({
+    start_date: filter.startDate,
+    end_date: filter.endDate,
+    no_of_assessments: assessments.length, 
+    summary: chartData,
+    details: tableData
+  });  
 }
 
-const retrieve = (req, type, levels, callback) => {
-  recursiveRetrieve(req, type, levels, 0, {}, callback);
-};
+const filterAssessments = (assessments, filter: HierarchyFilter) => {
+  //console.log("assessments", assessments);
+  //console.log("filter", filter);
 
-const recursiveRetrieve = (req, type, levels, index, dataMap, callback) => {
+  let filteredAssessments = assessments.filter(assessment => {
+    let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
+    moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
 
-  var dbLooper = new Promise((resolveDBLoop:any, rejectDBLoop:any) => {
-    var level = levels[index]
-
-    ddb.query(getCategoryElementsListParams(req, type, level), function(response) {
-      if (response.data) {
-        response.data.sort(function (a, b) {
-          return a.sort_num - b.sort_num;
-        });
-        dataMap[level] = response.data;
+    let isWithinHierarchy = false;
+    if(isWithinDateRange) {
+      //console.log("site id", assessment.site_id, filter.filters);
+      if(filter.filterType == FilterType.SITES) {
+        isWithinHierarchy = filter.filters.indexOf(assessment.site_id) > -1;
+      } else if(filter.filterType == FilterType.DEPARTMENTS) {
+        isWithinHierarchy = filter.filters.indexOf(assessment.department_id) > -1;
       } else {
-        dataMap[level] = [];
+        isWithinHierarchy = true;
       }
-
-      resolveDBLoop();
-    });
-  });
-
-  dbLooper.then(() => {
-    if(index == levels.length-1) {
-      callback(dataMap);
-    } else {
-      recursiveRetrieve(req, type, levels, ++index, dataMap, callback)
     }
+
+    let taskMatches = false;
+    if(isWithinHierarchy) {
+      if(filter.taskId) {
+        taskMatches = assessment.task_id == filter.taskId;
+      } else {
+        taskMatches = true;
+      }
+    }
+
+    //console.log("did it match", isWithinDateRange, isWithinHierarchy, taskMatches);
+
+    return taskMatches;
   });
-};
 
-const getCategoryElementsListParams = (req, type, level) =>  {
-  let tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
-  let clientId = req['user'].client_id;
-  
-  var params:any = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, parent',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#name": "name",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId + DELIMITER + type + DELIMITER + level
-    },
-  };
+  return filteredAssessments;
+  //console.log("filtered assessments", assessments);
+}
 
-  return params;
-};
+const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
+  let divisionId = req.query.divisionId;
+  let projectId = req.query.projectId;
+  let siteId = req.query.siteId;
+  let subsiteId = req.query.subsiteId;
+  let departmentId = req.query.departmentId;
 
+  let filters: string[] = [];
+  if(departmentId) {
+    filters.push(departmentId);
+    onSuccess({
+      filterType: FilterType.DEPARTMENTS,
+      filters: filters
+    });
+  } else if(subsiteId) {
+    getDepartments(req, 
+      (data) => {
+        onSuccess({
+          filterType: FilterType.DEPARTMENTS,
+          filters: mapHierarchy(data)
+        });
+      }, 
+      (err) => {
+        onError(err);
+      }
+    );
+  } else if(siteId) {
+    filters.push(siteId);
+    onSuccess({
+      filterType: FilterType.SITES,
+      filters: filters
+    });
+  } else if(projectId) {
+    getSites(req, 
+      (data) => {
+        onSuccess({
+          filterType: FilterType.SITES,
+          filters: mapHierarchy(data)
+        });
+      }, 
+      (err) => {
+        onError(err);
+      }
+    );
+  } else if(divisionId) {
+    getSites(req, 
+      (data) => {
+        onSuccess({
+          filterType: FilterType.SITES,
+          filters: mapHierarchy(data)
+        });
+      }, 
+      (err) => {
+        onError(err);
+      }
+    );
+  } else {
+    onSuccess({
+      filterType: FilterType.NONE,
+      filters: []
+    });
+  }
+}
 
+const mapHierarchy = (data: any) => {
+  let filters = data.map(hierarchy => {
+    return hierarchy.id
+  })
+
+  return filters;
+}
+
+const checkNum = (num: number): number => {
+  if(num == undefined || isNaN(num)) {
+    return 0;
+  } else {
+    return num;
+  }
+}
+interface HierarchyFilter {
+
+  filterType: FilterType;
+  filters: string[];
+  startDate?: any;
+  endDate?: any;
+  taskId?: any;
+}
+
+enum FilterType {
+  NONE,
+  SITES,
+  DEPARTMENTS
+}
