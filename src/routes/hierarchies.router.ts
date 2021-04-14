@@ -98,12 +98,14 @@ router.get('/', function(req, res, next) {
             parent = allMap[parentId];
           }
 
-          var children = parent[levelDescription];
-          if(children == undefined) {
-            children = []
-            parent[levelDescription] = children;
+          if(parent != undefined) { // TODO this should never be the case
+            var children = parent[levelDescription];
+            if(children == undefined) {
+              children = []
+              parent[levelDescription] = children;
+            }
+            children.push(entity);
           }
-          children.push(entity);
         }
       });
       parentsMap = objectMap;
