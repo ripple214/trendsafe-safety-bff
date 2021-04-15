@@ -3,21 +3,20 @@ import moment from 'moment';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
-import { retrieve as getCategories } from '../../category-elements.router';
+import { getUsers } from '../../users.router';
 
-/* GET risk rating report */
-export const assessmentsRiskRating = (req, res) => {
+/* GET rule compliance report */
+export const assessmentsByAssessor = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
-  let taskId = req.query.taskId;
-  let chartType = req.query.chartType;
 
   let resp = undefined;
   let error = undefined;
 
   let assessments = undefined;
+  let users = undefined;
   let filter: HierarchyFilter = undefined;
   
   new SequentialExecutor()
@@ -28,10 +27,7 @@ export const assessmentsRiskRating = (req, res) => {
         filter = data;
         filter.startDate = startDate;
         filter.endDate = endDate;
-        filter.taskId = taskId;
-        filter.chartType = chartType;
 
-        console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -59,8 +55,22 @@ export const assessmentsRiskRating = (req, res) => {
     assessments = filterAssessments(assessments, filter);
     resolve(true);
   })
+  .then((resolve, reject) => {
+    getUsers(clientId,  
+      (data) => {
+        users = data;
+
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+
+        reject(error);
+      }
+    );
+  })
   .then((resolve) => {
-    getChartData(assessments, filter,  
+    getChartData(assessments, users, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -79,82 +89,41 @@ export const assessmentsRiskRating = (req, res) => {
   .execute();
 };
 
-const getChartData = (assessments, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+const getChartData = (assessments, users, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
 
-  let major = 0;
-  let moderate = 0;
-  let minor = 0;
-  let acceptable = 0;
   let total = 0;
 
   assessments.forEach((assessment) => {
-    let isMajor = assessment.risk_rating['MAJOR'];
-    if(isMajor) {
-      major++;
+    if(assessment.assessor) {
+      let user = users.find(user => {
+        return user.id == assessment.assessor['id'];
+      });
+      if(user) {
+        let count = chartData.find(data => {
+          return data['id'] == user.id;
+        });
+        if(count == undefined) {
+          count = {
+            id: user.id,
+            name: user.last_name.toUpperCase() + ", " + user.first_name.substr(0, 1).toUpperCase() + user.first_name.substr(1).toLowerCase(),
+            value: 0
+          }
+          chartData.push(count);
+        }
+        count.value += 1;
+        total++;
+      }
     }
-
-    let isModerate = assessment.risk_rating['MODERATE'];
-    if(isModerate) {
-      moderate++;
-    }
-
-    let isMinor = assessment.risk_rating['MINOR'];
-    if(isMinor) {
-      minor++;
-    }
-
-    let isAcceptable = assessment.risk_rating['ACCEPTABLE'];
-    if(isAcceptable) {
-      acceptable++;
-    }
-
-    total++;
   });
 
-  chartData.push({
-    name: 'Major Risk',
-    value: major
-  });
-
-  chartData.push({
-    name: 'Moderate Risk',
-    value: moderate
-  });
-
-  chartData.push({
-    name: 'Minor Risk',
-    value: minor
-  });
-
-  chartData.push({
-    name: 'Acceptable Risk',
-    value: acceptable
-  });
-
-  tableData.push({
-    risk_rating: 'Major Risk',
-    no_of_assessments: major,
-    percentage: checkNum(+(major / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Moderate Risk',
-    no_of_assessments: moderate,
-    percentage: checkNum(+(moderate / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Minor Risk',
-    no_of_assessments: minor,
-    percentage: checkNum(+(minor / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Acceptable Risk',
-    no_of_assessments: acceptable,
-    percentage: checkNum(+(acceptable / total * 100).toFixed(2))
+  chartData.forEach(data => {
+    tableData.push({
+      assessor: data.name,
+      no_of_assessments: data.value,
+      percentage: checkNum(+(data.value / total * 100).toFixed(2))
+    });
   });
 
   onSuccess({
@@ -167,8 +136,6 @@ const getChartData = (assessments, filter: HierarchyFilter, onSuccess: (data: an
 }
 
 const filterAssessments = (assessments, filter: HierarchyFilter) => {
-  //console.log("assessments", assessments);
-  //console.log("filter", filter);
 
   let filteredAssessments = assessments.filter(assessment => {
     let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
@@ -186,22 +153,10 @@ const filterAssessments = (assessments, filter: HierarchyFilter) => {
       }
     }
 
-    let taskMatches = false;
-    if(isWithinHierarchy) {
-      if(filter.taskId) {
-        taskMatches = assessment.task_id == filter.taskId;
-      } else {
-        taskMatches = true;
-      }
-    }
-
-    //console.log("did it match", isWithinDateRange, isWithinHierarchy, taskMatches);
-
-    return taskMatches;
+    return isWithinDateRange;
   });
 
   return filteredAssessments;
-  //console.log("filtered assessments", assessments);
 }
 
 const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
@@ -289,8 +244,6 @@ interface HierarchyFilter {
   filters: string[];
   startDate?: any;
   endDate?: any;
-  taskId?: any;
-  chartType?: string;
 }
 
 enum FilterType {

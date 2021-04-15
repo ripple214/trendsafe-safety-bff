@@ -1,12 +1,12 @@
 import moment from 'moment';
+import { getRules } from '../../rules.router';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
-import { retrieve as getCategories } from '../../category-elements.router';
 
-/* GET risk rating report */
-export const assessmentsRiskRating = (req, res) => {
+/* GET rule compliance report */
+export const assessmentsRuleCompliance = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -18,6 +18,7 @@ export const assessmentsRiskRating = (req, res) => {
   let error = undefined;
 
   let assessments = undefined;
+  let rules = undefined;
   let filter: HierarchyFilter = undefined;
   
   new SequentialExecutor()
@@ -31,7 +32,6 @@ export const assessmentsRiskRating = (req, res) => {
         filter.taskId = taskId;
         filter.chartType = chartType;
 
-        console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -59,8 +59,22 @@ export const assessmentsRiskRating = (req, res) => {
     assessments = filterAssessments(assessments, filter);
     resolve(true);
   })
+  .then((resolve, reject) => {
+    getRules(clientId, 
+      (data) => {
+        rules = data;
+
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+
+        reject(error);
+      }
+    );
+  })
   .then((resolve) => {
-    getChartData(assessments, filter,  
+    getChartData(assessments, rules, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -79,82 +93,40 @@ export const assessmentsRiskRating = (req, res) => {
   .execute();
 };
 
-const getChartData = (assessments, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+const getChartData = (assessments, rules, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
 
-  let major = 0;
-  let moderate = 0;
-  let minor = 0;
-  let acceptable = 0;
+  let counts = {};
+  rules.forEach(rule => {
+    counts[rule.id] = 0;
+  });
+
   let total = 0;
 
   assessments.forEach((assessment) => {
-    let isMajor = assessment.risk_rating['MAJOR'];
-    if(isMajor) {
-      major++;
-    }
+    rules.forEach(rule => {
+      if(assessment.rule_compliance && assessment.rule_compliance[rule.id]) {
+        counts[rule.id] = counts[rule.id] + 1;
 
-    let isModerate = assessment.risk_rating['MODERATE'];
-    if(isModerate) {
-      moderate++;
-    }
-
-    let isMinor = assessment.risk_rating['MINOR'];
-    if(isMinor) {
-      minor++;
-    }
-
-    let isAcceptable = assessment.risk_rating['ACCEPTABLE'];
-    if(isAcceptable) {
-      acceptable++;
-    }
-
-    total++;
+        total++;
+      }
+    });
   });
 
-  chartData.push({
-    name: 'Major Risk',
-    value: major
+  rules.forEach(rule => {
+    chartData.push({
+      name: rule.name,
+      value: counts[rule.id]
+    });
   });
 
-  chartData.push({
-    name: 'Moderate Risk',
-    value: moderate
-  });
-
-  chartData.push({
-    name: 'Minor Risk',
-    value: minor
-  });
-
-  chartData.push({
-    name: 'Acceptable Risk',
-    value: acceptable
-  });
-
-  tableData.push({
-    risk_rating: 'Major Risk',
-    no_of_assessments: major,
-    percentage: checkNum(+(major / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Moderate Risk',
-    no_of_assessments: moderate,
-    percentage: checkNum(+(moderate / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Minor Risk',
-    no_of_assessments: minor,
-    percentage: checkNum(+(minor / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Acceptable Risk',
-    no_of_assessments: acceptable,
-    percentage: checkNum(+(acceptable / total * 100).toFixed(2))
+  rules.forEach(rule => {
+    tableData.push({
+      rule_compliance: rule.name,
+      no_of_assessments: counts[rule.id],
+      percentage: checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+    });
   });
 
   onSuccess({

@@ -1,12 +1,13 @@
 import moment from 'moment';
+import { getRisks } from '../../risks.router';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
-import { retrieve as getCategories } from '../../category-elements.router';
+import { IoTJobsDataPlane } from 'aws-sdk';
 
-/* GET risk rating report */
-export const assessmentsRiskRating = (req, res) => {
+/* GET risk compliance report */
+export const assessmentsRiskCompliance = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -18,6 +19,7 @@ export const assessmentsRiskRating = (req, res) => {
   let error = undefined;
 
   let assessments = undefined;
+  let risks = undefined;
   let filter: HierarchyFilter = undefined;
   
   new SequentialExecutor()
@@ -31,7 +33,6 @@ export const assessmentsRiskRating = (req, res) => {
         filter.taskId = taskId;
         filter.chartType = chartType;
 
-        console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -59,8 +60,22 @@ export const assessmentsRiskRating = (req, res) => {
     assessments = filterAssessments(assessments, filter);
     resolve(true);
   })
+  .then((resolve, reject) => {
+    getRisks(clientId, 
+      (data) => {
+        risks = data;
+
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+
+        reject(error);
+      }
+    );
+  })
   .then((resolve) => {
-    getChartData(assessments, filter,  
+    getChartData(assessments, risks, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -79,82 +94,40 @@ export const assessmentsRiskRating = (req, res) => {
   .execute();
 };
 
-const getChartData = (assessments, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+const getChartData = (assessments, risks, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
 
-  let major = 0;
-  let moderate = 0;
-  let minor = 0;
-  let acceptable = 0;
+  let counts = {};
+  risks.forEach(risk => {
+    counts[risk.id] = 0;
+  });
+
   let total = 0;
 
   assessments.forEach((assessment) => {
-    let isMajor = assessment.risk_rating['MAJOR'];
-    if(isMajor) {
-      major++;
-    }
+    risks.forEach(risk => {
+      if(assessment.risk_compliance && assessment.risk_compliance[risk.id]) {
+        counts[risk.id] = counts[risk.id] + 1;
 
-    let isModerate = assessment.risk_rating['MODERATE'];
-    if(isModerate) {
-      moderate++;
-    }
-
-    let isMinor = assessment.risk_rating['MINOR'];
-    if(isMinor) {
-      minor++;
-    }
-
-    let isAcceptable = assessment.risk_rating['ACCEPTABLE'];
-    if(isAcceptable) {
-      acceptable++;
-    }
-
-    total++;
+        total++;
+      }
+    });
   });
 
-  chartData.push({
-    name: 'Major Risk',
-    value: major
+  risks.forEach(risk => {
+    chartData.push({
+      name: risk.name,
+      value: counts[risk.id]
+    });
   });
 
-  chartData.push({
-    name: 'Moderate Risk',
-    value: moderate
-  });
-
-  chartData.push({
-    name: 'Minor Risk',
-    value: minor
-  });
-
-  chartData.push({
-    name: 'Acceptable Risk',
-    value: acceptable
-  });
-
-  tableData.push({
-    risk_rating: 'Major Risk',
-    no_of_assessments: major,
-    percentage: checkNum(+(major / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Moderate Risk',
-    no_of_assessments: moderate,
-    percentage: checkNum(+(moderate / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Minor Risk',
-    no_of_assessments: minor,
-    percentage: checkNum(+(minor / total * 100).toFixed(2))
-  });
-
-  tableData.push({
-    risk_rating: 'Acceptable Risk',
-    no_of_assessments: acceptable,
-    percentage: checkNum(+(acceptable / total * 100).toFixed(2))
+  risks.forEach(risk => {
+    tableData.push({
+      risk_compliance: risk.name,
+      no_of_assessments: counts[risk.id],
+      percentage: checkNum(+(counts[risk.id] / total * 100).toFixed(2))
+    });
   });
 
   onSuccess({

@@ -13,6 +13,20 @@ var tableName = conf.get('TABLE_RULES');
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
+  getRules(clientId, 
+    (data) => {
+      var resp = {"rules": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getRules = (clientId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, sort_num',
@@ -27,17 +41,17 @@ router.get('/', function(req, res, next) {
   };
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
-      var resp = {"rules": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      response.data.sort(function (a, b) {
+        return a.sort_num - b.sort_num;
+      });
+      
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+}
 
 /* PUT update rule. */
 router.put('/:ruleId', function(req, res, next) {

@@ -40,7 +40,7 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, site_id, department_id, task_id',
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -54,7 +54,7 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, site_id, department_id, task_id',
+      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",

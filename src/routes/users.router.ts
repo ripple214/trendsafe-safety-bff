@@ -13,6 +13,20 @@ var tableName = conf.get('TABLE_USERS');
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
+  getUsers(clientId, 
+    (data) => {
+      var resp = {"users": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getUsers = (clientId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, last_name, first_name, email, administrator, leader, #user, authorizer, recipient, module_access, \
@@ -29,21 +43,17 @@ router.get('/', function(req, res, next) {
   };
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
+    if(response.data) {
       response.data.sort(function (a, b) {
         return (a.last_name + a.first_name).localeCompare(b.last_name + b.first_name);
       });
-
-      var resp = {"users": response.data};
-      res.status(200);
-      res.json(resp);
+      
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
-    }
+      onError(response);
+    }    
   });
-});
+}
 
 /* GET administrators listing. */
 router.get('/admins', function(req, res, next) {
