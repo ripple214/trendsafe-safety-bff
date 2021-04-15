@@ -8,6 +8,7 @@ import { assessmentsRiskCompliance } from './reports/assessments/risk-compliance
 import { assessmentsRuleCompliance } from './reports/assessments/rule-compliance';
 import { assessmentsByDepartment } from './reports/assessments/assessments-by-department';
 import { assessmentsByAssessor } from './reports/assessments/assessments-by-assessor';
+import { assessmentsDetailedReport } from './reports/assessments/detailed-report';
 
 export const router = express.Router();
 
@@ -49,4 +50,9 @@ router.get('/assessments/assessments-by-department', function(req, res, next) {
 /* GET assessments-by-assessor report */
 router.get('/assessments/assessments-by-assessor', function(req, res, next) {
   assessmentsByAssessor(req, res);
+});
+
+/* GET assessments detailed report */
+router.get('/assessments/detailed-report', function(req, res, next) {
+  assessmentsDetailedReport(req, res);
 });

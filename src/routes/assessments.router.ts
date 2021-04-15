@@ -40,7 +40,7 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, actions_taken, further_actions_required',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -54,7 +54,7 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, actions_taken, further_actions_required',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -77,6 +77,8 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
 
 /* GET assessment. */
 router.get('/:assessmentId', function(req, res) {
+  let clientId = req['user'].client_id;
+
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -84,11 +86,20 @@ router.get('/:assessmentId', function(req, res) {
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      getPhotographs(req, res, (data) => {
-        resp.photographs = data;
-        res.status(200);
-        res.json(resp);
-      });
+      let subgroup = req.params.assessmentId;
+
+      getPhotographs(clientId, subgroup, 
+        (data => {
+          resp.photographs = data;
+          res.status(200);
+          res.json(resp);
+  
+        }), 
+        (error) => {
+          res.status(400);
+          res.json(error);
+        }
+      );
     } else {
       res.status(404);
       res.json();
@@ -96,19 +107,16 @@ router.get('/:assessmentId', function(req, res) {
   });
 });
 
-const getPhotographs = (req, res, callback) => {
-  let clientId = req['user'].client_id;
+export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = "images/assessments";
-  let subgroup = req.params.assessmentId;
   let key = clientId + '/' + group + '/' + subgroup;
 
   s3.list(key, function(response) {
-    if (response.data) {
-      callback(response.data);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
-    }
+      onError(response);
+    }    
   });
 } 
 

@@ -1,6 +1,7 @@
 import { BffResponse } from "../common/bff.response";
 
 import { default as AWS } from 'aws-sdk';
+import fs from 'fs';
 
 AWS.config.getCredentials(function(err) {
     if (err) 
@@ -14,7 +15,6 @@ const BUCKET_NAME = "trendsafe-files";
 export const s3_service = {
 
     upload: function(file, key, callback) {
-        var fs = require('fs');
         var fileStream = fs.createReadStream(file);
         fileStream.on('error', function(err) {
           console.log('File Error', err);

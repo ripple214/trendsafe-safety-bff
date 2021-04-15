@@ -6,19 +6,19 @@ import { default as multer } from 'multer';
 import { s3_service as s3 } from '../services/s3.service';
 
 export const router = express.Router();
-
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, "./uploads")
   }),
 }).single('file');
 
-router.post("/:type", upload, (req:any, res, next) => {
+router.post("/:type", upload, (req, res, next) => {
   let clientId = req['user'].client_id;
   let type = req.params.type;
   let group = req.body.group;
   let subgroup = req.body.subgroup;
-  let file = req.file;
+  let file = (req as any).file;
+  
   let id = uuid();
   let ext = path.extname(file.originalname);
   if(type != "images") {
