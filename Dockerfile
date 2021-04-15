@@ -1,9 +1,7 @@
 FROM 774389645446.dkr.ecr.ap-southeast-2.amazonaws.com/base-image-app:latest as build
 
 # Create app directory
-RUN mkdir -p /app
-
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
@@ -16,7 +14,7 @@ RUN npm install
 # RUN npm ci --only=production
 
 # Bundle app source
-COPY . /app
+ADD . /usr/src/app
 
 #EXPOSE 8080
 #EXPOSE 3000

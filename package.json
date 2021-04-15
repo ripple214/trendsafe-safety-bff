@@ -5,7 +5,7 @@
   "private": true,
   "main": "dist/app.js",
   "scripts": {
-    "prestart": "rm -rf dist && tsc",
+    "prestart": "tsc",
     "start": "node --es-module-specifier-resolution=node  dist/app.js"
   },
   "dependencies": {
