@@ -1,6 +1,8 @@
 FROM 774389645446.dkr.ecr.ap-southeast-2.amazonaws.com/base-image-app:latest as build
 
 # Create app directory
+RUN mkdir -p /app
+
 WORKDIR /app
 
 # Install app dependencies
@@ -14,7 +16,7 @@ RUN npm install
 # RUN npm ci --only=production
 
 # Bundle app source
-COPY . .
+COPY . /app
 
 #EXPOSE 8080
 #EXPOSE 3000

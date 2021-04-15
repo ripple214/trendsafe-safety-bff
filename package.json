@@ -7,7 +7,7 @@
   "scripts": {
     "prestart": "rm -rf dist && tsc",
     "start": "node --es-module-specifier-resolution=node  dist/app.js"
-  }  ,
+  },
   "dependencies": {
     "aws-sdk": "^2.843.0",
     "body-parser": "^1.19.0",
