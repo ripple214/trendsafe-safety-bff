@@ -13,15 +13,34 @@ var tableName = conf.get('TABLE_INSPECTIONS');
 /* GET inspections listing. */
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
+
   let siteId = req.query.site_id;
 
+  getInspections(clientId, siteId, 
+    (data) => {
+      data.sort(function (a, b) {
+        return b.completed_date.localeCompare(a.completed_date);
+      });
+
+      var resp = {"inspections": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getInspections = (clientId: string, siteId: any, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {};
 
   if(siteId) {
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, completed_date, assessor',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -35,7 +54,7 @@ router.get('/', function(req, res, next) {
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, completed_date, summary, assessor, sort_num',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -48,24 +67,18 @@ router.get('/', function(req, res, next) {
   }
   
   ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return b.completed_date.localeCompare(a.completed_date);
-      });
-
-      var resp = {"inspections": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+};
 
 /* GET inspection. */
 router.get('/:inspectionId', function(req, res) {
+  let clientId = req['user'].client_id;
+
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -73,12 +86,20 @@ router.get('/:inspectionId', function(req, res) {
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      getPhotographs(req, res, (data) => {
-        console.log()
-        resp.photographs = data;
-        res.status(200);
-        res.json(resp);
-      });
+      let subgroup = req.params.inspectionId;
+
+      getPhotographs(clientId, subgroup, 
+        (data => {
+          resp.photographs = data;
+          res.status(200);
+          res.json(resp);
+  
+        }), 
+        (error) => {
+          res.status(400);
+          res.json(error);
+        }
+      );
     } else {
       res.status(404);
       res.json();
@@ -86,18 +107,15 @@ router.get('/:inspectionId', function(req, res) {
   });
 });
 
-const getPhotographs = (req, res, callback) => {
-  let clientId = req['user'].client_id;
+export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = "images/inspections";
-  let subgroup = req.params.inspectionId;
   let key = clientId + '/' + group + '/' + subgroup;
 
   s3.list(key, function(response) {
-    if (response.data) {
-      callback(response.data);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
 } 
