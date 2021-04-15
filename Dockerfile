@@ -16,6 +16,8 @@ RUN npm install
 # Bundle app source
 ADD . /usr/src/app
 
+RUN pwd
+
 #EXPOSE 8080
 #EXPOSE 3000
 ENV NODE_ENV staging
