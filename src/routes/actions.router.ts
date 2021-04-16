@@ -32,7 +32,7 @@ router.get('/', function(req, res, next) {
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return b.date_created.localeCompare(a.date_created);
+        return moment(b.date_created).isAfter(moment(a.date_created));
       });
 
       var resp = {"actions": response.data};

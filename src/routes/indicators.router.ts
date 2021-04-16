@@ -30,7 +30,7 @@ router.get('/', function(req, res, next) {
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return b.report_date.localeCompare(a.report_date);
+        return moment(b.report_date).isAfter(moment(a.report_date));
       });
 
       var resp = {"indicators": response.data};

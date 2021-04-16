@@ -19,7 +19,7 @@ router.get('/', function(req, res, next) {
   getInspections(clientId, siteId, 
     (data) => {
       data.sort(function (a, b) {
-        return b.completed_date.localeCompare(a.completed_date);
+        return moment(b.completed_date).isAfter(moment(a.completed_date));
       });
 
       var resp = {"inspections": data};
