@@ -12,6 +12,7 @@ import { default as nocache } from 'nocache';
 
 import { router as indexRouter } from './routes/index.router';
 import { router as authRouter } from './routes/auth.router';
+import { router as authCheckRouter } from './routes/auth-check.router';
 import { router as kvpsRouter } from './routes/kvps.router';
 import { router as hierarchiesRouter } from './routes/hierarchies.router';
 import { router as locationAreasRouter } from './routes/location-areas.router';
@@ -170,6 +171,7 @@ app.use(function(req, res, next) {
   authenticateJWT(req, res, next);
 });
 
+app.use(contextPath + '/auth-check', authCheckRouter);
 app.use(contextPath + '/kvps', kvpsRouter);
 app.use(contextPath + '/hierarchies', hierarchiesRouter);
 app.use(contextPath + '/location-areas', locationAreasRouter);

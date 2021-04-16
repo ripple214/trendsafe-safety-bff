@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { isAfter } from '../common/date-util';
 
 export const router = express.Router();
 
@@ -30,7 +31,7 @@ router.get('/', function(req, res, next) {
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return moment(b.completed_date).isAfter(moment(a.completed_date));
+        return isAfter(b.completed_date, a.completed_date);
       });
 
       var resp = {"managements": response.data};

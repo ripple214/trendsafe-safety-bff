@@ -5,6 +5,7 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
+import { isAfter } from '../common/date-util';
 
 export const router = express.Router();
 
@@ -19,7 +20,7 @@ router.get('/', function(req, res, next) {
   getAssessments(clientId, siteId, 
     (data) => {
       data.sort(function (a, b) {
-        return moment(b.completed_date).isAfter(moment(a.completed_date));
+        return isAfter(b.completed_date, a.completed_date);
       });
 
       var resp = {"assessments": data};
