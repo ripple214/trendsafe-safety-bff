@@ -6,7 +6,7 @@
   "main": "dist/app.js",
   "scripts": {
     "prestart": "tsc",
-    "start": "node --es-module-specifier-resolution=node  dist/app.js"
+    "start": "node --max_old_space_size=2048 --es-module-specifier-resolution=node  dist/app.js"
   },
   "dependencies": {
     "aws-sdk": "^2.843.0",
