@@ -4,6 +4,7 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
+import { isSameMonth, isWithin } from '../../../common/date-util';
 
 /* GET compliance-by-element report */
 export const hazardsElementMonthlyTrend = (req, res) => {
@@ -116,7 +117,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
           let total = 0;
     
           hazards.filter(hazard => {
-            return moment(hazard.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSame(reportDate, 'month')
+            return isSameMonth(hazard.completed_date, reportDate)
           }).forEach((hazard) => {
 
             let isNonCompliant = hazard.element_compliance[element.id]['N'];
@@ -187,8 +188,7 @@ const filterHazards = (hazards, filter: HierarchyFilter) => {
   //console.log("filter", filter);
 
   let filteredHazards = hazards.filter(hazard => {
-    let isWithinDateRange = moment(hazard.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'month') && // false
-    moment(hazard.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'month');
+    let isWithinDateRange = isWithin(hazard.completed_date, filter.startDate, filter.endDate, 'month');
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

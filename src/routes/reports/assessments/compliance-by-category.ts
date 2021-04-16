@@ -4,6 +4,7 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
+import { isWithin } from '../../../common/date-util';
 
 /* GET compliance-by-element report */
 export const assessmentsComplianceByCategory = (req, res) => {
@@ -158,8 +159,7 @@ const filterAssessments = (assessments, filter: HierarchyFilter) => {
   //console.log("filter", filter);
 
   let filteredAssessments = assessments.filter(assessment => {
-    let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(assessment.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

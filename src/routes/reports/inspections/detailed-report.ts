@@ -3,6 +3,7 @@ import moment from 'moment';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections, getPhotographs } from '../../inspections.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
+import { isWithin } from '../../../common/date-util';
 
 /* GET detailed report */
 export const inspectionsDetailedReport = (req, res) => {
@@ -126,8 +127,7 @@ const getChartData = (clientId, inspections, filter: HierarchyFilter, onSuccess:
 
 const filterInspections = (inspections, filter: HierarchyFilter) => {
   let filteredInspections = inspections.filter(inspection => {
-    let isWithinDateRange = moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(inspection.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

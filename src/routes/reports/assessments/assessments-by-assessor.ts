@@ -1,3 +1,4 @@
+import { isWithin } from '../../../common/date-util';
 import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
@@ -138,8 +139,7 @@ const getChartData = (assessments, users, filter: HierarchyFilter, onSuccess: (d
 const filterAssessments = (assessments, filter: HierarchyFilter) => {
 
   let filteredAssessments = assessments.filter(assessment => {
-    let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(assessment.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

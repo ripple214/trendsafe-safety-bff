@@ -4,6 +4,7 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections } from '../../inspections.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
+import { isWithin } from '../../../common/date-util';
 
 /* GET risk rating report */
 export const inspectionsRiskRating = (req, res) => {
@@ -171,8 +172,7 @@ const filterInspections = (inspections, filter: HierarchyFilter) => {
   //console.log("filter", filter);
 
   let filteredInspections = inspections.filter(inspection => {
-    let isWithinDateRange = moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(inspection.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

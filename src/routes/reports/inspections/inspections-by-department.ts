@@ -3,6 +3,7 @@ import moment from 'moment';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections } from '../../inspections.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
+import { isWithin } from '../../../common/date-util';
 
 /* GET rule compliance report */
 export const inspectionsByDepartment = (req, res) => {
@@ -77,8 +78,7 @@ export const inspectionsByDepartment = (req, res) => {
 
 const filterInspections = (inspections, filter: HierarchyFilter) => {
   let filteredInspections = inspections.filter(inspection => {
-    let isWithinDateRange = moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(inspection.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(inspection.completed_date, filter.startDate, filter.endDate);
 
     return isWithinDateRange;
   });

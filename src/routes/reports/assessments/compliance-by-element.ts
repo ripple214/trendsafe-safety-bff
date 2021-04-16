@@ -4,6 +4,7 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
+import { isWithin } from '../../../common/date-util';
 
 /* GET compliance-by-element report */
 export const assessmentsComplianceByElement = (req, res) => {
@@ -30,7 +31,7 @@ export const assessmentsComplianceByElement = (req, res) => {
         filter.endDate = endDate;
         filter.taskId = taskId;
 
-        console.log(filter);
+        //console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -56,7 +57,7 @@ export const assessmentsComplianceByElement = (req, res) => {
   .then((resolve) => {
     //console.log("raw", moment(filter.startDate), moment(filter.endDate), assessments);
     assessments = filterAssessments(assessments, filter);
-    console.log("filtered", assessments);
+    //console.log("filtered", assessments);
     resolve(true);
   })
   .then((resolve) => {
@@ -158,8 +159,7 @@ const filterAssessments = (assessments, filter: HierarchyFilter) => {
   //console.log("filter", filter);
 
   let filteredAssessments = assessments.filter(assessment => {
-    let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'day') && // false
-    moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'day');
+    let isWithinDateRange = isWithin(assessment.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {

@@ -1,4 +1,3 @@
-
 export class SequentialExecutor {
   
   private executionList: ((resolve: (value: boolean) => void, reject: (reason?: any) => void) => void)[];

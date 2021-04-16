@@ -4,6 +4,7 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
+import { isSameMonth, isWithin } from '../../../common/date-util';
 
 /* GET compliance-by-element report */
 export const assessmentsElementMonthlyTrend = (req, res) => {
@@ -117,9 +118,8 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
           let total = 0;
     
           assessments.filter(assessment => {
-            return moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSame(reportDate, 'month')
+            return isSameMonth(assessment.completed_date, reportDate)
           }).forEach((assessment) => {
-
             let isCompliant = assessment.element_compliance[element.id]['Y'];
             if(isCompliant) {
               compliantCount++;
@@ -202,8 +202,7 @@ const filterAssessments = (assessments, filter: HierarchyFilter) => {
   //console.log("filter", filter);
 
   let filteredAssessments = assessments.filter(assessment => {
-    let isWithinDateRange = moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrAfter(filter.startDate, 'month') && // false
-    moment(assessment.completed_date, 'MMMM DD, YYYY hh:mm:ss').isSameOrBefore(filter.endDate, 'month');
+    let isWithinDateRange = isWithin(assessment.completed_date, filter.startDate, filter.endDate, 'month');
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {
