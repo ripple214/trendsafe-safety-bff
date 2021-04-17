@@ -5,6 +5,7 @@ import { getHazards } from '../../hazards.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
+import { getTop10Hazards } from './top-hazards';
 
 /* GET compliance-by-element report */
 export const hazardsComplianceByElement = (req, res) => {
@@ -12,6 +13,8 @@ export const hazardsComplianceByElement = (req, res) => {
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let chartType = req.query.chartType;
+  let hazardType = req.query.hazardType;
 
   let resp = undefined;
   let error = undefined;
@@ -28,8 +31,9 @@ export const hazardsComplianceByElement = (req, res) => {
         filter = data;
         filter.startDate = startDate;
         filter.endDate = endDate;
+        filter.chartType = chartType;
+        filter.hazardType = hazardType;
 
-        console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -55,7 +59,7 @@ export const hazardsComplianceByElement = (req, res) => {
   .then((resolve) => {
     //console.log("raw", moment(filter.startDate), moment(filter.endDate), hazards);
     hazards = filterHazards(hazards, filter);
-    console.log("filtered", hazards);
+    //console.log("filtered", hazards);
     resolve(true);
   })
   .then((resolve) => {
@@ -86,6 +90,7 @@ export const hazardsComplianceByElement = (req, res) => {
 };
 
 const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+  let topData = getTop10Hazards(categories, hazards, filter);
   let chartData = [];
   let tableData = [];
 
@@ -95,32 +100,53 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
     category.elements.forEach((element) => {
       let nonCompliantCount = 0;
 
-      hazards.forEach((hazard) => {
-        let isNonCompliant = hazard.element_compliance[element.id]['N'];
-        if(isNonCompliant) {
-          nonCompliantCount++;
-          total++;
-        }
-      });
+      if((filter.hazardType == 'TOP' && topData.find(top => {
+        return top.id == element.id
+      })) || filter.hazardType != 'TOP') {
+        hazards.forEach((hazard) => {
+          let isNonCompliant = hazard.element_compliance[element.id]['N'];
 
-      if(nonCompliantCount > 0) {
-        chartData.push({
-          name: element.name + ' ' + nonCompliantCount,
-          value: nonCompliantCount
-        });
-
-        tableData.push({
-          category: category.name,
-          element: element.name,
-          compliance: {
-            n: {
-              total: nonCompliantCount,
-              percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
-            },
+          if(isNonCompliant) {
+            nonCompliantCount++;
+            total++;
           }
         });
+  
+        if(nonCompliantCount > 0) {
+          chartData.push({
+            id: element.id,
+            name: element.name + ' ' + nonCompliantCount,
+            value: nonCompliantCount
+          });
+  
+          tableData.push({
+            categoryId: category.id,
+            category: category.name,
+            elementId: element.id,
+            element: element.name,
+            compliance: {
+              n: {
+                total: nonCompliantCount,
+                percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+              },
+            }
+          });
+        }
       }
     });
+  });
+
+  chartData.forEach(data => {
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+  });
+
+  chartData = chartData.sort((obj1, obj2) => {
+    let diff = obj2.value - obj1.value;
+    if(diff == 0) {
+        return obj1.name.localeCompare(obj2.name);
+    } else {
+        return diff;
+    }
   });
 
   tableData.forEach(data => {
@@ -247,6 +273,8 @@ interface HierarchyFilter {
   filters: string[];
   startDate?: any;
   endDate?: any;
+  chartType?: any;
+  hazardType?: any;
 }
 
 enum FilterType {

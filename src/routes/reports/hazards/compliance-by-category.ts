@@ -5,6 +5,7 @@ import { getHazards } from '../../hazards.router';
 import { getDepartments, getSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
+import { getTop10Hazards } from './top-hazards';
 
 /* GET compliance-by-category report */
 export const hazardsComplianceByCategory = (req, res) => {
@@ -12,6 +13,8 @@ export const hazardsComplianceByCategory = (req, res) => {
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let chartType = req.query.chartType;
+  let hazardType = req.query.hazardType;
 
   let resp = undefined;
   let error = undefined;
@@ -28,6 +31,8 @@ export const hazardsComplianceByCategory = (req, res) => {
         filter = data;
         filter.startDate = startDate;
         filter.endDate = endDate;
+        filter.chartType = chartType;
+        filter.hazardType = hazardType;
 
         console.log(filter);
         resolve(true);
@@ -86,6 +91,7 @@ export const hazardsComplianceByCategory = (req, res) => {
 };
 
 const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+  let topData = getTop10Hazards(categories, hazards, filter);
   let chartData = [];
   let tableData = [];
 
@@ -93,27 +99,33 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
 
   categories.forEach((category) => {
     let nonCompliantCount = 0;
-    
+
     category.elements.forEach((element) => {
 
-      hazards.forEach((hazard) => {
-        let isNonCompliant = hazard.element_compliance[element.id]['N'];
-        if(isNonCompliant) {
-          nonCompliantCount++;
-          total++;
-        }
-      });
+      if((filter.hazardType == 'TOP' && topData.find(top => {
+        return top.id == element.id
+      })) || filter.hazardType != 'TOP') {
+        hazards.forEach((hazard) => {
+          let isNonCompliant = hazard.element_compliance[element.id]['N'];
+
+          if(isNonCompliant) {
+            nonCompliantCount++;
+            total++;
+          }
+        });
+      }
     });
 
     if(nonCompliantCount > 0) {
       chartData.push({
+        id: category.id,
         name: category.name + ' ' + nonCompliantCount,
         value: nonCompliantCount
       });
 
       tableData.push({
+        categoryId: category.id,
         category: category.name,
-        element: category.name,
         compliance: {
           n: {
             total: nonCompliantCount,
@@ -121,6 +133,20 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
           },
         }
       });
+    }
+
+  });
+
+  chartData.forEach(data => {
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+  });
+
+  chartData = chartData.sort((obj1, obj2) => {
+    let diff = obj2.value - obj1.value;
+    if(diff == 0) {
+        return obj1.name.localeCompare(obj2.name);
+    } else {
+        return diff;
     }
   });
 
@@ -242,12 +268,14 @@ const checkNum = (num: number): number => {
     return num;
   }
 }
-interface HierarchyFilter {
+export interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];
   startDate?: any;
   endDate?: any;
+  chartType?: any;
+  hazardType?: any;
 }
 
 enum FilterType {

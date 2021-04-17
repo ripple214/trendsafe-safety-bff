@@ -170,10 +170,14 @@ const filterHazards = (hazards, filter: HierarchyFilter) => {
 
     let nonCompliantElementMatches = false;
     if(riskRatingMatches) {
+      //console.log("pasok");
       if(filter.nonCompliantElement) {
+        //console.log("pasok ulit");
         nonCompliantElementMatches = hazard.element_compliance && 
           hazard.element_compliance[filter.nonCompliantElement] && 
           hazard.element_compliance[filter.nonCompliantElement]['N'];
+
+          //console.log("eto pa", nonCompliantElementMatches);
       } else {
         nonCompliantElementMatches = true;
       }
