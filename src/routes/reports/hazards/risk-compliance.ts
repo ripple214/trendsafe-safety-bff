@@ -119,7 +119,7 @@ const getChartData = (hazards, risks, filter: HierarchyFilter, onSuccess: (data:
   risks.forEach(risk => {
     chartData.push({
       name: risk.name,
-      value: counts[risk.id]
+      value: filter.chartType == 'BAR' ? counts[risk.id] : checkNum(+(counts[risk.id] / total * 100).toFixed(2))
     });
   });
 

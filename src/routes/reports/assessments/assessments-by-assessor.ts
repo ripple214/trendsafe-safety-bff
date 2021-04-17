@@ -12,6 +12,7 @@ export const assessmentsByAssessor = (req, res) => {
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let chartType = req.query.chartType;
 
   let resp = undefined;
   let error = undefined;
@@ -28,6 +29,7 @@ export const assessmentsByAssessor = (req, res) => {
         filter = data;
         filter.startDate = startDate;
         filter.endDate = endDate;
+        filter.chartType = chartType;
 
         resolve(true);
       }, 
@@ -120,10 +122,13 @@ const getChartData = (assessments, users, filter: HierarchyFilter, onSuccess: (d
   });
 
   chartData.forEach(data => {
+    let value = data.value;
+    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100).toFixed(2)),
+
     tableData.push({
       assessor: data.name,
-      no_of_assessments: data.value,
-      percentage: checkNum(+(data.value / total * 100).toFixed(2))
+      no_of_assessments: value,
+      percentage: checkNum(+(value / total * 100).toFixed(2))
     });
   });
 
@@ -244,6 +249,7 @@ interface HierarchyFilter {
   filters: string[];
   startDate?: any;
   endDate?: any;
+  chartType?: any;
 }
 
 enum FilterType {

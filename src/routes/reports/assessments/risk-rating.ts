@@ -114,48 +114,53 @@ const getChartData = (assessments, filter: HierarchyFilter, onSuccess: (data: an
     total++;
   });
 
+  let majorPercentage = checkNum(+(major / total * 100).toFixed(2));
+  let moderatePercentage = checkNum(+(moderate / total * 100).toFixed(2));
+  let minorPercentage = checkNum(+(minor / total * 100).toFixed(2));
+  let acceptablePercentage = checkNum(+(acceptable / total * 100).toFixed(2));
+
   chartData.push({
     name: 'Major Risk',
-    value: major
+    value: filter.chartType == 'BAR' ? major : majorPercentage
   });
 
   chartData.push({
     name: 'Moderate Risk',
-    value: moderate
+    value: filter.chartType == 'BAR' ? moderate : moderatePercentage
   });
 
   chartData.push({
     name: 'Minor Risk',
-    value: minor
+    value: filter.chartType == 'BAR' ? minor : minorPercentage
   });
 
   chartData.push({
     name: 'Acceptable Risk',
-    value: acceptable
+    value: filter.chartType == 'BAR' ? acceptable : acceptablePercentage
   });
 
   tableData.push({
     risk_rating: 'Major Risk',
     no_of_assessments: major,
-    percentage: checkNum(+(major / total * 100).toFixed(2))
+    percentage: majorPercentage
   });
 
   tableData.push({
     risk_rating: 'Moderate Risk',
     no_of_assessments: moderate,
-    percentage: checkNum(+(moderate / total * 100).toFixed(2))
+    percentage: moderatePercentage
   });
 
   tableData.push({
     risk_rating: 'Minor Risk',
     no_of_assessments: minor,
-    percentage: checkNum(+(minor / total * 100).toFixed(2))
+    percentage: minorPercentage
   });
 
   tableData.push({
     risk_rating: 'Acceptable Risk',
     no_of_assessments: acceptable,
-    percentage: checkNum(+(acceptable / total * 100).toFixed(2))
+    percentage: acceptablePercentage
   });
 
   onSuccess({

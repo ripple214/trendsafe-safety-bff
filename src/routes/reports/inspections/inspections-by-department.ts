@@ -11,6 +11,7 @@ export const inspectionsByDepartment = (req, res) => {
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let chartType = req.query.chartType;
 
   let resp = undefined;
   let error = undefined;
@@ -25,6 +26,8 @@ export const inspectionsByDepartment = (req, res) => {
 
   new SequentialExecutor()
   .chain((resolve, reject) => {
+    filter.chartType = chartType;
+
     getInspections(clientId, undefined, 
       (data) => {
         inspections = data;
@@ -116,10 +119,13 @@ const getChartData = (inspections, departments, filter, onSuccess: (data: any) =
   });
 
   chartData.forEach(data => {
+    let value = data.value;
+    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100).toFixed(2)),
+
     tableData.push({
       department: data.name,
-      no_of_inspections: data.value,
-      percentage: checkNum(+(data.value / total * 100).toFixed(2))
+      no_of_inspections: value,
+      percentage: checkNum(+(value / total * 100).toFixed(2))
     });
   });
 
@@ -143,4 +149,5 @@ interface HierarchyFilter {
 
   startDate?: any;
   endDate?: any;
+  chartType?: any;
 }

@@ -11,6 +11,7 @@ export const hazardsByDepartment = (req, res) => {
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let chartType = req.query.chartType;
 
   let resp = undefined;
   let error = undefined;
@@ -25,6 +26,8 @@ export const hazardsByDepartment = (req, res) => {
 
   new SequentialExecutor()
   .chain((resolve, reject) => {
+    filter.chartType = chartType;
+
     getHazards(clientId, undefined, 
       (data) => {
         hazards = data;
@@ -116,10 +119,13 @@ const getChartData = (hazards, departments, filter, onSuccess: (data: any) => vo
   });
 
   chartData.forEach(data => {
+    let value = data.value;
+    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100).toFixed(2)),
+
     tableData.push({
       department: data.name,
-      no_of_hazards: data.value,
-      percentage: checkNum(+(data.value / total * 100).toFixed(2))
+      no_of_hazards: value,
+      percentage: checkNum(+(value / total * 100).toFixed(2))
     });
   });
 
@@ -143,4 +149,5 @@ interface HierarchyFilter {
 
   startDate?: any;
   endDate?: any;
+  chartType?: any;
 }

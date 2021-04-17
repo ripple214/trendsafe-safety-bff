@@ -118,7 +118,7 @@ const getChartData = (inspections, rules, filter: HierarchyFilter, onSuccess: (d
   rules.forEach(rule => {
     chartData.push({
       name: rule.name,
-      value: counts[rule.id]
+      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100).toFixed(2))
     });
   });
 
