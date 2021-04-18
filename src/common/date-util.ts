@@ -1,11 +1,16 @@
 import moment from "moment";
 
+const FORMAT_ISO = 'YYYY-MM-DDTHH:mm:ssTZD';
 const FORMAT_LONG = 'MMMM DD, YYYY hh:mm:ss';
 const FORMAT_SHORT = 'YYYY-MM-DD';
 const FORMAT_MONTH = 'YYYY-MM';
 
 export const dateParse = (dateString: string, dateFormat: string = FORMAT_LONG): moment.Moment => {
-  return moment(dateString, dateFormat);
+  let dateVal = moment(dateString, dateFormat);
+  if(!dateVal.isValid()) {
+    dateVal = moment(dateString, FORMAT_ISO);
+  }
+  return dateVal;
 }
 
 export const dateFormat = (date: any, dateFormat: string = FORMAT_SHORT) => {
@@ -26,5 +31,6 @@ export const isSameMonth = (dateString1: string, dateString2: string) => {
 
 export const isWithin = (dateString: string, dateStringFrom: string, dateStringTo: string, unit: moment.unitOfTime.StartOf = 'day', dateFormat: string = FORMAT_LONG):boolean => {
   let dateToCompare = dateParse(dateString, dateFormat);
+  //console.log("dateToCompare", dateToCompare, dateString);
   return dateToCompare.isSameOrAfter(dateStringFrom, unit) && dateToCompare.isSameOrBefore(dateStringTo, unit);
 }

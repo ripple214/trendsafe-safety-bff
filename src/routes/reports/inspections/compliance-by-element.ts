@@ -57,7 +57,7 @@ export const inspectionsComplianceByElement = (req, res) => {
   .then((resolve) => {
     //console.log("raw", moment(filter.startDate), moment(filter.endDate), inspections);
     inspections = filterInspections(inspections, filter);
-    console.log("filtered", inspections);
+    //console.log("filtered", inspections);
     resolve(true);
   })
   .then((resolve) => {

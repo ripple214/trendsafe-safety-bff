@@ -17,13 +17,36 @@ var supportingDocumentsGroup = "supporting-documents/incidents"
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
+  getIncidents(clientId, 
+    (data) => {
+      data.sort(function (a, b) {
+        return isAfter(b.completed_date, a.completed_date);
+      });
+
+      var resp = {"incidents": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getIncidents = (clientId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, description, summary, leader, sort_num',
+    ProjectionExpression: 'id, #name, completed_date, #action, area_element_compliance, assessor, \
+    closer, #comments, created_by, created_ts, department_id, description, due_date, element_compliance, key_findings, \
+    leader, location_id, members, person_responsible, risk_compliance, rule_compliance, site_id, summary, system_element_compliance, \
+    task_causes, task_element_compliance, task_id',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#name": "name",
+      "#comments": "comments",
+      "#action": "action",
     },
     ExpressionAttributeValues: {
       ":clientId": clientId
@@ -31,21 +54,13 @@ router.get('/', function(req, res, next) {
   };
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return isAfter(b.completed_date, a.completed_date);
-      });
-
-      var resp = {"incidents": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+}
 
 /* GET incident. */
 router.get('/:incidentId', function(req, res) {

@@ -30,6 +30,14 @@ import { hazardsByDepartment } from './reports/hazards/hazards-by-department';
 import { hazardsByAssessor } from './reports/hazards/hazards-by-assessor';
 import { hazardsDetailedReport } from './reports/hazards/detailed-report';
 
+import { incidentsComplianceByCategory } from './reports/incidents/compliance-by-category';
+import { incidentsRiskCompliance } from './reports/incidents/risk-compliance';
+import { incidentsRuleCompliance } from './reports/incidents/rule-compliance';
+import { incidentsImmediateCauseAnalysis } from './reports/incidents/immediate-cause-analysis';
+import { incidentsSystemAndOrganizationCauses } from './reports/incidents/system-and-organization-causes';
+import { incidentsDetailedReport } from './reports/incidents/detailed-report';
+
+
 export const router = express.Router();
 
 /* GET compliance-by-element report */
@@ -165,4 +173,35 @@ router.get('/hazards/hazards-by-assessor', function(req, res, next) {
 /* GET hazards detailed report */
 router.get('/hazards/detailed-report', function(req, res, next) {
   hazardsDetailedReport(req, res);
+});
+
+
+/* GET damaging energies report */
+router.get('/incidents/compliance-by-category', function(req, res, next) {
+  incidentsComplianceByCategory(req, res);
+});
+
+/* GET risk-compliance report */
+router.get('/incidents/risk-compliance', function(req, res, next) {
+  incidentsRiskCompliance(req, res);
+});
+
+/* GET immediate cause analysis report */
+router.get('/incidents/immediate-cause-analysis', function(req, res, next) {
+  incidentsImmediateCauseAnalysis(req, res);
+});
+
+/* GET system and organization causes report */
+router.get('/incidents/system-and-organization-causes', function(req, res, next) {
+  incidentsSystemAndOrganizationCauses(req, res);
+});
+
+/* GET rule compliance report */
+router.get('/incidents/rule-compliance', function(req, res, next) {
+  incidentsRuleCompliance(req, res);
+});
+
+/* GET incidents detailed report */
+router.get('/incidents/detailed-report', function(req, res, next) {
+  incidentsDetailedReport(req, res);
 });

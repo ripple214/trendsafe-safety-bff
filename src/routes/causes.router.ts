@@ -21,7 +21,15 @@ var LEVEL_DESCRIPTIONS = {
 /* GET cause listing. */
 router.get('/', function(req, res, next) {
 
-  retrieve(req, LEVELS, (dataMap) => {
+  retrieve(req, (headings) => {
+    var resp = { "headings": headings };
+    res.status(200);
+    res.json(resp);
+  });
+});
+
+export const retrieve = (req, callback: (headings: any[]) => void) => {
+  recursiveRetrieve(req, 0, {}, (dataMap) => {
     var headings = [];
 
     var allMap = {};
@@ -60,21 +68,15 @@ router.get('/', function(req, res, next) {
       });
       parentsMap = objectMap;
     });
-
-    var resp = { "headings": headings };
-    res.status(200);
-    res.json(resp);
+    
+    callback(headings);
   });
-});
-
-const retrieve = (req, levels, callback) => {
-  recursiveRetrieve(req, levels, 0, {}, callback);
 };
 
-const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
+const recursiveRetrieve = (req, index, dataMap, callback) => {
 
   var dbLooper = new Promise((resolveDBLoop:any, rejectDBLoop:any) => {
-    var level = levels[index]
+    var level = LEVELS[index]
 
     ddb.query(getListParams(req, level), function(response) {
       if (response.data) {
@@ -91,10 +93,10 @@ const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
   });
 
   dbLooper.then(() => {
-    if(index == levels.length-1) {
+    if(index == LEVELS.length-1) {
       callback(dataMap);
     } else {
-      recursiveRetrieve(req, levels, ++index, dataMap, callback)
+      recursiveRetrieve(req, ++index, dataMap, callback)
     }
   });
 };
