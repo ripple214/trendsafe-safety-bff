@@ -3,6 +3,7 @@ import { default as conf } from 'config';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
@@ -74,4 +75,66 @@ router.put('/:moduleId', function(req, res, next) {
   });
 });
 
+export const createDefaultModules = (clientId, string, userEmail: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let createTime = moment().format();
 
+  let error: any;
+  let parallels = [];
+
+  let defaultModules = [
+    {id: "TA", is_activatable: true, is_activated: true, max_licenses: 20, name: "Task Assessment", no_of_users: 0, sort_num: 1},
+    {id: "PAI", is_activatable: true, is_activated: true, max_licenses: 20, name: "Plant / Area Inspection", no_of_users: 0, sort_num: 2},
+    {id: "II", is_activatable: true, is_activated: true, max_licenses: -1, name: "Incident Investigation", no_of_users: 0, sort_num: 3},
+    {id: "KPI", is_activatable: true, is_activated: true, max_licenses: -1, name: "Key Performance Indicators", no_of_users: 0, sort_num: 4},
+    {id: "AM", is_activatable: true, is_activated: true, max_licenses: -1, name: "Action Management", no_of_users: 0, sort_num: 5},
+    {id: "TRM", is_activatable: false, is_activated: true, max_licenses: 20, name: "Task Risk Management", no_of_users: -1, sort_num: 6},
+    {id: "TP", is_activatable: false, is_activated: true, max_licenses: 20, name: "Task Planning", no_of_users: -1, sort_num: 7},
+    {id: "HR", is_activatable: false, is_activated: true, max_licenses: 20, name: "Hazard Report", no_of_users: -1, sort_num: 8},
+    {id: "LI", is_activatable: false, is_activated: true, max_licenses: 20, name: "Lead Indicator", no_of_users: -1, sort_num: 9},
+  ];
+
+  defaultModules.forEach(defaultModule => {
+    parallels.push(
+      (resolve, reject) => {
+        var params:any = {
+          TableName: tableName,
+          Item: {
+            "partition_key": clientId,
+            "sort_key": defaultModule.id,
+            "id": defaultModule.id,
+            "name": defaultModule.name,
+            "is_activatable": defaultModule.is_activatable,
+            "is_activated": defaultModule.is_activated,
+            "max_licenses": defaultModule.max_licenses,
+            "no_of_users": defaultModule.no_of_users,
+            "sort_num": defaultModule.sort_num,
+            "created_ts": createTime, 
+            "created_by": userEmail,
+            "updated_ts": createTime,
+            "updated_by": userEmail
+          }
+        };
+      
+        ddb.insert(params, function(response) {
+          if(response.data) {
+            resolve(true);
+          } else {
+            error = response;
+            reject(response);
+          }
+        });  
+      
+      }
+    );
+  });
+
+  new SequentialExecutor().chain()
+  .parallel(parallels)
+  .success(() => {
+    onSuccess("{ status: 'done' }");
+  })
+  .fail(() => {
+    onError(error);
+  })
+  .execute();
+}

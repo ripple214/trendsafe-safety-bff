@@ -3,6 +3,7 @@ import { default as conf } from 'config';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
@@ -76,4 +77,65 @@ router.put('/:kpiId', function(req, res, next) {
   });
 });
 
+export const createDefaultKpis = (clientId, string, userEmail: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let createTime = moment().format();
+
+  let error: any;
+  let parallels = [];
+
+  let defaultKpis = [
+    {id: "NTA", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Number of task assessments", sort_num: 1},
+    {id: "NPAI", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Number of plant / area inspections", sort_num: 2},
+    {id: "PPIFR", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Positive performance indicator frequency rate", sort_num: 3},
+    {id: "LSI", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Leadership Safety Index", sort_num: 4},
+    {id: "NCRNM", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Number of critical risk non management", sort_num: 5},
+    {id: "NSRB", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Number of safety rule breaches", sort_num: 6},
+    {id: "TCBDD", poor: 10, low: 20, moderate: 30, is_activated: true, name: "Tasks completed by due date", sort_num: 7},
+  ];
+
+  defaultKpis.forEach(defaultKpi => {
+    parallels.push(
+      (resolve, reject) => {
+        var params:any = {
+          TableName: tableName,
+          Item: {
+            "partition_key": clientId,
+            "sort_key": defaultKpi.id,
+            "id": defaultKpi.id,
+            "name": defaultKpi.name,
+            "poor": defaultKpi.poor,
+            "low": defaultKpi.low,
+            "moderate": defaultKpi.moderate,
+            "is_activated": defaultKpi.is_activated,
+            "sort_num": defaultKpi.sort_num,
+            "created_ts": createTime, 
+            "created_by": userEmail,
+            "updated_ts": createTime,
+            "updated_by": userEmail
+          }
+        };
+      
+        ddb.insert(params, function(response) {
+          if(response.data) {
+            resolve(true);
+          } else {
+            error = response;
+            reject(response);
+          }
+        });  
+      
+      }
+    );
+  });
+
+  new SequentialExecutor().chain()
+  .parallel(parallels)
+  .success(() => {
+    onSuccess("{ status: 'done' }");
+  })
+  .fail(() => {
+    onError(error);
+  })
+  .execute();
+}
 

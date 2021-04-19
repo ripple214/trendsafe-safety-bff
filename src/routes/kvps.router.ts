@@ -3,6 +3,7 @@ import { default as conf } from 'config';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
@@ -77,3 +78,54 @@ router.put('/:kvpId', function(req, res, next) {
 });
 
 
+export const createDefaultKvps = (clientId, string, userEmail: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let createTime = moment().format();
+
+  let error: any;
+  let parallels = [];
+
+  let defaultKvps = [
+    {id: "RISKS", name: "Major Risk Categories"},
+    {id: "RULES", name: "Safety Rules"},
+  ];
+
+  defaultKvps.forEach(defaultKvp => {
+    parallels.push(
+      (resolve, reject) => {
+        var params:any = {
+          TableName: tableName,
+          Item: {
+            "partition_key": clientId,
+            "sort_key": defaultKvp.id,
+            "id": defaultKvp.id,
+            "name": defaultKvp.name,
+            "created_ts": createTime, 
+            "created_by": userEmail,
+            "updated_ts": createTime,
+            "updated_by": userEmail
+          }
+        };
+      
+        ddb.insert(params, function(response) {
+          if(response.data) {
+            resolve(true);
+          } else {
+            error = response;
+            reject(response);
+          }
+        });  
+      
+      }
+    );
+  });
+
+  new SequentialExecutor().chain()
+  .parallel(parallels)
+  .success(() => {
+    onSuccess("{ status: 'done' }");
+  })
+  .fail(() => {
+    onError(error);
+  })
+  .execute();
+}

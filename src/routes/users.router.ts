@@ -245,6 +245,22 @@ router.put('/:userId', function(req, res, next) {
 /* POST insert user. */
 router.post('/', function(req, res, next) {
   let clientId = req['user'].client_id;
+  createUser(clientId, req, 
+    (data) => {
+      var resp = data;
+      delete resp['partition_key'];
+      delete resp['sort_key'];
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }    
+  );
+});
+
+export const createUser = (clientId: string, req: any, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let createTime = moment().format();
   let id = uuid();
 
@@ -284,18 +300,14 @@ router.post('/', function(req, res, next) {
   };
 
   ddb.insert(params, function(response) {
-    if (response.data) {
-      var resp = response.data;
-      delete resp['partition_key'];
-      delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+
+}
 
 /* DELETE delete user. */
 router.delete('/:userId', function(req, res) {

@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { default as jwt } from 'jsonwebtoken';
 
 import { db_service as ddb } from '../services/ddb.service';
+import moment from "moment";
 
 export const router = express.Router();
 
@@ -154,4 +155,30 @@ router.post("/retrieve-password", (req, res, next) => {
   res.json(response);
 });
 
+export const createAuth = (email: string, clientId: string, userId: string, userEmail:string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let createTime = moment().format();
+  
+  var params:any = {
+    TableName: tableName,
+    Item: {
+      "partition_key": email,
+      "sort_key": "Singapore1",
+      "module": "CLIENT",
+      "client_id": clientId,
+      "user_id": userId,
+      "failed_attempts": 0,
+      "created_ts": createTime, 
+      "created_by": userEmail,
+      "updated_ts": createTime,
+      "updated_by": userEmail
+    }
+  };
 
+  ddb.insert(params, function(response) {
+    if(response.data) {
+      onSuccess(response.data);
+    } else {
+      onError(response);
+    }
+  });  
+}

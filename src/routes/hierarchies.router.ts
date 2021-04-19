@@ -544,13 +544,13 @@ const getHierarchy = (req, level, onSuccess: (data: any) => void, onError?: (err
   var params = getParams(req, level);
 
   ddb.query(params, function(response) {
-    if(response.data) {
+    if(response.error) {
+      onError(response);
+    } else {
       response.data.sort(function (a, b) {
         return a.name.localeCompare(b.name);
       });
       onSuccess(response.data);
-    } else {
-      onError(response);
     }
   });
 }
