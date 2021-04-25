@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
@@ -27,129 +28,173 @@ var LEVEL_DESCRIPTIONS = {
 /* GET hierarchies listing. */
 router.get('/', function(req, res, next) {
 
-  retrieve(req, LEVELS, (dataMap) => {
-    console.log("done getting data");
+  let divisions: any[];
+  let projects: any[];
+  let sites: any[];
+  let subsites: any[];
+  let departments: any[];
 
-    var divisions = [];
+  let resp: any;
+  let error: any;
 
-    var allMap = {};
-    var parentsMap = undefined;
-  
-    LEVELS.forEach((level, index) => {
-      var objectMap = {};
-
-      var levelDescription = LEVEL_DESCRIPTIONS[level];
-      console.log("processing", levelDescription);
-
-      dataMap[level].forEach((entity) => {
-        if(level == DIVISION) {
-          divisions.push(entity);
+  new SequentialExecutor().chain()
+  .parallel([
+    (resolve, reject) => {
+      getDivisions(req, 
+        (data) => {
+          divisions = data;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+          reject(err);
         }
-
-        objectMap[entity.id] = entity;
-        var parentId = undefined;
-
-        if(parentsMap != undefined) {
-
-          var parents = entity.parents.split(DELIMITER);
-          var ancestor = entity.parents;
-          for(var i=parents.length; i>0; i--) {
-            var currentParentId = parents[i-1];
-
-            if(parentId == undefined) {
-              if(currentParentId == -1) {
-                parentId = ancestor;
-              } else {
-                parentId = currentParentId;
-              }
-            }
-
-            if(currentParentId == -1) {
-              if(allMap[ancestor] == undefined) {
-                console.log("creating skipped");
-                var parent1 = {id: -1, name: "Skipped " + LEVELS[i-1]};
-                allMap[ancestor] = parent1;
-                if(ancestor == -1) {
-                  divisions.push(parent1);
-                }
-              }
-
-              ancestor = ancestor.substring(0, ancestor.length-(currentParentId.length+1));
-              console.log("ancestor", ancestor);
-            } else {
-              break;
-            }
-          }
-
-          // make sure skipped levels are added as children as well
-          // TODO
-          var ancestor = entity.parents;
-          for(var i=parents.length; i>0; i--) {
-            var currentParentId = parents[i-1];
-            if(currentParentId == -1) {
-              ancestor = ancestor.substring(0, ancestor.length-(currentParentId.length+1));
-            } else {
-              break;
-            }
-          }
-
-          var parent = parentsMap[parentId];
-          if(parent == undefined) {
-            parent = allMap[parentId];
-          }
-
-          if(parent != undefined) { // TODO this should never be the case
-            var children = parent[levelDescription];
-            if(children == undefined) {
-              children = []
-              parent[levelDescription] = children;
-            }
-            children.push(entity);
-          }
+      );
+    },
+    (resolve, reject) => {
+      getProjects(req, 
+        (data) => {
+          projects = data;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+          reject(err);
         }
-      });
-      parentsMap = objectMap;
+      );
+    },
+    (resolve, reject) => {
+      getSites(req, 
+        (data) => {
+          sites = data;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+          reject(err);
+        }
+      );
+    },
+    (resolve, reject) => {
+      getSubsites(req, 
+        (data) => {
+          subsites = data;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+          reject(err);
+        }
+      );
+    },
+    (resolve, reject) => {
+      getDepartments(req, 
+        (data) => {
+          departments = data;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+          reject(err);
+        }
+      );
+    }
+  ])
+  .success(() => {
+    let entityMap = {};
+    divisions.forEach(division => {
+      setHierarchy(entityMap, division, DIVISION);
+    });
+    projects.forEach(project => {
+      setHierarchy(entityMap, project, PROJECT);
+    });
+    sites.forEach(site => {
+      setHierarchy(entityMap, site, SITE);
+    });
+    subsites.forEach(subsite => {
+      setHierarchy(entityMap, subsite, SUBSITE);
+    });
+    departments.forEach(department => {
+      setHierarchy(entityMap, department, DEPARTMENT);
     });
 
-    var resp = {"hierarchies": { "divisions": divisions } };
+    let retVal = [];
+    if(entityMap[DIVISION]) {
+      Object.keys(entityMap[DIVISION]).forEach(divisionId => {
+        retVal.push(entityMap[DIVISION][divisionId]);
+      });
+    }
+    resp = {"hierarchies": {"divisions": retVal}};
     res.status(200);
     res.json(resp);
 
-    console.log("responded");    
-  });
+    console.log("responded");
+  })
+  .fail(() => {
+    res.status(400);
+    res.json(error);
+  })
+  .execute();
 });
 
-const retrieve = (req, levels, callback) => {
-  recursiveRetrieve(req, levels, 0, {}, callback);
-};
+const setHierarchy = (entityMap, entity, level) => {
+  if(entityMap[level] == undefined) {
+    entityMap[level] = {};
+  }
 
-const recursiveRetrieve = (req, levels, index, dataMap, callback) => {
-  var dbLooper = new Promise((resolveDBLoop:any, rejectDBLoop:any) => {
-    var level = levels[index]
+  let currentEntity = entity;
+  let parents = currentEntity.parents;
+  if(parents) {
+    entityMap[level][parents + DELIMITER + currentEntity.id] = currentEntity;
+  } else {
+    entityMap[level][currentEntity.id] = currentEntity;
+  }
 
-    console.log("retrieving", level);
+  let levelIndex = LEVELS.indexOf(level);
 
-    ddb.query(getParams(req, level), function(response) {
-      if (response.data) {
-        response.data.sort(function (a, b) {
-          return a.name.localeCompare(b.name);
-        });
-        dataMap[level] = response.data;
-      } else {
-        dataMap[level] = [];
-      }
+  //console.log("level", level, currentEntity.name, currentEntity.id);
 
-      resolveDBLoop();
-    });
-  });
+  while(parents != "") {
+    //console.log("\tparents", parents);
 
-  dbLooper.then(() => {
-    if(index == levels.length-1) {
-      callback(dataMap);
-    } else {
-      recursiveRetrieve(req, levels, ++index, dataMap, callback)
+    let parentChildDescription = LEVEL_DESCRIPTIONS[LEVELS[levelIndex]];
+    levelIndex--;
+    let parentLevel = LEVELS[levelIndex];
+    let parentId = parents;
+
+    if(entityMap[parentLevel] == undefined) {
+      entityMap[parentLevel] = {};
     }
-  });
+    let parent = entityMap[parentLevel][parentId];
+
+    let immediateParentId = parents.substring(parents.lastIndexOf(DELIMITER)+1);
+    if(parent == undefined && immediateParentId == -1) {
+      parent = {
+        id: -1,
+        parents: parents.lastIndexOf(DELIMITER),
+        name: "Skipped " + parentLevel
+      }
+      entityMap[parentLevel][parents] = parent;
+    }
+
+    if(parent) {
+      let children = parent[parentChildDescription];
+      if(children == undefined) {
+        children = []
+        parent[parentChildDescription] = children;
+      }
+      if(children.find((child) => {
+        return currentEntity.id == child.id
+      }) == undefined) {
+        children.push(currentEntity);
+      }
+      currentEntity = parent;
+    }
+
+    //console.log("\t\tparent", parent, "immediateParentId", immediateParentId);
+
+    parents = parents.substring(0, parents.lastIndexOf(DELIMITER));
+  }
 };
 
 const getParams = (req, level) => {
@@ -419,29 +464,100 @@ const updateHierarchy = (level, req, res) => {
 }
 
 /* DELETE delete hierarchy. */
-// TODO check if there are assessments. Also delete children
+// TODO check if there are assessments
 const deleteHierarchy = (level, req, res) => {
   let clientId = req['user'].client_id;
   let hierarchyId = req.params.hierarchyId;
 
-  var params:any = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId + DELIMITER + level,
-      "sort_key": hierarchyId,
-    },
-  };
+  if(level == DIVISION) {
+    req.query["divisionId"] = hierarchyId;
+  } else if(level == PROJECT) {
+    req.query["projectId"] = hierarchyId;
+  } else if(level == SITE) {
+    req.query["siteId"] = hierarchyId;
+  } else if(level == SUBSITE) {
+    req.query["subsiteId"] = hierarchyId;
+  } 
 
-  ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
-    } else {
-      res.status(400);
-      res.json(response);
-    }
+  let resp = {};
+  let error = {};
+  let executor = new SequentialExecutor();
+
+  executor.chain((resolve, reject) => {
+    let params:any = {
+      TableName: tableName,
+      Key: {
+        "partition_key": clientId + DELIMITER + level,
+        "sort_key": hierarchyId,
+      },
+    };
+    console.log("delete requested entity", level, hierarchyId);
+
+    ddb.delete(params, function(response) {
+      if (!response.error) {
+        resolve(true);
+        resp = response;
+      } else {
+        error = response;
+        reject(error);
+      }
+    });
   });
+
+  let parallels= [];
+
+  for(let i=LEVELS.indexOf(level)+1; i<LEVELS.length; i++) {    
+    parallels.push(
+      (resolve, reject) => {
+        getHierarchy(req, LEVELS[i], 
+          (data) => {
+            //console.log("get id of children", LEVELS[i], data.map(child => { return { id: child.id, name: child.name } }));
+            data.forEach((entity) => {
+              let params:any = {
+                TableName: tableName,
+                Key: {
+                  "partition_key": clientId + DELIMITER + LEVELS[i],
+                  "sort_key": entity.id,
+                },
+              };
+              console.log("deleting entity", LEVELS[i], entity.id, entity.name);
+
+              ddb.delete(params, function(response) {
+                if (!response.error) {
+                  resolve(true);
+                } else {
+                  error = response;
+                  reject(error);
+                }
+              });
+            });
+
+            if(data.length == 0) {
+              resolve(true);
+            }
+          }, 
+          (err) => {
+            error = err;
+            reject(error);
+          }
+        );
+      }
+    )
+  }
+  if(parallels.length) {
+    executor.parallel(parallels);
+  }
+
+  executor.success(() => {
+    res.status(204);
+    res.json();
+  })
+  .fail(() => {
+    res.status(400);
+    res.json(error);
+  });
+  
+  executor.execute();
 };
 
 /* GET divisions listing. */
