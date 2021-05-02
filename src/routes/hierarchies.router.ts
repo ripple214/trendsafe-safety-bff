@@ -28,13 +28,35 @@ var LEVEL_DESCRIPTIONS = {
 /* GET hierarchies listing. */
 router.get('/', function(req, res, next) {
 
+  getEntityMap(req, 
+    (entityMap) => {
+      let retVal = [];
+      if(entityMap[DIVISION]) {
+        Object.keys(entityMap[DIVISION]).forEach(divisionId => {
+          retVal.push(entityMap[DIVISION][divisionId]);
+        });
+      }    
+    
+      let resp = {"hierarchies": {"divisions": retVal}};
+      res.status(200);
+      res.json(resp);
+    
+      console.log("responded");
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+const getEntityMap = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let divisions: any[];
   let projects: any[];
   let sites: any[];
   let subsites: any[];
   let departments: any[];
 
-  let resp: any;
   let error: any;
 
   new SequentialExecutor().chain()
@@ -101,41 +123,54 @@ router.get('/', function(req, res, next) {
     }
   ])
   .success(() => {
-    let entityMap = {};
-    divisions.forEach(division => {
-      setHierarchy(entityMap, division, DIVISION);
-    });
-    projects.forEach(project => {
-      setHierarchy(entityMap, project, PROJECT);
-    });
-    sites.forEach(site => {
-      setHierarchy(entityMap, site, SITE);
-    });
-    subsites.forEach(subsite => {
-      setHierarchy(entityMap, subsite, SUBSITE);
-    });
-    departments.forEach(department => {
-      setHierarchy(entityMap, department, DEPARTMENT);
-    });
-
-    let retVal = [];
-    if(entityMap[DIVISION]) {
-      Object.keys(entityMap[DIVISION]).forEach(divisionId => {
-        retVal.push(entityMap[DIVISION][divisionId]);
+    try {
+      let entityMap = {};
+      divisions.forEach(division => {
+        setHierarchy(entityMap, division, DIVISION);
       });
+      projects.forEach(project => {
+        setHierarchy(entityMap, project, PROJECT);
+      });
+      sites.forEach(site => {
+        setHierarchy(entityMap, site, SITE);
+      });
+      subsites.forEach(subsite => {
+        setHierarchy(entityMap, subsite, SUBSITE);
+      });
+      departments.forEach(department => {
+        setHierarchy(entityMap, department, DEPARTMENT);
+      });
+  
+      // set parent names
+      LEVELS.forEach((level, index) => {
+        Object.keys(entityMap[level]).forEach(id => {
+          let entity = entityMap[level][id];
+          let parents = entity.parents;
+          if(parents != '') {
+            let parent = entityMap[LEVELS[index-1]][parents];
+            let parentNames = (parent.parentNames || '');
+            if(parentNames == '') {
+              parentNames = parent.name;
+            } else {
+              parentNames = parentNames + ' / ' + parent.name;
+            }
+            entity.parentNames = parentNames;
+          }
+        });
+      });
+  
+      onSuccess(entityMap);
+    } catch(e) {
+      console.log("error", e);
+      error = e;
+      onError(error);
     }
-    resp = {"hierarchies": {"divisions": retVal}};
-    res.status(200);
-    res.json(resp);
-
-    console.log("responded");
   })
   .fail(() => {
-    res.status(400);
-    res.json(error);
+    onError(error);
   })
   .execute();
-});
+};
 
 const setHierarchy = (entityMap, entity, level) => {
   if(entityMap[level] == undefined) {
@@ -171,8 +206,9 @@ const setHierarchy = (entityMap, entity, level) => {
     if(parent == undefined && immediateParentId == -1) {
       parent = {
         id: -1,
-        parents: parents.lastIndexOf(DELIMITER),
-        name: "Skipped " + parentLevel
+        parents: parents.substring(0, parents.lastIndexOf(DELIMITER)),
+        //name: "Skipped " + parentLevel
+        name: "-"
       }
       entityMap[parentLevel][parents] = parent;
     }
@@ -183,9 +219,12 @@ const setHierarchy = (entityMap, entity, level) => {
         children = []
         parent[parentChildDescription] = children;
       }
+
       if(children.find((child) => {
         return currentEntity.id == child.id
       }) == undefined) {
+        
+        //currentEntity.parentNames = (parent.parentNames ? parent.parentNames + ', ' : '') + parent.name;
         children.push(currentEntity);
       }
       currentEntity = parent;
@@ -200,87 +239,18 @@ const setHierarchy = (entityMap, entity, level) => {
 const getParams = (req, level) => {
   let clientId = req['user'].client_id;
 
-  let divisionId = req.query.divisionId;
-  let projectId = req.query.projectId;
-  let siteId = req.query.siteId;
-  let subsiteId = req.query.subsiteId;
-
-  return getParamsFiltered(clientId, level, divisionId, projectId, siteId, subsiteId);
-};
-
-const getParamsFiltered = (clientId, level, divisionId, projectId, siteId, subsiteId) =>  {
-  var params:any = {};
-
-  if(divisionId || projectId || siteId || subsiteId) {
-    let indexName = "DivisionIdIndex";
-    let parentField = "division_id";
-    let parentId = divisionId;
-    if(level == SITE) {
-      if(projectId) {
-        indexName = "ProjectIdIndex";
-        parentField = "project_id";
-        parentId = projectId;
-      }
-    } else if(level == SUBSITE) {
-      if(projectId) {
-        indexName = "ProjectIdIndex";
-        parentField = "project_id";
-        parentId = projectId;
-      }
-      if(siteId) {
-        indexName = "SiteIdIndex";
-        parentField = "site_id";
-        parentId = siteId;
-      }
-    } else if(level == DEPARTMENT) {
-      if(projectId) {
-        indexName = "ProjectIdIndex";
-        parentField = "project_id";
-        parentId = projectId;
-      }
-      if(siteId) {
-        indexName = "SiteIdIndex";
-        parentField = "site_id";
-        parentId = siteId;
-      }
-      if(subsiteId) {
-        indexName = "SubsiteIdIndex";
-        parentField = "subsite_id";
-        parentId = subsiteId;
-      }
-    }
-
-    params = {
-      TableName: tableName,
-      IndexName: indexName,
-      ProjectionExpression: 'id, #name, parents, division_id, project_id, site_id, subsite_id, department_id',
-      KeyConditionExpression: '#partition_key = :clientId and #parent = :parent',
-      ExpressionAttributeNames:{
-        "#partition_key": "partition_key",
-        "#parent": parentField,
-        "#name": "name",
-      },
-      ExpressionAttributeValues: {
-        ":clientId": clientId + DELIMITER + level,
-        ":parent": parentId
-      },
-    };  
-  } else {
-    params = {
-      TableName: tableName,
-      ProjectionExpression: 'id, #name, parents, division_id, project_id, site_id, subsite_id, department_id',
-      KeyConditionExpression: '#partition_key = :clientId',
-      ExpressionAttributeNames:{
-        "#partition_key": "partition_key",
-        "#name": "name",
-      },
-      ExpressionAttributeValues: {
-        ":clientId": clientId + DELIMITER + level
-      },
-    };
-  }
-
-  return params;
+  return {
+    TableName: tableName,
+    ProjectionExpression: 'id, #name, parents, division_id, project_id, site_id, subsite_id, department_id',
+    KeyConditionExpression: '#partition_key = :clientId',
+    ExpressionAttributeNames:{
+      "#partition_key": "partition_key",
+      "#name": "name",
+    },
+    ExpressionAttributeValues: {
+      ":clientId": clientId + DELIMITER + level
+    },
+  };
 };
 
 /* POST insert division. */
@@ -562,7 +532,7 @@ const deleteHierarchy = (level, req, res) => {
 
 /* GET divisions listing. */
 router.get('/divisions', function(req, res, next) {
-  getDivisions(req, 
+  getEntities(req, DIVISION,
     (data) => {
       var resp = {"divisions": data};
       res.status(200);
@@ -577,7 +547,7 @@ router.get('/divisions', function(req, res, next) {
 
 /* GET projects listing. */
 router.get('/projects', function(req, res, next) {
-  getProjects(req, 
+  getEntities(req, PROJECT, 
     (data) => {
       var resp = {"projects": data};
       res.status(200);
@@ -592,7 +562,7 @@ router.get('/projects', function(req, res, next) {
 
 /* GET sites listing. */
 router.get('/sites', function(req, res, next) {
-  getSites(req, 
+  getEntities(req, SITE,
     (data) => {
       var resp = {"sites": data};
       res.status(200);
@@ -607,7 +577,7 @@ router.get('/sites', function(req, res, next) {
 
 /* GET subsites listing. */
 router.get('/subsites', function(req, res, next) {
-  getSubsites(req, 
+  getEntities(req, SUBSITE,
     (data) => {
       var resp = {"subsites": data};
       res.status(200);
@@ -622,7 +592,7 @@ router.get('/subsites', function(req, res, next) {
 
 /* GET department listing. */
 router.get('/departments', function(req, res, next) {
-  getDepartments(req, 
+  getEntities(req, DEPARTMENT,
     (data) => {
       var resp = {"departments": data};
       res.status(200);
@@ -634,6 +604,78 @@ router.get('/departments', function(req, res, next) {
     }
   );
 });
+
+const getFilter = (req): {parentField: string, parentFieldValue: string} => {
+  let divisionId = req.query.divisionId;
+  let projectId = req.query.projectId;
+  let siteId = req.query.siteId;
+  let subsiteId = req.query.subsiteId;
+
+  let parentField = undefined;
+  let parentFieldValue = undefined;
+
+  if(divisionId) {
+    parentField = "division_id";
+    parentFieldValue = divisionId;
+  }
+
+  if(projectId) {
+    parentField = "project_id";
+    parentFieldValue = projectId;
+  }
+
+  if(siteId) {
+    parentField = "site_id";
+    parentFieldValue = siteId;
+  }
+
+  if(subsiteId) {
+    parentField = "subsite_id";
+    parentFieldValue = subsiteId;
+  }
+
+  if(parentField && parentFieldValue) {
+    return {
+      parentField: parentField, 
+      parentFieldValue: parentFieldValue
+    }
+  } else {
+    return undefined;
+  }
+};
+
+const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let filter = getFilter(req);
+  getEntityMap(req, 
+    (entityMap) => {
+      let entities = [].concat(Object.values(entityMap[level]))
+      .filter(entity => {
+        let isMatch = entity.id != -1;
+        if(filter) {
+          isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
+        }
+        return isMatch;
+      })
+      .map(entity => {
+        return {
+          id: entity.id,
+          name: entity.name,
+          parents: entity.parents,
+          parentNames: entity.parentNames,
+          division_id: entity.division_id,
+          project_id: entity.project_id,
+          site_id: entity.site_id,
+          subsite_id: entity.subsite_id,
+          department_id: entity.department_id
+        }
+      })
+      onSuccess(entities);
+    }, 
+    (error) => {
+      onError(error);
+    }
+  );
+}
 
 export const getDivisions = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   getHierarchy(req, DIVISION, onSuccess, onError);
