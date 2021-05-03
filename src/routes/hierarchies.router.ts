@@ -143,20 +143,22 @@ const getEntityMap = (req, onSuccess: (data: any) => void, onError?: (error: any
   
       // set parent names
       LEVELS.forEach((level, index) => {
-        Object.keys(entityMap[level]).forEach(id => {
-          let entity = entityMap[level][id];
-          let parents = entity.parents;
-          if(parents != '') {
-            let parent = entityMap[LEVELS[index-1]][parents];
-            let parentNames = (parent.parentNames || '');
-            if(parentNames == '') {
-              parentNames = parent.name;
-            } else {
-              parentNames = parentNames + ' / ' + parent.name;
+        if(entityMap[level]) {
+          Object.keys(entityMap[level]).forEach(id => {
+            let entity = entityMap[level][id];
+            let parents = entity.parents;
+            if(parents != '') {
+              let parent = entityMap[LEVELS[index-1]][parents];
+              let parentNames = (parent.parentNames || '');
+              if(parentNames == '') {
+                parentNames = parent.name;
+              } else {
+                parentNames = parentNames + ' / ' + parent.name;
+              }
+              entity.parentNames = parentNames;
             }
-            entity.parentNames = parentNames;
-          }
-        });
+          });
+        }
       });
   
       onSuccess(entityMap);
@@ -648,27 +650,30 @@ const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (erro
   let filter = getFilter(req);
   getEntityMap(req, 
     (entityMap) => {
-      let entities = [].concat(Object.values(entityMap[level]))
-      .filter(entity => {
-        let isMatch = entity.id != -1;
-        if(filter) {
-          isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
-        }
-        return isMatch;
-      })
-      .map(entity => {
-        return {
-          id: entity.id,
-          name: entity.name,
-          parents: entity.parents,
-          parentNames: entity.parentNames,
-          division_id: entity.division_id,
-          project_id: entity.project_id,
-          site_id: entity.site_id,
-          subsite_id: entity.subsite_id,
-          department_id: entity.department_id
-        }
-      })
+      let entities = [];
+      if(entityMap[level]) {
+        entities.concat(Object.values(entityMap[level]))
+        .filter(entity => {
+          let isMatch = entity.id != -1;
+          if(filter) {
+            isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
+          }
+          return isMatch;
+        })
+        .map(entity => {
+          return {
+            id: entity.id,
+            name: entity.name,
+            parents: entity.parents,
+            parentNames: entity.parentNames,
+            division_id: entity.division_id,
+            project_id: entity.project_id,
+            site_id: entity.site_id,
+            subsite_id: entity.subsite_id,
+            department_id: entity.department_id
+          }
+        })
+      }
       onSuccess(entities);
     }, 
     (error) => {
