@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
-import { getDepartments, getSites } from '../../hierarchies.router';
+import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 /* GET rule compliance report */
 export const assessmentsByDepartment = (req, res) => {
@@ -42,7 +42,7 @@ export const assessmentsByDepartment = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getDepartments(req,  
+    getFilteredDepartments(req,  
       (data) => {
         departments = data;
 

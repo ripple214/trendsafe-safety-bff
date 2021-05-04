@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
-import { getDepartments, getSites } from '../../hierarchies.router';
+import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 
@@ -224,7 +224,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       filters: filters
     });
   } else if(subsiteId) {
-    getDepartments(req, 
+    getFilteredDepartments(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.DEPARTMENTS,
@@ -242,7 +242,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       filters: filters
     });
   } else if(projectId) {
-    getSites(req, 
+    getFilteredSites(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.SITES,
@@ -254,7 +254,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       }
     );
   } else if(divisionId) {
-    getSites(req, 
+    getFilteredSites(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.SITES,

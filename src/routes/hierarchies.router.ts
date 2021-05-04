@@ -5,6 +5,8 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { SequentialExecutor } from '../common/sequential-executor';
+import { EntityMap } from 'common/entity-map';
+import { Entity } from 'common/entity';
 
 export const router = express.Router();
 
@@ -50,7 +52,7 @@ router.get('/', function(req, res, next) {
   );
 });
 
-const getEntityMap = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+const getEntityMap = (req, onSuccess: (data: EntityMap) => void, onError?: (error: any) => void) => {
   let divisions: any[];
   let projects: any[];
   let sites: any[];
@@ -124,7 +126,7 @@ const getEntityMap = (req, onSuccess: (data: any) => void, onError?: (error: any
   ])
   .success(() => {
     try {
-      let entityMap = {};
+      let entityMap:EntityMap = {};
       divisions.forEach(division => {
         setHierarchy(entityMap, division, DIVISION);
       });
@@ -650,31 +652,33 @@ const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (erro
   let filter = getFilter(req);
   getEntityMap(req, 
     (entityMap) => {
-      let entities = [];
-      if(entityMap[level]) {
-        entities.concat(Object.values(entityMap[level]))
-        .filter(entity => {
-          let isMatch = entity.id != -1;
-          if(filter) {
-            isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
-          }
-          return isMatch;
-        })
-        .map(entity => {
-          return {
-            id: entity.id,
-            name: entity.name,
-            parents: entity.parents,
-            parentNames: entity.parentNames,
-            division_id: entity.division_id,
-            project_id: entity.project_id,
-            site_id: entity.site_id,
-            subsite_id: entity.subsite_id,
-            department_id: entity.department_id
-          }
-        })
+      if(entityMap[level] != undefined) {
+        onSuccess(
+          Object.values(entityMap[level])
+          .filter(entity => {
+            let isMatch = entity.id != "-1";
+            if(filter != undefined) {
+              isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
+            }
+            return isMatch;
+          })
+          .map(entity => {
+            return {
+              id: entity.id,
+              name: entity.name,
+              parents: entity.parents,
+              parentNames: entity.parentNames,
+              division_id: entity.division_id,
+              project_id: entity.project_id,
+              site_id: entity.site_id,
+              subsite_id: entity.subsite_id,
+              department_id: entity.department_id
+            }
+          })
+        );
+      } else {
+        onSuccess([]);
       }
-      onSuccess(entities);
     }, 
     (error) => {
       onError(error);
@@ -718,4 +722,57 @@ const getHierarchy = (req, level, onSuccess: (data: any) => void, onError?: (err
   });
 }
 
+export const getFilteredDivisions = (req, onSuccess: (data: Entity[]) => void, onError?: (error: any) => void) => {
+  getEntities(req, DIVISION,
+    (data) => {
+      onSuccess(data);
+    }, 
+    (err) => {
+      onError(err);
+    }
+  );
+}
 
+export const getFilteredProjects = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getEntities(req, PROJECT,
+    (data) => {
+      onSuccess(data);
+    }, 
+    (err) => {
+      onError(err);
+    }
+  );
+}
+
+export const getFilteredSites = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getEntities(req, SITE,
+    (data) => {
+      onSuccess(data);
+    }, 
+    (err) => {
+      onError(err);
+    }
+  );
+}
+
+export const getFilteredSubsites = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getEntities(req, SUBSITE,
+    (data) => {
+      onSuccess(data);
+    }, 
+    (err) => {
+      onError(err);
+    }
+  );
+}
+
+export const getFilteredDepartments = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getEntities(req, DEPARTMENT,
+    (data) => {
+      onSuccess(data);
+    }, 
+    (err) => {
+      onError(err);
+    }
+  );
+}

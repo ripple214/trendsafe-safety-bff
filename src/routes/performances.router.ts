@@ -32,7 +32,7 @@ router.get('/', function(req, res, next) {
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return isAfter(b.completed_date, a.completed_date);
+        return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
       });
 
       var resp = {"performances": response.data};

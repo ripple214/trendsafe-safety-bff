@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
-import { getDepartments, getSites } from '../../hierarchies.router';
+import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 /* GET rule compliance report */
 export const hazardsByDepartment = (req, res) => {
@@ -27,10 +27,10 @@ export const hazardsByDepartment = (req, res) => {
   new SequentialExecutor()
   .chain((resolve, reject) => {
     filter.chartType = chartType;
-
     getHazards(clientId, undefined, 
       (data) => {
         hazards = data;
+        console.log("1")
 
         resolve(true);
       }, 
@@ -42,10 +42,10 @@ export const hazardsByDepartment = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getDepartments(req,  
+    getFilteredDepartments(req,  
       (data) => {
         departments = data;
-
+        console.log("2")
         resolve(true);
       }, 
       (err) => {
@@ -57,6 +57,7 @@ export const hazardsByDepartment = (req, res) => {
   })
   .then((resolve) => {
     hazards = filterHazards(hazards, filter);
+    console.log("3")
     resolve(true);
   })  
   .then((resolve) => {
@@ -64,6 +65,7 @@ export const hazardsByDepartment = (req, res) => {
       (data) => {
         resp = {"report-data": data};
 
+        console.log("4")
         resolve(true);
       }
     );

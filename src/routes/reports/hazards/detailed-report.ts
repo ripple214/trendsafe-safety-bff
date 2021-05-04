@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards, getPhotographs } from '../../hazards.router';
-import { getDepartments, getSites } from '../../hierarchies.router';
+import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 /* GET detailed report */
 export const hazardsDetailedReport = (req, res) => {
@@ -204,7 +204,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       filters: filters
     });
   } else if(subsiteId) {
-    getDepartments(req, 
+    getFilteredDepartments(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.DEPARTMENTS,
@@ -222,7 +222,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       filters: filters
     });
   } else if(projectId) {
-    getSites(req, 
+    getFilteredSites(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.SITES,
@@ -234,7 +234,7 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
       }
     );
   } else if(divisionId) {
-    getSites(req, 
+    getFilteredSites(req, 
       (data) => {
         onSuccess({
           filterType: FilterType.SITES,

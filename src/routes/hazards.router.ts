@@ -5,7 +5,7 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
-import { isAfter } from '../common/date-util';
+import { dateParse, isAfter } from '../common/date-util';
 
 export const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
   getHazards(clientId, siteId, 
     (data) => {
       data.sort(function (a, b) {
-        return isAfter(b.completed_date, a.completed_date);
+        return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
       });
 
       var resp = {"hazards": data};
@@ -42,7 +42,7 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, actions_taken, further_actions_required, hazard_type',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, hazard_type',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -56,7 +56,7 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, actions_taken, further_actions_required, hazard_type',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, hazard_type',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -128,7 +128,7 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, recipients, risk_rating, hazard_type, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, equipment_id, assessor, person_responsible, recipients, risk_rating, hazard_type, element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :hazardId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -166,6 +166,7 @@ router.put('/:hazardId', function(req, res, next) {
       department_id = :department_id, \
       location_id = :location_id, \
       task_id = :task_id, \
+      equipment_id = :equipment_id, \
       assessor = :assessor, \
       person_responsible = :person_responsible, \
       recipients = :recipients, \
@@ -191,6 +192,7 @@ router.put('/:hazardId', function(req, res, next) {
       ":department_id": req.body.department_id,
       ":location_id": req.body.location_id,
       ":task_id": req.body.task_id,
+      ":equipment_id": req.body.equipment_id,
       ":assessor": req.body.assessor,
       ":person_responsible": req.body.person_responsible,
       ":recipients": req.body.recipients,
@@ -273,6 +275,7 @@ router.post('/', function(req, res, next) {
       "department_id": req.body.department_id,
       "location_id": req.body.location_id,
       "task_id": req.body.task_id,
+      "equipment_id": req.body.equipment_id,
       "assessor": req.body.assessor,
       "person_responsible": req.body.person_responsible,
       "recipients": req.body.recipients,

@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections } from '../../inspections.router';
-import { getDepartments, getSites } from '../../hierarchies.router';
+import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { isWithin } from '../../../common/date-util';
 
 /* GET rule compliance report */
@@ -42,7 +42,7 @@ export const inspectionsByDepartment = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getDepartments(req,  
+    getFilteredDepartments(req,  
       (data) => {
         departments = data;
 

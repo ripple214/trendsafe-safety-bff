@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
   getIncidents(clientId, 
     (data) => {
       data.sort(function (a, b) {
-        return isAfter(b.completed_date, a.completed_date);
+        return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
       });
 
       var resp = {"incidents": data};

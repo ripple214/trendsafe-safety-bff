@@ -5,6 +5,10 @@ const FORMAT_LONG = 'MMMM DD, YYYY hh:mm:ss';
 const FORMAT_SHORT = 'YYYY-MM-DD';
 const FORMAT_MONTH = 'YYYY-MM';
 
+export const dateNow = ()=> {
+  return moment().format(FORMAT_ISO);
+}
+
 export const dateParse = (dateString: string, dateFormat: string = FORMAT_LONG): moment.Moment => {
   let dateVal = moment(dateString, dateFormat);
   if(!dateVal.isValid()) {
