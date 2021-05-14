@@ -3,7 +3,7 @@ import moment from 'moment';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections } from '../../inspections.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
-import { getUsers } from '../../users.router';
+import { getAllUsers } from '../../users.router';
 import { isWithin } from '../../../common/date-util';
 
 /* GET rule compliance report */
@@ -59,7 +59,7 @@ export const inspectionsByAssessor = (req, res) => {
     resolve(true);
   })
   .then((resolve, reject) => {
-    getUsers(clientId,  
+    getAllUsers(clientId,  
       (data) => {
         users = data;
 

@@ -79,34 +79,50 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
 /* GET assessment. */
 router.get('/:assessmentId', function(req, res) {
   let clientId = req['user'].client_id;
+  let assessmentId = req.params.assessmentId;
 
-  var params = getQueryParams(req);
+  getAssessment(clientId, assessmentId, 
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getAssessment = (clientId: string, assessmentId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  var params = getQueryParams(clientId, assessmentId);
 
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      let subgroup = req.params.assessmentId;
+      let subgroup = assessmentId;
 
       getPhotographs(clientId, subgroup, 
         (data => {
           resp.photographs = data;
-          res.status(200);
-          res.json(resp);
-  
+          onSuccess(resp);
         }), 
         (error) => {
-          res.status(400);
-          res.json(error);
+          onError(error);
         }
       );
     } else {
-      res.status(404);
-      res.json();
+      onError({ 
+        error: {
+          message: "Assessment not found", 
+          id: assessmentId
+        }
+      });
     }
   });
-});
+}
 
 export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = "images/assessments";
@@ -121,10 +137,7 @@ export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => voi
   });
 } 
 
-const getQueryParams = (req) => {
-  let clientId = req['user'].client_id;
-  let assessmentId = req.params.assessmentId;
-  
+const getQueryParams = (clientId, assessmentId) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, recipients, risk_rating, element_compliance, risk_compliance, rule_compliance',

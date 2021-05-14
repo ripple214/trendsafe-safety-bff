@@ -79,34 +79,51 @@ export const getInspections = (clientId: string, siteId: any, onSuccess: (data: 
 /* GET inspection. */
 router.get('/:inspectionId', function(req, res) {
   let clientId = req['user'].client_id;
+  let inspectionId = req.params.inspectionId;
 
-  var params = getQueryParams(req);
+  getInspection(clientId, inspectionId, 
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getInspection = (clientId: string, inspectionId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  var params = getQueryParams(clientId, inspectionId);
 
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      let subgroup = req.params.inspectionId;
+      let subgroup = inspectionId;
 
       getPhotographs(clientId, subgroup, 
         (data => {
           resp.photographs = data;
-          res.status(200);
-          res.json(resp);
+          onSuccess(resp);
   
         }), 
         (error) => {
-          res.status(400);
-          res.json(error);
+          onError(error);
         }
       );
     } else {
-      res.status(404);
-      res.json();
+      onError({ 
+        error: {
+          message: "Inspection not found", 
+          id: inspectionId
+        }
+      });
     }
   });
-});
+};
 
 export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = "images/inspections";
@@ -121,10 +138,7 @@ export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => voi
   });
 } 
 
-const getQueryParams = (req) => {
-  let clientId = req['user'].client_id;
-  let inspectionId = req.params.inspectionId;
-  
+const getQueryParams = (clientId, inspectionId) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, area_id, equipment_id, assessor, person_responsible, recipients, risk_rating, element_compliance, risk_compliance, rule_compliance',

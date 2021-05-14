@@ -1,7 +1,7 @@
 import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getInspections, getPhotographs } from '../../inspections.router';
+import { getInspection, getInspections, getPhotographs } from '../../inspections.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { isWithin } from '../../../common/date-util';
 
@@ -9,6 +9,7 @@ import { isWithin } from '../../../common/date-util';
 export const inspectionsDetailedReport = (req, res) => {
   let clientId = req['user'].client_id;
 
+  let id = req.query.id;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let equipmentId = req.query.equipmentId;
@@ -28,6 +29,7 @@ export const inspectionsDetailedReport = (req, res) => {
       (data) => {
 
         filter = data;
+        filter.id = id;
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.equipmentId = equipmentId;
@@ -44,21 +46,38 @@ export const inspectionsDetailedReport = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getInspections(clientId, undefined, 
-      (data) => {
-        inspections = data;
+    if(filter.id) {
+      getInspection(clientId, filter.id, 
+        (data) => {
+          inspections = [data];
+  
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+  
+          reject(error);
+        }
+      );
+    } else {
+      getInspections(clientId, undefined, 
+        (data) => {
+          inspections = data;
 
-        resolve(true);
-      }, 
-      (err) => {
-        error = err;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
 
-        reject(error);
-      }
-    );
+          reject(error);
+        }
+      );
+    }
   })
   .then((resolve) => {
-    inspections = filterInspections(inspections, filter);
+    if(!filter.id) {
+      inspections = filterInspections(inspections, filter);
+    }
     resolve(true);
   })
   .then((resolve, reject) => {
@@ -261,6 +280,7 @@ interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];
+  id?: any;
   startDate?: any;
   endDate?: any;
   equipmentId?: any;
@@ -271,6 +291,7 @@ interface HierarchyFilter {
 
 enum FilterType {
   NONE,
+  ID, 
   SITES,
   DEPARTMENTS
 }

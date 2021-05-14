@@ -7,6 +7,8 @@ import { default as jwt } from 'jsonwebtoken';
 
 import { db_service as ddb } from '../services/ddb.service';
 import moment from "moment";
+import { email_service } from "../services/email.service";
+import { BffResponse } from "../common/bff.response";
 
 export const router = express.Router();
 
@@ -157,12 +159,13 @@ router.post("/retrieve-password", (req, res, next) => {
 
 export const createAuth = (email: string, clientId: string, userId: string, userEmail:string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let createTime = moment().format();
+  let password = "Singapore1";
   
   var params:any = {
     TableName: tableName,
     Item: {
       "partition_key": email,
-      "sort_key": "Singapore1",
+      "sort_key": password,
       "module": "CLIENT",
       "client_id": clientId,
       "user_id": userId,
@@ -176,7 +179,19 @@ export const createAuth = (email: string, clientId: string, userId: string, user
 
   ddb.insert(params, function(response) {
     if(response.data) {
-      onSuccess(response.data);
+      let resp = response.data;
+      email_service.send_registration( 
+        {
+          toAddress: email,
+          username: email, 
+          password: password
+        }, (response: BffResponse) => {
+        if (response.data) {
+          onSuccess(resp);
+        } else {
+          onError(response);
+        }
+      });
     } else {
       onError(response);
     }

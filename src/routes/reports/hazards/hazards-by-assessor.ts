@@ -4,7 +4,7 @@ import moment from 'moment';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
-import { getUsers } from '../../users.router';
+import { getAllUsers } from '../../users.router';
 
 /* GET rule compliance report */
 export const hazardsByAssessor = (req, res) => {
@@ -59,7 +59,7 @@ export const hazardsByAssessor = (req, res) => {
     resolve(true);
   })
   .then((resolve, reject) => {
-    getUsers(clientId,  
+    getAllUsers(clientId,  
       (data) => {
         users = data;
 

@@ -2,13 +2,14 @@ import { isWithin } from '../../../common/date-util';
 import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getAssessments, getPhotographs } from '../../assessments.router';
+import { getAssessment, getAssessments, getPhotographs } from '../../assessments.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 /* GET detailed report */
 export const assessmentsDetailedReport = (req, res) => {
   let clientId = req['user'].client_id;
 
+  let id = req.query.id;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let taskId = req.query.taskId;
@@ -28,6 +29,7 @@ export const assessmentsDetailedReport = (req, res) => {
       (data) => {
 
         filter = data;
+        filter.id = id;
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.taskId = taskId;
@@ -44,21 +46,38 @@ export const assessmentsDetailedReport = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getAssessments(clientId, undefined, 
-      (data) => {
-        assessments = data;
-
-        resolve(true);
-      }, 
-      (err) => {
-        error = err;
-
-        reject(error);
-      }
-    );
+    if(filter.id) {
+      getAssessment(clientId, filter.id, 
+        (data) => {
+          assessments = [data];
+  
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+  
+          reject(error);
+        }
+      );
+    } else {
+      getAssessments(clientId, undefined, 
+        (data) => {
+          assessments = data;
+  
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+  
+          reject(error);
+        }
+      );
+    }
   })
   .then((resolve) => {
-    assessments = filterAssessments(assessments, filter);
+    if(!filter.id) {
+      assessments = filterAssessments(assessments, filter);
+    }
     resolve(true);
   })
   .then((resolve, reject) => {
@@ -186,6 +205,7 @@ const filterAssessments = (assessments, filter: HierarchyFilter) => {
 }
 
 const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
+  let id = req.query.id;
   let divisionId = req.query.divisionId;
   let projectId = req.query.projectId;
   let siteId = req.query.siteId;
@@ -193,7 +213,12 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
   let departmentId = req.query.departmentId;
 
   let filters: string[] = [];
-  if(departmentId) {
+  if(id) {
+    onSuccess({
+      filterType: FilterType.ID,
+      filters: []
+    });
+  } else if(departmentId) {
     filters.push(departmentId);
     onSuccess({
       filterType: FilterType.DEPARTMENTS,
@@ -261,6 +286,7 @@ interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];
+  id?: any;
   startDate?: any;
   endDate?: any;
   taskId?: any;
@@ -271,6 +297,7 @@ interface HierarchyFilter {
 
 enum FilterType {
   NONE,
+  ID, 
   SITES,
   DEPARTMENTS
 }
