@@ -16,6 +16,7 @@ RUN npm install
 
 # Bundle app source
 ADD . /usr/src/app
+RUN mkdir -p ./uploads
 
 RUN pwd
 
