@@ -1,11 +1,12 @@
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getIncidents } from '../../incidents.router';
+import { getIncident, getIncidents } from '../../incidents.router';
 import { getHierarchyFilter, isWithinBasicFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
 
 /* GET detailed report */
 export const incidentsDetailedReport = (req, res) => {
   let clientId = req['user'].client_id;
 
+  let id = req.query.id;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let taskId = req.query.taskId;
@@ -24,6 +25,7 @@ export const incidentsDetailedReport = (req, res) => {
       (data) => {
 
         filter = data;
+        filter.id = id;
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.taskId = taskId;
@@ -39,18 +41,33 @@ export const incidentsDetailedReport = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getIncidents(clientId,  
-      (data) => {
-        incidents = data;
+    if(filter.id) {
+      getIncident(clientId, filter.id, 
+        (data) => {
+          incidents = [data];
+  
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+  
+          reject(error);
+        }
+      );
+    } else {
+      getIncidents(clientId,  
+        (data) => {
+          incidents = data;
 
-        resolve(true);
-      }, 
-      (err) => {
-        error = err;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
 
-        reject(error);
-      }
-    );
+          reject(error);
+        }
+      );
+    }
   })
   .then((resolve) => {
     incidents = filterIncidents(incidents, filter);
@@ -144,6 +161,7 @@ const filterIncidents = (incidents, filter: IncidentsFilter) => {
 
 interface IncidentsFilter extends HierarchyFilter {
 
+  id?: any;
   taskId?: any;
   locationId?: any;
   nonCompliantElement?: any;

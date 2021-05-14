@@ -80,34 +80,50 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
 /* GET hazard. */
 router.get('/:hazardId', function(req, res) {
   let clientId = req['user'].client_id;
+  let hazardId = req.params.hazardId;
 
-  var params = getQueryParams(req);
+  getHazard(clientId, hazardId, 
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getHazard = (clientId: string, hazardId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  var params = getQueryParams(clientId, hazardId);
 
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      let subgroup = req.params.assessmentId;
+      let subgroup = hazardId;
 
       getPhotographs(clientId, subgroup,
         (data => {
           resp.photographs = data;
-          res.status(200);
-          res.json(resp);
-  
+          onSuccess(resp);
         }), 
         (error) => {
-          res.status(400);
-          res.json(error);
+          onError(error);
         }
       );
     } else {
-      res.status(404);
-      res.json();
+      onError({ 
+        error: {
+          message: "Hazard report not found", 
+          id: hazardId
+        }
+      });
     }
   });
-});
+};
 
 export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = "images/hazards";
@@ -122,10 +138,7 @@ export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => voi
   });
 } 
 
-const getQueryParams = (req) => {
-  let clientId = req['user'].client_id;
-  let hazardId = req.params.hazardId;
-  
+const getQueryParams = (clientId, hazardId) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, equipment_id, assessor, person_responsible, recipients, risk_rating, hazard_type, element_compliance, risk_compliance, rule_compliance',

@@ -1,14 +1,14 @@
 import { isWithin } from '../../../common/date-util';
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getHazards, getPhotographs } from '../../hazards.router';
+import { getHazard, getHazards, getPhotographs } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 /* GET detailed report */
 export const hazardsDetailedReport = (req, res) => {
   let clientId = req['user'].client_id;
 
+  let id = req.query.id;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let taskId = req.query.taskId;
@@ -28,6 +28,7 @@ export const hazardsDetailedReport = (req, res) => {
       (data) => {
 
         filter = data;
+        filter.id = id;
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.taskId = taskId;
@@ -44,21 +45,38 @@ export const hazardsDetailedReport = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getHazards(clientId, undefined, 
-      (data) => {
-        hazards = data;
+    if(filter.id) {
+      getHazard(clientId, filter.id, 
+        (data) => {
+          hazards = [data];
+  
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
+  
+          reject(error);
+        }
+      );
+    } else {
+      getHazards(clientId, undefined, 
+        (data) => {
+          hazards = data;
 
-        resolve(true);
-      }, 
-      (err) => {
-        error = err;
+          resolve(true);
+        }, 
+        (err) => {
+          error = err;
 
-        reject(error);
-      }
-    );
+          reject(error);
+        }
+      );
+    }
   })
   .then((resolve) => {
-    hazards = filterHazards(hazards, filter);
+    if(!filter.id) {
+      hazards = filterHazards(hazards, filter);
+    }
     resolve(true);
   })
   .then((resolve, reject) => {
@@ -176,8 +194,6 @@ const filterHazards = (hazards, filter: HierarchyFilter) => {
         nonCompliantElementMatches = hazard.element_compliance && 
           hazard.element_compliance[filter.nonCompliantElement] && 
           hazard.element_compliance[filter.nonCompliantElement]['N'];
-
-          //console.log("eto pa", nonCompliantElementMatches);
       } else {
         nonCompliantElementMatches = true;
       }
@@ -190,6 +206,7 @@ const filterHazards = (hazards, filter: HierarchyFilter) => {
 }
 
 const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
+  let id = req.query.id;
   let divisionId = req.query.divisionId;
   let projectId = req.query.projectId;
   let siteId = req.query.siteId;
@@ -197,7 +214,12 @@ const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, o
   let departmentId = req.query.departmentId;
 
   let filters: string[] = [];
-  if(departmentId) {
+  if(id) {
+    onSuccess({
+      filterType: FilterType.ID,
+      filters: []
+    });
+  } else if(departmentId) {
     filters.push(departmentId);
     onSuccess({
       filterType: FilterType.DEPARTMENTS,
@@ -265,6 +287,7 @@ interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];
+  id?: any;
   startDate?: any;
   endDate?: any;
   taskId?: any;
@@ -275,6 +298,7 @@ interface HierarchyFilter {
 
 enum FilterType {
   NONE,
+  ID, 
   SITES,
   DEPARTMENTS
 }

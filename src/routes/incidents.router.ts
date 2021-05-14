@@ -62,66 +62,88 @@ export const getIncidents = (clientId, onSuccess: (data: any) => void, onError?:
   });
 }
 
+
 /* GET incident. */
 router.get('/:incidentId', function(req, res) {
-  var params = getQueryParams(req);
+  let clientId = req['user'].client_id;
+  let incidentId = req.params.incidentId;
+
+  getIncident(clientId, incidentId, 
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getIncident = (clientId: string, incidentId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  var params = getQueryParams(clientId, incidentId);
 
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      getDocument(req, res, (data) => {
-        resp.documents = data;
-        getSupportingDocuments(req, res, (data) => {
-          resp.supporting_documents = data;
-          res.status(200);
-          res.json(resp);
-        });
+      let subgroup = incidentId;
+
+      getDocument(clientId, subgroup, 
+        (data) => {
+          resp.documents = data;
+          getSupportingDocuments(clientId, subgroup, (data) => {
+            resp.supporting_documents = data;
+            onSuccess(resp);
+          }), 
+          (error) => {
+            onError(error);
+          };
+        },
+        (error) => {
+          onError(error);
+        }
+      );
+    } else {
+      onError({ 
+        error: {
+          message: "Incident not found", 
+          id: incidentId
+        }
       });
-    } else {
-      res.status(404);
-      res.json();
     }
   });
-});
+};
 
-const getDocument = (req, res, callback) => {
-  let clientId = req['user'].client_id;
+const getDocument = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = documentsGroup;
-  let subgroup = req.params.incidentId;
   let key = clientId + '/' + group + '/' + subgroup;
 
   s3.list(key, function(response) {
     if (response.data) {
-      callback(response.data);
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
 } 
 
-const getSupportingDocuments = (req, res, callback) => {
-  let clientId = req['user'].client_id;
+const getSupportingDocuments = (clientId, subgroup, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let group = supportingDocumentsGroup;
-  let subgroup = req.params.incidentId;
   let key = clientId + '/' + group + '/' + subgroup;
 
   s3.list(key, function(response) {
     if (response.data) {
-      callback(response.data);
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
 } 
 
-const getQueryParams = (req) => {
-  let clientId = req['user'].client_id;
-  let incidentId = req.params.incidentId;
-  
+const getQueryParams = (clientId, incidentId) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, #name, #comments, #action, completed_date, due_date, description, summary, site_id, department_id, location_id, task_id, key_findings, assessor, members, leader, closer, person_responsible, element_compliance, task_causes, area_element_compliance, system_element_compliance, risk_compliance, rule_compliance',
@@ -306,14 +328,13 @@ router.post('/', function(req, res, next) {
       delete resp['partition_key'];
       delete resp['sort_key'];
 
+      let group = documentsGroup;
       let fromSubgroup = tempId;
       let toSubgroup = id;
 
-      let group = documentsGroup;
       let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';
       let toKey = clientId + '/' + group + '/' + toSubgroup;
     
-      console.log("fromKey", fromKey, "toKey", toKey);
       moveFiles(fromKey, toKey, (moveDocumentResponse) => {
         if (moveDocumentResponse.error) {
           res.status(400);
