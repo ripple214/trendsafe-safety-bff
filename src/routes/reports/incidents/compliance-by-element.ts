@@ -1,18 +1,19 @@
-import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getIncidents } from '../../incidents.router';
-import { retrieve as getCategories } from '../../category-elements.router';
-import { checkNum } from '../../../common/checkNum';
-import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
-import { getTop10Hazards } from '../hazards/top-hazards';
+import moment from 'moment';
 
-/* GET compliance-by-category report */
-export const incidentsComplianceByCategory = (req, res) => {
+import { SequentialExecutor } from '../../../common/sequential-executor';
+import { retrieve as getCategories } from '../../category-elements.router';
+import { getIncidents } from '../../incidents.router';
+import { getTop10Hazards } from '../hazards/top-hazards';
+import { getHierarchyFilter, HierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
+import { checkNum } from '../../../common/checkNum';
+
+/* GET compliance-by-element report */
+export const incidentsComplianceByElement = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let chartType = req.query.chartType;
-  let hazardType = req.query.hazardType;
   let taskId = req.query.taskId;
 
   let resp = undefined;
@@ -31,7 +32,6 @@ export const incidentsComplianceByCategory = (req, res) => {
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.chartType = chartType;
-        filter.hazardType = hazardType;
 
         filter.taskId = taskId;
 
@@ -58,7 +58,9 @@ export const incidentsComplianceByCategory = (req, res) => {
     );
   })
   .then((resolve) => {
+    //console.log("raw", moment(filter.startDate), moment(filter.endDate), incidents.length);
     incidents = filterIncidents(incidents, filter);
+    //console.log("filtered", incidents.length);
     resolve(true);
   })
   .then((resolve) => {
@@ -77,7 +79,7 @@ export const incidentsComplianceByCategory = (req, res) => {
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     res.status(400);
     res.json(error);
   })
@@ -89,6 +91,7 @@ export const incidentsComplianceByCategory = (req, res) => {
 };
 
 const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: (data: any) => void) => {
+  filter['hazardType'] = 'TOP';
   let topData = getTop10Hazards(categories, incidents, filter);
   let chartData = [];
   let tableData = [];
@@ -96,46 +99,46 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
   let total = 0;
 
   categories.forEach((category) => {
-    let nonCompliantCount = 0;
-
     category.elements.forEach((element) => {
+      let nonCompliantCount = 0;
 
-      if((filter.hazardType == 'TOP' && topData.find(top => {
+      if((topData.find(top => {
         return top.id == element.id
-      })) || filter.hazardType != 'TOP') {
+      }))) {
         incidents.forEach((incident) => {
           let isNonCompliant = 
-            incident.element_compliance && 
-            incident.element_compliance[element.id] &&
-            incident.element_compliance[element.id]['N'];
+          incident.element_compliance && 
+          incident.element_compliance[element.id] &&
+          incident.element_compliance[element.id]['N'];
 
           if(isNonCompliant) {
             nonCompliantCount++;
             total++;
           }
         });
+  
+        if(nonCompliantCount > 0) {
+          chartData.push({
+            id: element.id,
+            name: element.name + ' ' + nonCompliantCount,
+            value: nonCompliantCount
+          });
+  
+          tableData.push({
+            categoryId: category.id,
+            category: category.name,
+            elementId: element.id,
+            element: element.name,
+            compliance: {
+              n: {
+                total: nonCompliantCount,
+                percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+              },
+            }
+          });
+        }
       }
     });
-
-    if(nonCompliantCount > 0) {
-      chartData.push({
-        id: category.id,
-        name: category.name + ' ' + nonCompliantCount,
-        value: nonCompliantCount
-      });
-
-      tableData.push({
-        categoryId: category.id,
-        category: category.name,
-        compliance: {
-          n: {
-            total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
-          },
-        }
-      });
-    }
-
   });
 
   chartData.forEach(data => {
@@ -165,6 +168,9 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
 }
 
 const filterIncidents = (incidents, filter: IncidentFilter) => {
+  //console.log("hazards", hazards);
+  //console.log("filter", filter);
+
   let filteredIncidents = incidents.filter(incident => {
     let isWithinHierarchy = isWithinBasicFilter(incident, filter);
 
@@ -179,11 +185,12 @@ const filterIncidents = (incidents, filter: IncidentFilter) => {
 
     return taskMatches;
   });
+
   return filteredIncidents;
+  //console.log("filtered hazards", hazards);
 }
 
 interface IncidentFilter extends HierarchyFilter {
   chartType?: any;
-  hazardType?: any;
   taskId?: any;
 }

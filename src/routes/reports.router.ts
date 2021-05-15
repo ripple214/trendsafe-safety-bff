@@ -31,6 +31,7 @@ import { hazardsByAssessor } from './reports/hazards/hazards-by-assessor';
 import { hazardsDetailedReport } from './reports/hazards/detailed-report';
 
 import { incidentsComplianceByCategory } from './reports/incidents/compliance-by-category';
+import { incidentsComplianceByElement } from './reports/incidents/compliance-by-element';
 import { incidentsRiskCompliance } from './reports/incidents/risk-compliance';
 import { incidentsRuleCompliance } from './reports/incidents/rule-compliance';
 import { incidentsImmediateCauseAnalysis } from './reports/incidents/immediate-cause-analysis';
@@ -186,6 +187,11 @@ router.get('/hazards/detailed-report', function(req, res, next) {
 /* GET damaging energies report */
 router.get('/incidents/compliance-by-category', function(req, res, next) {
   incidentsComplianceByCategory(req, res);
+});
+
+/* GET compliance-by-element report */
+router.get('/incidents/compliance-by-element', function(req, res, next) {
+  incidentsComplianceByElement(req, res);
 });
 
 /* GET risk-compliance report */
