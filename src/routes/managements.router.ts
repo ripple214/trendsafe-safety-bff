@@ -14,9 +14,27 @@ var tableName = conf.get('TABLE_MANAGEMENTS');
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
+  getManagements(clientId, 
+    (data) => {
+      data.sort(function (a, b) {
+        return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
+      });
+
+      var resp = {"managements": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getManagements = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, description, summary, leader, sort_num',
+    ProjectionExpression: 'id, #name, completed_date, description, site_id, department_id, location_id, task_id, members, leader, element_compliance',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -28,21 +46,13 @@ router.get('/', function(req, res, next) {
   };
 
   ddb.query(params, function(response) {
-    
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
-      });
-
-      var resp = {"managements": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+};
 
 /* GET management. */
 router.get('/:managementId', function(req, res) {

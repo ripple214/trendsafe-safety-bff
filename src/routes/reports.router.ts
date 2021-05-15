@@ -37,6 +37,8 @@ import { incidentsImmediateCauseAnalysis } from './reports/incidents/immediate-c
 import { incidentsSystemAndOrganizationCauses } from './reports/incidents/system-and-organization-causes';
 import { incidentsDetailedReport } from './reports/incidents/detailed-report';
 
+import { managementsComplianceByElement } from './reports/managements/compliance-by-element';
+import { managementsComplianceByCategory } from './reports/managements/compliance-by-category';
 
 export const router = express.Router();
 
@@ -205,3 +207,14 @@ router.get('/incidents/rule-compliance', function(req, res, next) {
 router.get('/incidents/detailed-report', function(req, res, next) {
   incidentsDetailedReport(req, res);
 });
+
+/* GET compliance-by-element report */
+router.get('/managements/compliance-by-element', function(req, res, next) {
+  managementsComplianceByElement(req, res);
+});
+
+/* GET compliance-by-category report */
+router.get('/managements/compliance-by-category', function(req, res, next) {
+  managementsComplianceByCategory(req, res);
+});
+

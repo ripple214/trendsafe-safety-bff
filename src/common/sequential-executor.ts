@@ -34,7 +34,7 @@ export class SequentialExecutor {
     return this;
   }
 
-  fail(fail: () => void) {
+  fail(fail: (error?: any) => void) {
     this.onFail = fail;
     return this;
   }
@@ -56,7 +56,7 @@ export class SequentialExecutor {
   private async executeInternal (
     executionList: ((resolve: (value: boolean) => void, reject: (reason?: any) => void) => void)[],
     onSuccess ?: () => void,
-    onFail ?: () => void,
+    onFail ?: (error?:any) => void,
     onAlways ?: () => void
   ) {
 
@@ -87,9 +87,9 @@ export class SequentialExecutor {
             onAlways();
           }
         }
-      }).catch(() => {
+      }).catch((error) => {
         if(onFail != undefined) {
-          onFail();
+          onFail(error);
         }
         if(onAlways != undefined) {
           onAlways();
