@@ -1,26 +1,27 @@
 import moment from 'moment';
+import { getRules } from '../../rules.router';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
-import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
-import { getTop10Hazards } from './top-hazards';
+import { getAssessments } from '../../assessments.router';
+import { getIncidents } from '../../incidents.router';
 
-/* GET compliance-by-category report */
-export const hazardsComplianceByCategory = (req, res) => {
+/* GET rule compliance report */
+export const ccmsRuleCompliance = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
+  let taskId = req.query.taskId;
   let chartType = req.query.chartType;
-  let hazardType = req.query.hazardType;
 
   let resp = undefined;
   let error = undefined;
 
-  let categories = undefined;
-  let hazards = undefined;
+  let ccms = undefined;
+  let rules = undefined;
   let filter: HierarchyFilter = undefined;
   
   new SequentialExecutor()
@@ -31,10 +32,9 @@ export const hazardsComplianceByCategory = (req, res) => {
         filter = data;
         filter.startDate = startDate;
         filter.endDate = endDate;
+        filter.taskId = taskId;
         filter.chartType = chartType;
-        filter.hazardType = hazardType;
 
-        //console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -44,9 +44,9 @@ export const hazardsComplianceByCategory = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getHazards(clientId, undefined, 
+    getCCMs(clientId,  
       (data) => {
-        hazards = data;
+        ccms = data;
 
         resolve(true);
       }, 
@@ -58,20 +58,26 @@ export const hazardsComplianceByCategory = (req, res) => {
     );
   })
   .then((resolve) => {
-    //console.log("raw", moment(filter.startDate), moment(filter.endDate), hazards);
-    hazards = filterHazards(hazards, filter);
-    //console.log("filtered", hazards);
+    //console.log("raw", moment(filter.startDate), moment(filter.endDate), reports);
+    ccms = filterReports(ccms, filter);
     resolve(true);
   })
-  .then((resolve) => {
-    getCategories(req, "hazards", (data) => {
-      categories = data;
+  .then((resolve, reject) => {
+    getRules(clientId, 
+      (data) => {
+        rules = data;
 
-      resolve(true);
-    });
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+
+        reject(error);
+      }
+    );
   })
   .then((resolve) => {
-    getChartData(categories, hazards, filter,  
+    getChartData(ccms, rules, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -90,103 +96,138 @@ export const hazardsComplianceByCategory = (req, res) => {
   .execute();
 };
 
-const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
-  let topData = getTop10Hazards(categories, hazards, filter);
+const getCCMs = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let ccms = [];
+
+  new SequentialExecutor().chain()
+  .parallel([
+    (resolve, reject) => {
+      getAssessments(clientId, undefined, 
+        (data) => {
+          ccms = ccms.concat(data);
+          console.log("assessments", data.length, ccms.length);
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    },
+    (resolve, reject) => {
+      getHazards(clientId, undefined, 
+        (data) => {
+          ccms = ccms.concat(data);
+          console.log("hazards", data.length, ccms.length);
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    },
+    (resolve, reject) => {
+      getIncidents(clientId,  
+        (data) => {
+          ccms = ccms.concat(data);
+          console.log("incidents", data.length, ccms.length);
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    },
+  ])
+  .fail((error) => {
+    onError(error);
+  })
+  .success(() => {
+    console.log("total", ccms.length);
+    onSuccess(ccms);
+  })
+  .execute();
+}
+
+const getChartData = (reports, rules, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
 
+  let counts = {};
+  rules.forEach(rule => {
+    counts[rule.id] = 0;
+  });
+
   let total = 0;
 
-  categories.forEach((category) => {
-    let nonCompliantCount = 0;
+  reports.forEach((report) => {
+    rules.forEach(rule => {
+      if(report.rule_compliance && report.rule_compliance[rule.id]) {
+        counts[rule.id] = counts[rule.id] + 1;
 
-    category.elements.forEach((element) => {
-
-      if((filter.hazardType == 'TOP' && topData.find(top => {
-        return top.id == element.id
-      })) || filter.hazardType != 'TOP') {
-        hazards.forEach((hazard) => {
-          let isNonCompliant = hazard.element_compliance[element.id]['N'];
-
-          if(isNonCompliant) {
-            nonCompliantCount++;
-            total++;
-          }
-        });
+        total++;
       }
     });
-
-    if(nonCompliantCount > 0) {
-      chartData.push({
-        id: category.id,
-        name: category.name + ' ' + nonCompliantCount,
-        value: nonCompliantCount
-      });
-
-      tableData.push({
-        categoryId: category.id,
-        category: category.name,
-        compliance: {
-          n: {
-            total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
-          },
-        }
-      });
-    }
-
   });
 
-  chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+  rules.forEach(rule => {
+    chartData.push({
+      name: rule.name,
+      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+    });
   });
 
-  chartData = chartData.sort((obj1, obj2) => {
-    let diff = obj2.value - obj1.value;
-    if(diff == 0) {
-        return obj1.name.localeCompare(obj2.name);
-    } else {
-        return diff;
-    }
-  });
-
-  tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+  rules.forEach(rule => {
+    tableData.push({
+      rule_compliance: rule.name,
+      no_of_reports: counts[rule.id],
+      percentage: checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+    });
   });
 
   onSuccess({
     start_date: filter.startDate,
     end_date: filter.endDate,
-    no_of_hazards: total, 
+    no_of_reports: total, 
     summary: chartData,
     details: tableData
   });  
 }
 
-const filterHazards = (hazards, filter: HierarchyFilter) => {
-  //console.log("hazards", hazards);
+const filterReports = (reports, filter: HierarchyFilter) => {
+  //console.log("reports", reports);
   //console.log("filter", filter);
 
-  let filteredHazards = hazards.filter(hazard => {
-    let isWithinDateRange = isWithin(hazard.completed_date, filter.startDate, filter.endDate);
+  let filteredReports = reports.filter(report => {
+    let isWithinDateRange = isWithin(report.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {
-      //console.log("site id", hazard.site_id, filter.filters);
+      //console.log("site id", report.site_id, filter.filters);
       if(filter.filterType == FilterType.SITES) {
-        isWithinHierarchy = filter.filters.indexOf(hazard.site_id) > -1;
+        isWithinHierarchy = filter.filters.indexOf(report.site_id) > -1;
       } else if(filter.filterType == FilterType.DEPARTMENTS) {
-        isWithinHierarchy = filter.filters.indexOf(hazard.department_id) > -1;
+        isWithinHierarchy = filter.filters.indexOf(report.department_id) > -1;
       } else {
         isWithinHierarchy = true;
       }
     }
 
-    return isWithinHierarchy;
+    let taskMatches = false;
+    if(isWithinHierarchy) {
+      if(filter.taskId) {
+        taskMatches = report.task_id == filter.taskId;
+      } else {
+        taskMatches = true;
+      }
+    }
+
+    //console.log("did it match", isWithinDateRange, isWithinHierarchy, taskMatches);
+
+    return taskMatches;
   });
 
-  return filteredHazards;
-  //console.log("filtered hazards", hazards);
+  return filteredReports;
+  //console.log("filtered reports", reports);
 }
 
 const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
@@ -268,14 +309,14 @@ const checkNum = (num: number): number => {
     return num;
   }
 }
-export interface HierarchyFilter {
+interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];
   startDate?: any;
   endDate?: any;
-  chartType?: any;
-  hazardType?: any;
+  taskId?: any;
+  chartType?: string;
 }
 
 enum FilterType {

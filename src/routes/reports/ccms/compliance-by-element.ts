@@ -1,14 +1,14 @@
 import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getManagements } from '../../managements.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
+import { getCCMs } from './compliance-by-category';
 import { getTop10Hazards } from '../hazards/top-hazards';
 
-/* GET compliance-by-category report */
-export const managementsComplianceByCategory = (req, res) => {
+/* GET compliance-by-element report */
+export const ccmsComplianceByElement = (req, res) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -20,7 +20,7 @@ export const managementsComplianceByCategory = (req, res) => {
   let error = undefined;
 
   let categories = undefined;
-  let managements = undefined;
+  let ccms = undefined;
   let filter: HierarchyFilter = undefined;
   
   new SequentialExecutor()
@@ -34,7 +34,6 @@ export const managementsComplianceByCategory = (req, res) => {
         filter.chartType = chartType;
         filter.hazardType = hazardType;
 
-        console.log(filter);
         resolve(true);
       }, 
       (err) => {
@@ -44,9 +43,9 @@ export const managementsComplianceByCategory = (req, res) => {
     );
   })
   .then((resolve, reject) => {
-    getManagements(clientId,  
+    getCCMs(clientId,  
       (data) => {
-        managements = data;
+        ccms = data;
 
         resolve(true);
       }, 
@@ -58,9 +57,9 @@ export const managementsComplianceByCategory = (req, res) => {
     );
   })
   .then((resolve) => {
-    //console.log("raw", moment(filter.startDate), moment(filter.endDate), managements);
-    managements = filterManagements(managements, filter);
-    //console.log("filtered", managements);
+    //console.log("raw", moment(filter.startDate), moment(filter.endDate), ccms);
+    ccms = filterHazards(ccms, filter);
+    //console.log("filtered", ccms);
     resolve(true);
   })
   .then((resolve) => {
@@ -71,7 +70,7 @@ export const managementsComplianceByCategory = (req, res) => {
     });
   })
   .then((resolve) => {
-    getChartData(categories, managements, filter,  
+    getChartData(categories, ccms, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -81,9 +80,7 @@ export const managementsComplianceByCategory = (req, res) => {
   })
   .fail((error) => {
     res.status(400);
-    res.json({
-      error: error
-    });
+    res.json(error);
   })
   .success(() => {
     res.status(200);
@@ -92,51 +89,51 @@ export const managementsComplianceByCategory = (req, res) => {
   .execute();
 };
 
-const getChartData = (categories, managements, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
-  let topData = getTop10Hazards(categories, managements, filter);
+const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+  let topData = getTop10Hazards(categories, hazards, filter);
   let chartData = [];
   let tableData = [];
 
   let total = 0;
 
   categories.forEach((category) => {
-    let nonCompliantCount = 0;
-
     category.elements.forEach((element) => {
+      let nonCompliantCount = 0;
 
       if((filter.hazardType == 'TOP' && topData.find(top => {
         return top.id == element.id
       })) || filter.hazardType != 'TOP') {
-        managements.forEach((management) => {
-          let isNonCompliant = management.element_compliance[element.id] && management.element_compliance[element.id]['N'];
+        hazards.forEach((hazard) => {
+          let isNonCompliant = hazard.element_compliance[element.id] && hazard.element_compliance[element.id]['N'];
 
           if(isNonCompliant) {
             nonCompliantCount++;
             total++;
           }
         });
+  
+        if(nonCompliantCount > 0) {
+          chartData.push({
+            id: element.id,
+            name: element.name + ' ' + nonCompliantCount,
+            value: nonCompliantCount
+          });
+  
+          tableData.push({
+            categoryId: category.id,
+            category: category.name,
+            elementId: element.id,
+            element: element.name,
+            compliance: {
+              n: {
+                total: nonCompliantCount,
+                percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+              },
+            }
+          });
+        }
       }
     });
-
-    if(nonCompliantCount > 0) {
-      chartData.push({
-        id: category.id,
-        name: category.name + ' ' + nonCompliantCount,
-        value: nonCompliantCount
-      });
-
-      tableData.push({
-        categoryId: category.id,
-        category: category.name,
-        compliance: {
-          n: {
-            total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
-          },
-        }
-      });
-    }
-
   });
 
   chartData.forEach(data => {
@@ -165,20 +162,20 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
   });  
 }
 
-const filterManagements = (managements, filter: HierarchyFilter) => {
-  //console.log("managements", managements);
+const filterHazards = (hazards, filter: HierarchyFilter) => {
+  //console.log("hazards", hazards);
   //console.log("filter", filter);
 
-  let filteredManagements = managements.filter(management => {
-    let isWithinDateRange = isWithin(management.completed_date, filter.startDate, filter.endDate);
+  let filteredHazards = hazards.filter(hazard => {
+    let isWithinDateRange = isWithin(hazard.completed_date, filter.startDate, filter.endDate);
 
     let isWithinHierarchy = false;
     if(isWithinDateRange) {
-      //console.log("site id", management.site_id, filter.filters);
+      //console.log("site id", hazard.site_id, filter.filters);
       if(filter.filterType == FilterType.SITES) {
-        isWithinHierarchy = filter.filters.indexOf(management.site_id) > -1;
+        isWithinHierarchy = filter.filters.indexOf(hazard.site_id) > -1;
       } else if(filter.filterType == FilterType.DEPARTMENTS) {
-        isWithinHierarchy = filter.filters.indexOf(management.department_id) > -1;
+        isWithinHierarchy = filter.filters.indexOf(hazard.department_id) > -1;
       } else {
         isWithinHierarchy = true;
       }
@@ -187,8 +184,8 @@ const filterManagements = (managements, filter: HierarchyFilter) => {
     return isWithinHierarchy;
   });
 
-  return filteredManagements;
-  //console.log("filtered managements", managements);
+  return filteredHazards;
+  //console.log("filtered hazards", hazards);
 }
 
 const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
@@ -270,7 +267,7 @@ const checkNum = (num: number): number => {
     return num;
   }
 }
-export interface HierarchyFilter {
+interface HierarchyFilter {
 
   filterType: FilterType;
   filters: string[];

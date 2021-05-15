@@ -40,6 +40,11 @@ import { incidentsDetailedReport } from './reports/incidents/detailed-report';
 import { managementsComplianceByElement } from './reports/managements/compliance-by-element';
 import { managementsComplianceByCategory } from './reports/managements/compliance-by-category';
 
+import { ccmsComplianceByCategory } from './reports/ccms/compliance-by-category';
+import { ccmsComplianceByElement } from './reports/ccms/compliance-by-element';
+import { ccmsRiskCompliance } from './reports/ccms/risk-compliance';
+import { ccmsRuleCompliance } from './reports/ccms/rule-compliance';
+
 export const router = express.Router();
 
 /* GET compliance-by-element report */
@@ -218,3 +223,22 @@ router.get('/managements/compliance-by-category', function(req, res, next) {
   managementsComplianceByCategory(req, res);
 });
 
+/* GET compliance-by-category report */
+router.get('/ccms/compliance-by-category', function(req, res, next) {
+  ccmsComplianceByCategory(req, res);
+});
+
+/* GET compliance-by-element report */
+router.get('/ccms/compliance-by-element', function(req, res, next) {
+  ccmsComplianceByElement(req, res);
+});
+
+/* GET risk-compliance report */
+router.get('/ccms/risk-compliance', function(req, res, next) {
+  ccmsRiskCompliance(req, res);
+});
+
+/* GET rule-compliance report */
+router.get('/ccms/rule-compliance', function(req, res, next) {
+  ccmsRuleCompliance(req, res);
+});

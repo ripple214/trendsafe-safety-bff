@@ -156,7 +156,7 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
   onSuccess({
     start_date: filter.startDate,
     end_date: filter.endDate,
-    no_of_managements: total, 
+    no_of_hazards: total, 
     summary: chartData,
     details: tableData
   });  
