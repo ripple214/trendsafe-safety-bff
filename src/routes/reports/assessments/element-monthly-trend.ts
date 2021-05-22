@@ -84,7 +84,7 @@ export const assessmentsElementMonthlyTrend = (req, res) => {
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     res.status(400);
     res.json(error);
   })
@@ -120,17 +120,17 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
           assessments.filter(assessment => {
             return isSameMonth(assessment.completed_date, reportDate)
           }).forEach((assessment) => {
-            let isCompliant = assessment.element_compliance[element.id]['Y'];
+            let isCompliant = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['Y'];
             if(isCompliant) {
               compliantCount++;
             }
     
-            let isNonCompliant = assessment.element_compliance[element.id]['N'];
+            let isNonCompliant = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['N'];
             if(isNonCompliant) {
               nonCompliantCount++;
             }
     
-            let isNotApplicable = assessment.element_compliance[element.id]['NA'];
+            let isNotApplicable = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['NA'];
             if(isNotApplicable) {
               notApplicableCount++;
             }

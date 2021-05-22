@@ -46,6 +46,9 @@ import { ccmsComplianceByElement } from './reports/ccms/compliance-by-element';
 import { ccmsRiskCompliance } from './reports/ccms/risk-compliance';
 import { ccmsRuleCompliance } from './reports/ccms/rule-compliance';
 
+import { indicatorsMonthlyPerformanceReport } from './reports/indicators/monthly-performance-report';
+import { indicatorsTrendReport } from './reports/indicators/trend-report';
+
 export const router = express.Router();
 
 /* GET compliance-by-element report */
@@ -247,4 +250,14 @@ router.get('/ccms/risk-compliance', function(req, res, next) {
 /* GET rule-compliance report */
 router.get('/ccms/rule-compliance', function(req, res, next) {
   ccmsRuleCompliance(req, res);
+});
+
+/* GET month-performance-report */
+router.get('/indicators/monthly-performance-report', function(req, res, next) {
+  indicatorsMonthlyPerformanceReport(req, res);
+});
+
+/* GET trend-report */
+router.get('/indicators/trend-report', function(req, res, next) {
+  indicatorsTrendReport(req, res);
 });

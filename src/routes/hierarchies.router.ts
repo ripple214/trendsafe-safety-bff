@@ -648,7 +648,7 @@ const getFilter = (req): {parentField: string, parentFieldValue: string} => {
   }
 };
 
-const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+export const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let filter = getFilter(req);
   getEntityMap(req, 
     (entityMap) => {

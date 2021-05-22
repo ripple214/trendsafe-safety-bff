@@ -30,7 +30,8 @@ export const isBefore = (dateString1: string, dateString2: string, dateFormat: s
 }
 
 export const isSameMonth = (dateString1: string, dateString2: string) => {
-  return dateParse(dateString1, FORMAT_LONG).isSame(dateParse(dateString2, FORMAT_MONTH), 'month');
+  return dateParse(dateString1, FORMAT_LONG).isSame(dateParse(dateString2, FORMAT_MONTH), 'month') && 
+  dateParse(dateString1, FORMAT_LONG).isSame(dateParse(dateString2, FORMAT_MONTH), 'year');
 }
 
 export const isWithin = (dateString: string, dateStringFrom: string, dateStringTo: string, unit: moment.unitOfTime.StartOf = 'day', dateFormat: string = FORMAT_LONG):boolean => {

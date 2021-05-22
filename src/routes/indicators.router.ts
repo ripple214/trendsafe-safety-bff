@@ -13,9 +13,23 @@ var tableName = conf.get('TABLE_INDICATORS');
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
+  getIndicators(clientId, 
+    (data) => {
+      var resp = {"indicators": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getIndicators = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -33,15 +47,15 @@ router.get('/', function(req, res, next) {
         return moment(b.report_date).isAfter(moment(a.report_date));
       });
 
-      var resp = {"indicators": response.data};
-      res.status(200);
-      res.json(resp);
-    } else {
-      res.status(400);
-      res.json(response);
+      if(response.data) {
+        onSuccess(response.data);
+      } else {
+        onError(response);
+      }
     }
   });
-});
+
+}
 
 /* GET indicator. */
 router.get('/:indicatorId', function(req, res) {
@@ -66,7 +80,7 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -97,6 +111,15 @@ router.put('/:indicatorId', function(req, res, next) {
       report_date = :report_date, \
       site = :site, \
       total_hours = :total_hours, \
+      total_assessments = :total_assessments, \
+      total_inspections = :total_inspections, \
+      total_hazards = :total_hazards, \
+      total_unsafe_acts = :total_unsafe_acts, \
+      total_plannings = :total_plannings, \
+      total_near_miss = :total_near_miss, \
+      total_ppifr = :total_ppifr, \
+      total_lsi = :total_lsi, \
+      total_bbsi = :total_bbsi, \
       updated_ts = :updated_ts, \
       updated_by = :updated_by',
     ExpressionAttributeNames:{
@@ -107,6 +130,15 @@ router.put('/:indicatorId', function(req, res, next) {
       ":report_date": req.body.report_date,
       ":site": req.body.site,
       ":total_hours": req.body.total_hours,
+      ":total_assessments": req.body.total_assessments,
+      ":total_inspections": req.body.total_inspections,
+      ":total_hazards": req.body.total_hazards,
+      ":total_unsafe_acts": req.body.total_unsafe_acts,
+      ":total_plannings": req.body.total_plannings,
+      ":total_near_miss": req.body.total_near_miss,
+      ":total_ppifr": req.body.total_ppifr,
+      ":total_lsi": req.body.total_lsi,
+      ":total_bbsi": req.body.total_bbsi,
       ":updated_ts": moment().format(),
       ":updated_by": req['user'].email,
     },
@@ -145,6 +177,15 @@ router.post('/', function(req, res, next) {
       "report_date": req.body.report_date,
       "site": req.body.site,
       "total_hours": req.body.total_hours,
+      "total_assessments": req.body.total_assessments,
+      "total_inspections": req.body.total_inspections,
+      "total_hazards": req.body.total_hazards,
+      "total_unsafe_acts": req.body.total_unsafe_acts,
+      "total_plannings": req.body.total_plannings,
+      "total_near_miss": req.body.total_near_miss,
+      "total_ppifr": req.body.total_ppifr,
+      "total_lsi": req.body.total_lsi,
+      "total_bbsi": req.body.total_bbsi,
       "created_ts": createTime, 
       "created_by": req['user'].email,
       "updated_ts": createTime,
