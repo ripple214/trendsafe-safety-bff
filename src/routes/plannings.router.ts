@@ -6,6 +6,11 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
+import { SequentialExecutor } from '../common/sequential-executor';
+
+import { getAssessmentsComplianceByElement } from './reports/assessments/compliance-by-element';
+import { getInspectionsComplianceByElement } from './reports/inspections/compliance-by-element';
+import { getHazardsComplianceByElement } from './reports/hazards/compliance-by-element';
 
 export const router = express.Router();
 
@@ -45,6 +50,63 @@ router.get('/', function(req, res, next) {
   });
 });
 
+
+/* GET plannings listing. */
+router.get('/load-graphs', function(req, res, next) {
+  let resp = {};
+  new SequentialExecutor().chain()
+  .parallel([
+    (resolve, reject) => {
+      getAssessmentsComplianceByElement(req, 
+        (data) => {
+          resp['assessments_data'] = data['report-data'].summary;
+          resp['assessments_summaries'] = data['report-data'].assessment_summaries;
+
+          resolve(true);
+        },
+        (error) => {
+          reject(error);
+        }
+      )
+    },
+    (resolve, reject) => {
+      getInspectionsComplianceByElement(req, 
+        (data) => {
+          resp['inspections_data'] = data['report-data'].summary;
+          resp['inspections_summaries'] = data['report-data'].inspection_summaries;
+
+          resolve(true);
+        },
+        (error) => {
+          reject(error);
+        }
+      )
+    },
+    (resolve, reject) => {
+      getHazardsComplianceByElement(req, 
+        (data) => {
+          resp['hazards_data'] = data['report-data'].summary;
+          resp['hazards_summaries'] = data['report-data'].hazard_summaries;
+
+          resolve(true);
+        },
+        (error) => {
+          reject(error);
+        }
+      )
+    },
+  ])
+  .fail((error) => {
+    res.status(400);
+    res.json(error);
+  })
+  .success(() => {
+    res.status(200);
+    res.json(resp);
+  })
+  .execute();
+});
+
 /* GET planning. */
 router.get('/:planningId', function(req, res) {
   var params = getQueryParams(req);
@@ -54,12 +116,8 @@ router.get('/:planningId', function(req, res) {
     if (response.data && response.data.length == 1) {
       var resp = response.data[0];
       
-      getPhotographs(req, res, (data) => {
-        console.log()
-        resp.photographs = data;
-        res.status(200);
-        res.json(resp);
-      });
+      res.status(200);
+      res.json(resp);
     } else {
       res.status(404);
       res.json();
@@ -67,29 +125,13 @@ router.get('/:planningId', function(req, res) {
   });
 });
 
-const getPhotographs = (req, res, callback) => {
-  let clientId = req['user'].client_id;
-  let group = "images/plannings";
-  let subgroup = req.params.planningId;
-  let key = clientId + '/' + group + '/' + subgroup;
-
-  s3.list(key, function(response) {
-    if (response.data) {
-      callback(response.data);
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-} 
-
 const getQueryParams = (req) => {
   let clientId = req['user'].client_id;
   let planningId = req.params.planningId;
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, assessor, person_responsible, risk_rating, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name,completed_date, start_date, end_date, project_id, site_id, subsite_id, department_id, location_id, equipment_id, task_id, assessor, graphs_data, plans',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :planningId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -117,22 +159,19 @@ router.put('/:planningId', function(req, res, next) {
       "sort_key": planningId,
     },
     UpdateExpression: 'set #name = :name, \
-      actions_taken = :actions_taken, \
-      key_findings = :key_findings, \
-      further_actions_required = :further_actions_required, \
       completed_date = :completed_date, \
-      due_date = :due_date, \
-      summary = :summary, \
+      start_date = :start_date, \
+      end_date = :end_date, \
+      project_id = :project_id, \
       site_id = :site_id, \
+      subsite_id = :subsite_id, \
       department_id = :department_id, \
       location_id = :location_id, \
+      equipment_id = :equipment_id, \
       task_id = :task_id, \
       assessor = :assessor, \
-      person_responsible = :person_responsible, \
-      risk_rating = :risk_rating, \
-      element_compliance = :element_compliance, \
-      risk_compliance = :risk_compliance, \
-      rule_compliance = :rule_compliance, \
+      graphs_data = :graphs_data, \
+      plans = :plans, \
       updated_ts = :updated_ts, \
       updated_by = :updated_by',
     ExpressionAttributeNames:{
@@ -140,22 +179,19 @@ router.put('/:planningId', function(req, res, next) {
     },
     ExpressionAttributeValues: {
       ":name": req.body.name,
-      ":actions_taken": req.body.actions_taken,
-      ":key_findings": req.body.key_findings,
-      ":further_actions_required": req.body.further_actions_required,
       ":completed_date": req.body.completed_date,
-      ":due_date": req.body.due_date,
-      ":summary": req.body.summary,
+      ":start_date": req.body.start_date,
+      ":end_date": req.body.end_date,
+      ":project_id": req.body.project_id,
       ":site_id": req.body.site_id,
+      ":subsite_id": req.body.subsite_id,
       ":department_id": req.body.department_id,
       ":location_id": req.body.location_id,
+      ":equipment_id": req.body.equipment_id,
       ":task_id": req.body.task_id,
       ":assessor": req.body.assessor,
-      ":person_responsible": req.body.person_responsible,
-      ":risk_rating": req.body.risk_rating,
-      ":element_compliance": req.body.element_compliance,
-      ":risk_compliance": req.body.risk_compliance,
-      ":rule_compliance": req.body.rule_compliance,
+      ":graphs_data": req.body.graphs_data,
+      ":plans": req.body.plans,
       ":updated_ts": moment().format(),
       ":updated_by": req['user'].email,
     },
@@ -193,23 +229,19 @@ router.post('/', function(req, res, next) {
       "sort_key": id,
       "id": id,
       "name": name,
-      "actions_taken": req.body.actions_taken,
-      "key_findings": req.body.key_findings,
-      "further_actions_required": req.body.further_actions_required,
       "completed_date": req.body.completed_date,
-      "due_date": req.body.due_date,
-      "summary": req.body.summary,
+      "start_date": req.body.start_date,
+      "end_date": req.body.end_date,
+      "project_id": req.body.project_id,
       "site_id": req.body.site_id,
+      "subsite_id": req.body.subsite_id,
       "department_id": req.body.department_id,
       "location_id": req.body.location_id,
+      "equipment_id": req.body.equipment_id,
       "task_id": req.body.task_id,
       "assessor": req.body.assessor,
-      "person_responsible": req.body.person_responsible,
-      "risk_rating": req.body.risk_rating,
-      "element_compliance": req.body.element_compliance,
-      "risk_compliance": req.body.risk_compliance,
-      "rule_compliance": req.body.rule_compliance,
-      "sort_num": 1,
+      "graphs_data": req.body.graphs_data,
+      "plans": req.body.plans,
       "created_ts": createTime, 
       "created_by": req['user'].email,
       "updated_ts": createTime,
@@ -223,34 +255,14 @@ router.post('/', function(req, res, next) {
       delete resp['partition_key'];
       delete resp['sort_key'];
 
-      let group = "images/plannings";
-      let fromSubgroup = tempId;
-      let toSubgroup = id;
-      let fromKey = clientId + '/' + group + '/' + fromSubgroup + '/';
-      let toKey = clientId + '/' + group + '/' + toSubgroup;
-    
-      movePhotographs(fromKey, toKey, (moveResponse) => {
-        if (moveResponse.error) {
-          res.status(400);
-          res.json(response);
-        } else {
-          res.status(200);
-          res.json(resp);
-        }
-      });
-    } else {
+      res.status(200);
+      res.json(resp);
+  } else {
       res.status(400);
       res.json(response);
     }
   });
 });
-
-const movePhotographs = (fromKey, toKey, callback) => {
-  console.log("moving photographs from", fromKey, "to", toKey);
-  s3.move(fromKey, toKey, function(response) {
-    callback(response);
-  });
-};
 
 /* DELETE delete planning. */
 router.delete('/:planningId', function(req, res) {

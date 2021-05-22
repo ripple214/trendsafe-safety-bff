@@ -8,6 +8,19 @@ import { isWithin } from '../../../common/date-util';
 
 /* GET compliance-by-element report */
 export const inspectionsComplianceByElement = (req, res) => {
+  getInspectionsComplianceByElement(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+} 
+
+export const getInspectionsComplianceByElement = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -77,12 +90,10 @@ export const inspectionsComplianceByElement = (req, res) => {
     );
   })
   .fail(() => {
-    res.status(400);
-    res.json(error);
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };
@@ -90,6 +101,7 @@ export const inspectionsComplianceByElement = (req, res) => {
 const getChartData = (categories, inspections, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
+  let inspection_summaries = {};
 
   categories.forEach((category) => {
     category.elements.forEach((element) => {
@@ -113,6 +125,8 @@ const getChartData = (categories, inspections, filter: HierarchyFilter, onSucces
         if(isNotApplicable) {
           notApplicableCount++;
         }
+
+        inspection_summaries[inspection.name] = inspection.summary;
 
         total++;
       });
@@ -150,6 +164,7 @@ const getChartData = (categories, inspections, filter: HierarchyFilter, onSucces
     end_date: filter.endDate,
     no_of_inspections: inspections.length, 
     summary: chartData,
+    inspection_summaries: inspection_summaries,
     details: tableData
   });  
 }
