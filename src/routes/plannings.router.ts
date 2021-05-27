@@ -4,7 +4,6 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
-import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
@@ -269,6 +268,52 @@ router.delete('/:planningId', function(req, res) {
   let clientId = req['user'].client_id;
   let planningId = req.params.planningId;
 
+  deletePlanning(clientId, planningId,
+    () => {
+      res.status(204);
+      res.json();
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+/* DELETE delete plannings. */
+router.delete('/', function(req, res) {
+  let clientId = req['user'].client_id;
+  let ids = [].concat(req.query.ids || []);
+
+  let executor = new SequentialExecutor().chain();  
+  let parallels = [];
+  for(let i=0; i<ids.length; i++) {
+    parallels.push((resolve, reject) => {
+      deletePlanning(clientId, ids[i],
+        () => {
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
+  executor
+  .parallel(parallels)
+  .fail((error) => {
+    res.status(400);
+    res.json(error);
+  })
+  .success(() => {
+    res.status(204);
+    res.json();
+  })
+  .execute();
+});
+
+export const deletePlanning = (clientId: string, planningId: string, onSuccess: () => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     Key: {
@@ -278,15 +323,10 @@ router.delete('/:planningId', function(req, res) {
   };
 
   ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
+    if(!response.error) {
+      onSuccess();
     } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
-
-
+      onError(response);
+    }    
+  });  
+}

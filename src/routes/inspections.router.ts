@@ -7,6 +7,8 @@ import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
 
+import { SequentialExecutor } from '../common/sequential-executor';
+
 export const router = express.Router();
 
 var tableName = conf.get('TABLE_INSPECTIONS');
@@ -367,6 +369,52 @@ router.delete('/:inspectionId', function(req, res) {
   let clientId = req['user'].client_id;
   let inspectionId = req.params.inspectionId;
 
+  deleteInspection(clientId, inspectionId,
+    () => {
+      res.status(204);
+      res.json();
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+/* DELETE delete inspections. */
+router.delete('/', function(req, res) {
+  let clientId = req['user'].client_id;
+  let ids = [].concat(req.query.ids || []);
+
+  let executor = new SequentialExecutor().chain();  
+  let parallels = [];
+  for(let i=0; i<ids.length; i++) {
+    parallels.push((resolve, reject) => {
+      deleteInspection(clientId, ids[i],
+        () => {
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
+  executor
+  .parallel(parallels)
+  .fail((error) => {
+    res.status(400);
+    res.json(error);
+  })
+  .success(() => {
+    res.status(204);
+    res.json();
+  })
+  .execute();
+});
+
+export const deleteInspection = (clientId: string, inspectionId: string, onSuccess: () => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     Key: {
@@ -376,15 +424,10 @@ router.delete('/:inspectionId', function(req, res) {
   };
 
   ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
+    if(!response.error) {
+      onSuccess();
     } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
-
-
+      onError(response);
+    }    
+  });  
+}

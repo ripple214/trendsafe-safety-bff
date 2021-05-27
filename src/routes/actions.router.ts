@@ -6,6 +6,8 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 
+import { SequentialExecutor } from '../common/sequential-executor';
+
 export const router = express.Router();
 
 var tableName = conf.get('TABLE_ACTIONS');
@@ -233,6 +235,52 @@ router.delete('/:actionId', function(req, res) {
   let clientId = req['user'].client_id;
   let actionId = req.params.actionId;
 
+  deleteAction(clientId, actionId,
+    () => {
+      res.status(204);
+      res.json();
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+/* DELETE delete actions. */
+router.delete('/', function(req, res) {
+  let clientId = req['user'].client_id;
+  let ids = [].concat(req.query.ids || []);
+
+  let executor = new SequentialExecutor().chain();  
+  let parallels = [];
+  for(let i=0; i<ids.length; i++) {
+    parallels.push((resolve, reject) => {
+      deleteAction(clientId, ids[i],
+        () => {
+          resolve(true);
+        }, 
+        (error) => {
+          reject(error);
+        }
+      );
+    });
+  }
+
+  executor
+  .parallel(parallels)
+  .fail((error) => {
+    res.status(400);
+    res.json(error);
+  })
+  .success(() => {
+    res.status(204);
+    res.json();
+  })
+  .execute();
+});
+
+export const deleteAction = (clientId: string, actionId: string, onSuccess: () => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     Key: {
@@ -242,13 +290,10 @@ router.delete('/:actionId', function(req, res) {
   };
 
   ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
+    if(!response.error) {
+      onSuccess();
     } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
-});
+      onError(response);
+    }    
+  });  
+}
