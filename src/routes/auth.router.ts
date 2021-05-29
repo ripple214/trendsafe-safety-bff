@@ -81,6 +81,7 @@ router.post("/login", (req, res, next) => {
             authToken.authorizer = userDetails.authorizer;
             authToken.recipient = userDetails.recipient;
             authToken.module_access = userDetails.module_access;
+            /*
             authToken.dataEntryDivisionIds = userDetails.dataEntryDivisionIds;
             authToken.dataEntryProjectIds = userDetails.dataEntryProjectIds;
             authToken.dataEntrySiteIds = userDetails.dataEntrySiteIds;
@@ -91,6 +92,7 @@ router.post("/login", (req, res, next) => {
             authToken.reportingSiteIds = userDetails.reportingSiteIds;
             authToken.reportingSubsiteIds = userDetails.reportingSubsiteIds;
             authToken.reportingDepartmentIds = userDetails.reportingDepartmentIds;
+            */
 
             authDetails['user_id'] = userId;
             authDetails['last_name'] = userDetails.last_name;
@@ -102,10 +104,26 @@ router.post("/login", (req, res, next) => {
             authDetails['authorizer'] = userDetails.authorizer;
             authDetails['recipient'] = userDetails.recipient;
             authDetails['module_access'] = userDetails.module_access;
+            authDetails['data_entry'] = {
+              division_ids: userDetails.dataEntryDivisionIds,
+              project_ids: userDetails.dataEntryProjectIds,
+              site_ids: userDetails.dataEntrySiteIds,
+              subsite_ids: userDetails.dataEntrySubsiteIds,
+              department_ids: userDetails.dataEntryDepartmentIds
+            };
+            authDetails['reporting'] = {
+              division_ids: userDetails.reportingDivisionIds,
+              project_ids: userDetails.reportingProjectIds,
+              site_ids: userDetails.reportingSiteIds,
+              subsite_ids: userDetails.reportingSubsiteIds,
+              department_ids: userDetails.reportingDepartmentIds
+            };
 
             let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
             res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
         
+            console.log("accessToken", accessToken)
+
             var actionsParams = {
               TableName: conf.get('TABLE_ACTIONS'),
               ProjectionExpression: 'id, assigned_to, completed_date',
