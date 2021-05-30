@@ -114,20 +114,22 @@ const getChartData = (categories, headings, incidents, filter: IncidentFilter, o
   headings.forEach((heading) => {
     let nonCompliantHeadingCount = 0;
 
-    heading.items.forEach((item) => {
+    if(heading.items) {
+      heading.items.forEach((item) => {
 
-      incidents.forEach((incident) => {
-        let isNonCompliant = 
-          incident.task_causes && 
-          incident.task_causes[item.id] &&
-          incident.task_causes[item.id]['N'];
-
-        if(isNonCompliant) {
-          nonCompliantHeadingCount++;
-          total++;
-        }
+        incidents.forEach((incident) => {
+          let isNonCompliant = 
+            incident.task_causes && 
+            incident.task_causes[item.id] &&
+            incident.task_causes[item.id]['N'];
+  
+          if(isNonCompliant) {
+            nonCompliantHeadingCount++;
+            total++;
+          }
+        });
       });
-    });
+    }
 
     if(nonCompliantHeadingCount > 0) {
       chartData.push({

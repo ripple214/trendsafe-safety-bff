@@ -102,20 +102,22 @@ const getChartData = (headings, incidents, filter: IncidentFilter, onSuccess: (d
   headings.forEach((heading) => {
     let nonCompliantCount = 0;
 
-    heading.items.forEach((item) => {
+    if(heading.items) {
+      heading.items.forEach((item) => {
 
-      incidents.forEach((incident) => {
-        let isNonCompliant = 
-          incident.system_element_compliance && 
-          incident.system_element_compliance[item.id] &&
-          incident.system_element_compliance[item.id]['N'];
-
-        if(isNonCompliant) {
-          nonCompliantCount++;
-          total++;
-        }
+        incidents.forEach((incident) => {
+          let isNonCompliant = 
+            incident.system_element_compliance && 
+            incident.system_element_compliance[item.id] &&
+            incident.system_element_compliance[item.id]['N'];
+  
+          if(isNonCompliant) {
+            nonCompliantCount++;
+            total++;
+          }
+        });
       });
-    });
+    }
 
     if(nonCompliantCount > 0) {
       chartData.push({
