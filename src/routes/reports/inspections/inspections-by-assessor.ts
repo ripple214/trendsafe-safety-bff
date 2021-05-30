@@ -8,6 +8,19 @@ import { isWithin } from '../../../common/date-util';
 
 /* GET rule compliance report */
 export const inspectionsByAssessor = (req, res) => {
+  getInspectionsByAssessor(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getInspectionsByAssessor = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -81,13 +94,11 @@ export const inspectionsByAssessor = (req, res) => {
       }
     );
   })
-  .fail(() => {
-    res.status(400);
-    res.json(error);
+  .fail((error) => {
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

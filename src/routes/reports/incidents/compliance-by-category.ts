@@ -7,6 +7,19 @@ import { getTop10Hazards } from '../hazards/top-hazards';
 
 /* GET compliance-by-category report */
 export const incidentsComplianceByCategory = (req, res) => {
+  getIncidentsComplianceByCategory(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getIncidentsComplianceByCategory = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -77,13 +90,11 @@ export const incidentsComplianceByCategory = (req, res) => {
       }
     );
   })
-  .fail(() => {
-    res.status(400);
-    res.json(error);
+  .fail((error) => {
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

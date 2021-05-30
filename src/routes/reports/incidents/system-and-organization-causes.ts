@@ -6,6 +6,19 @@ import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../
 
 /* GET system-and-organization-causes report */
 export const incidentsSystemAndOrganizationCauses = (req, res) => {
+  getIncidentsSystemAndOrganizationCauses(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getIncidentsSystemAndOrganizationCauses = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -71,13 +84,11 @@ export const incidentsSystemAndOrganizationCauses = (req, res) => {
       }
     );
   })
-  .fail(() => {
-    res.status(400);
-    res.json(error);
+  .fail((error) => {
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

@@ -133,7 +133,7 @@ export const createDefaultKpis = (clientId, string, userEmail: string, onSuccess
   .success(() => {
     onSuccess("{ status: 'done' }");
   })
-  .fail(() => {
+  .fail((error) => {
     onError(error);
   })
   .execute();

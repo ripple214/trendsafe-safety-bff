@@ -9,6 +9,19 @@ import { checkNum } from '../../../common/checkNum';
 
 /* GET compliance-by-element report */
 export const incidentsComplianceByElement = (req, res) => {
+  getIncidentsComplianceByElement(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getIncidentsComplianceByElement = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -80,12 +93,10 @@ export const incidentsComplianceByElement = (req, res) => {
     );
   })
   .fail((error) => {
-    res.status(400);
-    res.json(error);
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

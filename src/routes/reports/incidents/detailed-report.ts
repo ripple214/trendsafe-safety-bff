@@ -85,7 +85,7 @@ export const incidentsDetailedReport = (req, res) => {
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     res.status(400);
     res.json(error);
   })

@@ -91,7 +91,7 @@ export const getHazardsComplianceByElement = (req, onSuccess: (data: any) => voi
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     onFailure(error);
   })
   .success(() => {

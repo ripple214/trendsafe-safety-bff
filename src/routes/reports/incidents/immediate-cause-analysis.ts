@@ -7,6 +7,19 @@ import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../
 
 /* GET immediate-cause-analysis report */
 export const incidentsImmediateCauseAnalysis = (req, res) => {
+  getIncidentsImmediateCauseAnalysis(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getIncidentsImmediateCauseAnalysis = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -83,13 +96,11 @@ export const incidentsImmediateCauseAnalysis = (req, res) => {
       }
     );
   })
-  .fail(() => {
-    res.status(400);
-    res.json(error);
+  .fail((error) => {
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

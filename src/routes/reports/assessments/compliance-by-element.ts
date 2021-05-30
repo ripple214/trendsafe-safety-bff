@@ -94,7 +94,7 @@ export const getAssessmentsComplianceByElement = (req, onSuccess: (data: any) =>
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     onFailure(error);
   })
   .success(() => {

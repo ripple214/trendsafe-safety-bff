@@ -605,7 +605,7 @@ export const createDefaultCategoryElements = (clientId, string, userEmail: strin
   .success(() => {
     onSuccess("{ status: 'done' }");
   })
-  .fail(() => {
+  .fail((error) => {
     onError(error);
   })
   .execute();

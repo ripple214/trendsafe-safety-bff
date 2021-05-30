@@ -170,7 +170,7 @@ const getEntityMap = (req, onSuccess: (data: EntityMap) => void, onError?: (erro
       onError(error);
     }
   })
-  .fail(() => {
+  .fail((error) => {
     onError(error);
   })
   .execute();
@@ -526,7 +526,7 @@ const deleteHierarchy = (level, req, res) => {
     res.status(204);
     res.json();
   })
-  .fail(() => {
+  .fail((error) => {
     res.status(400);
     res.json(error);
   });

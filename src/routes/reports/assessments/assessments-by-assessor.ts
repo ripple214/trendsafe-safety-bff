@@ -8,6 +8,19 @@ import { getAllUsers } from '../../users.router';
 
 /* GET rule compliance report */
 export const assessmentsByAssessor = (req, res) => {
+  getAssessmentsByAssessor(req, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    },
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  )
+}
+
+export const getAssessmentsByAssessor = (req, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let clientId = req['user'].client_id;
 
   let startDate = req.query.startDate;
@@ -81,13 +94,11 @@ export const assessmentsByAssessor = (req, res) => {
       }
     );
   })
-  .fail(() => {
-    res.status(400);
-    res.json(error);
+  .fail((error) => {
+    onFailure(error);
   })
   .success(() => {
-    res.status(200);
-    res.json(resp);
+    onSuccess(resp);
   })
   .execute();
 };

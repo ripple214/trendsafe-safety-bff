@@ -89,7 +89,7 @@ export const getInspectionsComplianceByElement = (req, onSuccess: (data: any) =>
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     onFailure(error);
   })
   .success(() => {

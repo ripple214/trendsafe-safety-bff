@@ -321,7 +321,7 @@ router.post('/', function(req, res, next) {
       }
     );
   })
-  .fail(() => {
+  .fail((error) => {
     console.log("error", error)
     res.status(400);
     res.json(error);

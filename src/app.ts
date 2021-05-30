@@ -41,6 +41,7 @@ import { router as clientsRouter } from './routes/clients.router';
 import { router as weightingsRouter } from './routes/weightings.router';
 import { router as filesRouter } from './routes/files.router';
 import { router as emailRouter } from './routes/email.router';
+import { router as preferencesRouter } from './routes/preferences.router';
 import { ACCESS_TOKEN_SECRET  } from './common/constants';
 
 var app = express();
@@ -203,6 +204,7 @@ app.use(contextPath + '/performances', performancesRouter);
 app.use(contextPath + '/indicators', indicatorsRouter);
 app.use(contextPath + '/reports', reportsRouter);
 app.use(contextPath + '/email', emailRouter);
+app.use(contextPath + '/preferences', preferencesRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

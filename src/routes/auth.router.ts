@@ -122,7 +122,7 @@ router.post("/login", (req, res, next) => {
             let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
             res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
         
-            console.log("accessToken", accessToken)
+            //console.log("accessToken", accessToken)
 
             var actionsParams = {
               TableName: conf.get('TABLE_ACTIONS'),

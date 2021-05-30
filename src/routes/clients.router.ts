@@ -189,7 +189,7 @@ router.post('/', function(req, res) {
     res.status(200);
     res.json(resp);
   })
-  .fail(() => {
+  .fail((error) => {
     res.status(400);
     res.json(error);
   })

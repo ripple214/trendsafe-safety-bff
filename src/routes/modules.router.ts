@@ -133,7 +133,7 @@ export const createDefaultModules = (clientId, string, userEmail: string, onSucc
   .success(() => {
     onSuccess("{ status: 'done' }");
   })
-  .fail(() => {
+  .fail((error) => {
     onError(error);
   })
   .execute();
