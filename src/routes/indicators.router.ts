@@ -31,7 +31,7 @@ router.get('/', function(req, res, next) {
 export const getIndicators = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -82,7 +82,7 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -119,6 +119,17 @@ router.put('/:indicatorId', function(req, res, next) {
       total_unsafe_acts = :total_unsafe_acts, \
       total_plannings = :total_plannings, \
       total_near_miss = :total_near_miss, \
+      weightings = :weightings, \
+      assessments = :assessments, \
+      leader_assessments = :leader_assessments, \
+      inspections = :inspections, \
+      leader_inspections = :leader_inspections, \
+      hazards = :hazards, \
+      leader_hazards = :leader_hazards, \
+      unsafe_acts = :unsafe_acts, \
+      plannings = :plannings, \
+      leader_plannings = :leader_plannings, \
+      near_miss = :near_miss, \
       total_ppifr = :total_ppifr, \
       total_lsi = :total_lsi, \
       total_bbsi = :total_bbsi, \
@@ -138,6 +149,17 @@ router.put('/:indicatorId', function(req, res, next) {
       ":total_unsafe_acts": req.body.total_unsafe_acts,
       ":total_plannings": req.body.total_plannings,
       ":total_near_miss": req.body.total_near_miss,
+      ":weightings": req.body.weightings,
+      ":assessments": req.body.assessments,
+      ":leader_assessments": req.body.leader_assessments,
+      ":inspections": req.body.inspections,
+      ":leader_inspections": req.body.leader_inspections,
+      ":hazards": req.body.hazards,
+      ":leader_hazards": req.body.leader_hazards,
+      ":unsafe_acts": req.body.unsafe_acts,
+      ":plannings": req.body.plannings,
+      ":leader_plannings": req.body.leader_plannings,
+      ":near_miss": req.body.near_miss,
       ":total_ppifr": req.body.total_ppifr,
       ":total_lsi": req.body.total_lsi,
       ":total_bbsi": req.body.total_bbsi,
@@ -185,6 +207,17 @@ router.post('/', function(req, res, next) {
       "total_unsafe_acts": req.body.total_unsafe_acts,
       "total_plannings": req.body.total_plannings,
       "total_near_miss": req.body.total_near_miss,
+      "weightings": req.body.weightings,
+      "assessments": req.body.assessments,
+      "leader_assessments": req.body.leader_assessments,
+      "inspections": req.body.inspections,
+      "leader_inspections": req.body.leader_inspections,
+      "hazards": req.body.hazards,
+      "leader_hazards": req.body.leader_hazards,
+      "unsafe_acts": req.body.unsafe_acts,
+      "plannings": req.body.plannings,
+      "leader_plannings": req.body.leader_plannings,
+      "near_miss": req.body.near_miss,
       "total_ppifr": req.body.total_ppifr,
       "total_lsi": req.body.total_lsi,
       "total_bbsi": req.body.total_bbsi,

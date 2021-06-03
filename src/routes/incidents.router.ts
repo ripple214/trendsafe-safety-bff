@@ -19,7 +19,9 @@ var supportingDocumentsGroup = "supporting-documents/incidents"
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
 
-  getIncidents(clientId, 
+  let siteId = req.query.site_id;
+
+  getIncidents(clientId, siteId, 
     (data) => {
       data.sort(function (a, b) {
         return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
@@ -36,24 +38,49 @@ router.get('/', function(req, res, next) {
   );
 });
 
-export const getIncidents = (clientId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
-  var params:any = {
-    TableName: tableName,
-    ProjectionExpression: 'id, #name, completed_date, #action, area_element_compliance, assessor, \
-    closer, #comments, created_by, created_ts, department_id, description, due_date, element_compliance, key_findings, \
-    leader, location_id, members, person_responsible, risk_compliance, rule_compliance, site_id, summary, system_element_compliance, \
-    task_causes, task_element_compliance, task_id',
-    KeyConditionExpression: '#partition_key = :clientId',
-    ExpressionAttributeNames:{
-      "#partition_key": "partition_key",
-      "#name": "name",
-      "#comments": "comments",
-      "#action": "action",
-    },
-    ExpressionAttributeValues: {
-      ":clientId": clientId
-    },
-  };
+export const getIncidents = (clientId: string, siteId: any, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  
+  var params:any = {};
+
+  if(siteId) {
+    params = {
+      TableName: tableName,
+      IndexName: "SiteIndex",
+      ProjectionExpression: 'id, #name, completed_date, #action, area_element_compliance, assessor, \
+      closer, #comments, created_by, created_ts, department_id, description, due_date, element_compliance, key_findings, \
+      leader, location_id, members, person_responsible, risk_compliance, rule_compliance, site_id, summary, system_element_compliance, \
+      task_causes, task_element_compliance, task_id, near_miss',
+      KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+        "#comments": "comments",
+        "#action": "action",
+        },
+      ExpressionAttributeValues: {
+        ":clientId": clientId,
+        ":site_id": siteId
+      },
+    };
+  } else {
+    params = {
+      TableName: tableName,
+      ProjectionExpression: 'id, #name, completed_date, #action, area_element_compliance, assessor, \
+      closer, #comments, created_by, created_ts, department_id, description, due_date, element_compliance, key_findings, \
+      leader, location_id, members, person_responsible, risk_compliance, rule_compliance, site_id, summary, system_element_compliance, \
+      task_causes, task_element_compliance, task_id, near_miss',
+      KeyConditionExpression: '#partition_key = :clientId',
+      ExpressionAttributeNames:{
+        "#partition_key": "partition_key",
+        "#name": "name",
+        "#comments": "comments",
+        "#action": "action",
+      },
+      ExpressionAttributeValues: {
+        ":clientId": clientId
+      },
+    };
+  }
 
   ddb.query(params, function(response) {
     if(response.data) {
@@ -148,7 +175,7 @@ const getSupportingDocuments = (clientId, subgroup, onSuccess: (data: any) => vo
 const getQueryParams = (clientId, incidentId) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, #comments, #action, completed_date, due_date, description, summary, site_id, department_id, location_id, task_id, key_findings, assessor, members, leader, closer, person_responsible, element_compliance, task_causes, area_element_compliance, system_element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, #comments, #action, completed_date, due_date, description, summary, site_id, department_id, location_id, task_id, key_findings, assessor, members, leader, closer, person_responsible, element_compliance, task_causes, area_element_compliance, system_element_compliance, risk_compliance, rule_compliance, near_miss',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :incidentId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -194,6 +221,7 @@ router.put('/:incidentId', function(req, res, next) {
       leader = :leader, \
       members = :members, \
       closer = :closer, \
+      near_miss = :near_miss, \
       element_compliance = :element_compliance, \
       task_causes = :task_causes, \
       area_element_compliance = :area_element_compliance, \
@@ -224,6 +252,7 @@ router.put('/:incidentId', function(req, res, next) {
       ":leader": req.body.leader,
       ":members": req.body.members,
       ":closer": req.body.closer,
+      ":near_miss": req.body.near_miss,
       ":element_compliance": req.body.element_compliance,
       ":task_causes": req.body.task_causes,
       ":area_element_compliance": req.body.area_element_compliance,
@@ -310,6 +339,7 @@ router.post('/', function(req, res, next) {
       "members": req.body.members,
       "person_responsible": req.body.person_responsible,
       "closer": req.body.closer,
+      "near_miss": req.body.near_miss,
       "element_compliance": req.body.element_compliance,
       "task_causes": req.body.task_causes,
       "area_element_compliance": req.body.area_element_compliance,

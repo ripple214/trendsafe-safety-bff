@@ -8,7 +8,6 @@ import { isAfter } from '../common/date-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 import { getAssessmentsComplianceByElement } from './reports/assessments/compliance-by-element';
-import { getInspectionsComplianceByElement } from './reports/inspections/compliance-by-element';
 import { getHazardsComplianceByElement } from './reports/hazards/compliance-by-element';
 
 export const router = express.Router();
@@ -60,19 +59,6 @@ router.get('/load-graphs', function(req, res, next) {
         (data) => {
           resp['assessments_data'] = data['report-data'].summary;
           resp['assessments_summaries'] = data['report-data'].assessment_summaries;
-
-          resolve(true);
-        },
-        (error) => {
-          reject(error);
-        }
-      )
-    },
-    (resolve, reject) => {
-      getInspectionsComplianceByElement(req, 
-        (data) => {
-          resp['inspections_data'] = data['report-data'].summary;
-          resp['inspections_summaries'] = data['report-data'].inspection_summaries;
 
           resolve(true);
         },
