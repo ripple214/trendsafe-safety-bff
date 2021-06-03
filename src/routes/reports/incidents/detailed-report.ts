@@ -55,7 +55,7 @@ export const incidentsDetailedReport = (req, res) => {
         }
       );
     } else {
-      getIncidents(clientId,  
+      getIncidents(clientId, undefined,
         (data) => {
           incidents = data;
 

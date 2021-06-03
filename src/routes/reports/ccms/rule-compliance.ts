@@ -137,7 +137,7 @@ const getCCMs = (clientId: string, onSuccess: (data: any) => void, onError?: (er
       );
     },
     (resolve, reject) => {
-      getIncidents(clientId,  
+      getIncidents(clientId, undefined,
         (data) => {
           ccms = ccms.concat(data);
           console.log("incidents", data.length, ccms.length);

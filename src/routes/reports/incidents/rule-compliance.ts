@@ -54,7 +54,7 @@ export const getIncidentsRuleCompliance = (req, onSuccess: (data: any) => void, 
     );
   })
   .then((resolve, reject) => {
-    getIncidents(clientId, 
+    getIncidents(clientId, undefined,
       (data) => {
         incidents = data;
 

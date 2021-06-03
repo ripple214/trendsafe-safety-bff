@@ -53,7 +53,7 @@ export const getIncidentsImmediateCauseAnalysis = (req, onSuccess: (data: any) =
     );
   })
   .then((resolve, reject) => {
-    getIncidents(clientId,  
+    getIncidents(clientId, undefined,
       (data) => {
         incidents = data;
 

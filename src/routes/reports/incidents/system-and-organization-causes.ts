@@ -51,7 +51,7 @@ export const getIncidentsSystemAndOrganizationCauses = (req, onSuccess: (data: a
     );
   })
   .then((resolve, reject) => {
-    getIncidents(clientId,  
+    getIncidents(clientId, undefined,
       (data) => {
         incidents = data;
 
