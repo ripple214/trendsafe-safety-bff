@@ -147,7 +147,7 @@ const authenticateJWT = (req, res, next) => {
           }
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
           //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
-          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; Path=/; SameSite=Lax;'); //TODO Fix this before going to prod
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';'); //TODO Fix this before going to prod
           
           next();
       });

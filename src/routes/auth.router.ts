@@ -120,7 +120,8 @@ router.post("/login", (req, res, next) => {
             };
 
             let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-            res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
+            //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
+            res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';'); //TODO Fix this before going to prod
         
             //console.log("accessToken", accessToken)
 
@@ -146,7 +147,8 @@ router.post("/login", (req, res, next) => {
         });        
       } else {
         let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-        res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
+        //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
+        res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';'); //TODO Fix this before going to prod
         
         res.status(200);
         res.json(authDetails);
