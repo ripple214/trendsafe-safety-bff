@@ -71,6 +71,7 @@ console.log("APP_URL", conf.get('APP_URL'));
 console.log("CONTEXT_PATH", conf.get('CONTEXT_PATH'));
 
 var originsWhitelist = [
+  'http://localhost:8100', //TODO remove this before going to prod
   conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
@@ -90,8 +91,7 @@ var corsOptions = {
   credentials:true
 }
 
-//app.use(cors(corsOptions));
-app.use(cors());// TODO remove this before going to prod
+app.use(cors(corsOptions));
 
 app.set('etag', false);
 
@@ -146,8 +146,7 @@ const authenticateJWT = (req, res, next) => {
             response.reportingDepartmentIds = user.reportingDepartmentIds;
           }
           let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
-          //res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
-          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + ';'); //TODO Fix this before going to prod
+          res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
           
           next();
       });
