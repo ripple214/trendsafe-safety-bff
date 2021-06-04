@@ -108,7 +108,8 @@ const authenticateJWT = (req, res, next) => {
 
   //req['user'] = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
-  const authorization = getAppCookies(req)['Authorization'];
+  // TODO replace direct header retrieval of authorization before going to prod
+  const authorization = getAppCookies(req)['Authorization'] || (req.headers['authorization'] && req.headers['authorization'].replace('Bearer ', ''));
   //console.log("authorization is ", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
