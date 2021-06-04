@@ -71,6 +71,7 @@ console.log("APP_URL", conf.get('APP_URL'));
 console.log("CONTEXT_PATH", conf.get('CONTEXT_PATH'));
 
 var originsWhitelist = [
+  "http://localhost:8100", // TODO remove this before going to prod
   conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
