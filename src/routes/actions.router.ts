@@ -7,6 +7,7 @@ import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 
 import { SequentialExecutor } from '../common/sequential-executor';
+import { isAfter } from '../common/date-util';
 
 export const router = express.Router();
 
@@ -20,7 +21,7 @@ router.get('/', function(req, res, next) {
   getActions(clientId, 
     (data) => {
       data.sort(function (a, b) {
-        return moment(b.date_created).isAfter(moment(a.date_created));
+        return isAfter(b.date_created, a.date_created) ? 1 : -1;
       });
       
       var resp = {"actions": data};

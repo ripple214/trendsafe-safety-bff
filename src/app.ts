@@ -79,7 +79,7 @@ var originsWhitelist = [
 
 const contextPath = conf.get('CONTEXT_PATH');
 
-var corsOptions = {
+export const corsOptions = {
   origin: function(origin, callback){
     var isWhitelisted = !origin || originsWhitelist.indexOf(origin) !== -1;
     console.log("Origin is ", origin, "is this whitelisted?", isWhitelisted);
