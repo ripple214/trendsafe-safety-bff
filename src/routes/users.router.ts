@@ -432,11 +432,7 @@ export const deleteUser = (clientId: string, userId: string, onSuccess: (data: a
     });
   })
   .then((resolve, reject) => {
-    let identifier = user.email;
-    if(user.administrator != 'Y') {
-      identifier = user.mobile_no;
-    }
-    deleteAuthByEmail(identifier,
+    deleteAuthByEmail(user.email,
       (data) => {
         resolve(true);
       }, 
@@ -452,21 +448,4 @@ export const deleteUser = (clientId: string, userId: string, onSuccess: (data: a
     onError(error);
   })
   .execute();
-}
-
-export const deleteUsers = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
-  var params = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId
-    },
-  };
-  
-  ddb.delete(params, function(response) {
-    if(!response.error) {
-      onSuccess(response.data);
-    } else {
-      onError(response);
-    }
-  });
 }

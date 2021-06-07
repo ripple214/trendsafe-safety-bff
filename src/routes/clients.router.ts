@@ -5,8 +5,8 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { SequentialExecutor } from '../common/sequential-executor';
-import { createUser, deleteUsers, getAllUsers } from './users.router';
-import { createAuth, deleteAuthByEmail } from './auth.router';
+import { createUser, deleteUser, getAllUsers } from './users.router';
+import { createAuth } from './auth.router';
 import { createDefaultModules } from './modules.router';
 import { createDefaultKvps } from './kvps.router';
 import { createDefaultKpis } from './kpis.router';
@@ -36,7 +36,7 @@ export const getAllClients = (onSuccess: (data: any) => void, onError?: (error: 
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, email, license_count, license_max',
+    ProjectionExpression: 'id, #name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings',
     KeyConditionExpression: '#partition_key = :adminId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -54,23 +54,8 @@ export const getAllClients = (onSuccess: (data: any) => void, onError?: (error: 
         return a.name.localeCompare(b.name);
       });
    
-      let parallels = [];
-      parallels.push((resolve, reject) => {
-        response.data.forEach(client => {
-          getAllUsers(client.id, 
-            (data) => {
-              client.license_count = data.length;
-
-              resolve(true);
-            }, 
-            (error) => {
-              reject(error);
-            }
-          );
-        });
-      });
       new SequentialExecutor().chain()
-      .parallel(parallels)
+      .parallel(getCountParallels(response.data))
       .success(() => {
         onSuccess(response.data);
       })
@@ -106,7 +91,7 @@ export const getClient = (clientId, onSuccess: (data: any) => void, onError?: (e
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, first_name, last_name, email, license_count, license_max',
+    ProjectionExpression: 'id, #name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings',
     KeyConditionExpression: '#partition_key = :adminId and #sort_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -122,23 +107,11 @@ export const getClient = (clientId, onSuccess: (data: any) => void, onError?: (e
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
-      let parallels = [];
-      parallels.push((resolve, reject) => {
-        response.data.forEach(client => {
-          getAllUsers(client.id, 
-            (data) => {
-              client.license_count = data.length;
-
-              resolve(true);
-            }, 
-            (error) => {
-              reject(error);
-            }
-          );
-        });
-      });
+      let client= response.data[0];
       new SequentialExecutor().chain()
-      .parallel(parallels)
+      .then((resolve, reject) => {
+        getCount(client, resolve, reject);
+      })
       .success(() => {
         onSuccess(response.data[0]);
       })
@@ -157,12 +130,111 @@ export const getClient = (clientId, onSuccess: (data: any) => void, onError?: (e
   });
 }
 
+const getCountParallels = (clients): any[] => {
+  let parallels = [];
+  if(clients) {
+    clients.forEach(client => {
+      parallels.push((resolve,reject) => {
+        getCount(client, resolve,reject);
+      });
+    });
+  }
+
+  return parallels;
+}
+
+const getCount = (client, resolve, reject) => {
+  let administrators = 0;
+  let assessments = 0;
+  let inspections = 0;
+  let hazards = 0;
+  let incidents = 0;
+  let managements = 0;
+  let plannings = 0;
+  getAllUsers(client.id, 
+    (users) => {
+      if(users) {
+        users.forEach(user => {
+          if(user.administrator == 'Y') {
+            administrators++;
+          }
+
+          if(user.module_access) {
+            user.module_access.forEach(access => {
+              if(access == 'TA') {
+                assessments++;
+              } else if(access == 'PAI') {
+                inspections++;
+              } else if(access == 'HR') {
+                hazards++;
+              } else if(access == 'II') {
+                incidents++;
+              } else if(access == 'TRM') {
+                managements++;
+              } else if(access == 'TP') {
+                plannings++;
+              }
+            });
+          }
+        });
+      }
+
+      client.administrators = {
+        count: administrators,
+        max: (client.administrators ? (client.administrators['max'] || 0) : 0) 
+      }
+
+      client.assessments = {
+        count: assessments,
+        max: (client.assessments ? (client.assessments['max'] || 0) : 0) 
+      }
+
+      client.inspections = {
+        count: inspections,
+        max: (client.inspections ? (client.inspections['max'] || 0) : 0) 
+      }
+
+      client.hazards = {
+        count: hazards,
+        max: (client.hazards ? (client.hazards['max'] || 0) : 0) 
+      }
+
+      client.incidents = {
+        count: incidents,
+        max: (client.incidents ? (client.incidents['max'] || 0) : 0) 
+      }
+
+      client.managements = {
+        count: managements,
+        max: (client.managements ? (client.managements['max'] || 0) : 0) 
+      }
+
+      client.plannings = {
+        count: plannings,
+        max: (client.plannings ? (client.plannings['max'] || 0) : 0) 
+      }
+
+      resolve(true);
+    }, 
+    (error) => {
+      reject(error);
+    }
+  );
+}
+
 /* POST insert client. */
 router.post('/', function(req, res) {
   let name = req.body.name;
   let first_name = req.body.first_name;
   let last_name = req.body.last_name;
   let email = req.body.email;
+  let administrators = req.body.administrators;
+  let assessments = req.body.assessments;
+  let inspections = req.body.inspections;
+  let hazards = req.body.hazards;
+  let incidents = req.body.incidents;
+  let managements = req.body.managements;
+  let plannings = req.body.plannings;
 
   let resp: any;
   let error: any;
@@ -170,7 +242,7 @@ router.post('/', function(req, res) {
   let userId: string;
   new SequentialExecutor()
   .chain((resolve, reject) => {
-    createClient(name, first_name, last_name, email, req['user'].email, 
+    createClient(name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings, req['user'].email, 
     (data) => {
       resp = data;
       clientId = data.sort_key;
@@ -189,7 +261,8 @@ router.post('/', function(req, res) {
         email: email, 
         administrator: "Y", 
         leader: "true", 
-        authorizer : "true"      
+        authorizer : "true",
+        module_access: []
       }, 
       user: {
         email: req['user'].email
@@ -267,7 +340,7 @@ router.post('/', function(req, res) {
   
 });
 
-const createClient = (name, first_name, last_name, email, userEmail, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+const createClient = (name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings, userEmail, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let adminId = 'ALL';
   let createTime = moment().format();
   let id = uuid();
@@ -282,8 +355,13 @@ const createClient = (name, first_name, last_name, email, userEmail, onSuccess: 
       "first_name": first_name,
       "last_name": last_name,
       "email": email,
-      "license_count": 0,
-      "license_max": 20,
+      "administrators": administrators,
+      "assessments": assessments,
+      "inspections": inspections,
+      "hazards": hazards,
+      "incidents": incidents,
+      "managements": managements,
+      "plannings": plannings,
       "created_ts": createTime, 
       "created_by": userEmail,
       "updated_ts": createTime,
@@ -308,6 +386,13 @@ router.put('/:id', function(req, res) {
   let first_name = req.body.first_name;
   let last_name = req.body.last_name;
   let email = req.body.email;
+  let administrators = req.body.administrators;
+  let assessments = req.body.assessments;
+  let inspections = req.body.inspections;
+  let hazards = req.body.hazards;
+  let incidents = req.body.incidents;
+  let managements = req.body.managements;
+  let plannings = req.body.plannings;
 
   var params:any = {
     TableName: tableName,
@@ -315,7 +400,10 @@ router.put('/:id', function(req, res) {
       "partition_key": adminId,
       "sort_key": id,
     },
-    UpdateExpression: 'set #name = :name, first_name = :first_name, last_name = :last_name, email = :email, updated_ts = :updated_ts, updated_by = :updated_by',
+    UpdateExpression: 'set #name = :name, first_name = :first_name, last_name = :last_name, email = :email, \
+    administrators = :administrators, assessments = :assessments, inspections = :inspections, hazards = :hazards, \
+    incidents = :incidents, managements = :managements, plannings = :plannings, \
+    updated_ts = :updated_ts, updated_by = :updated_by',
     ExpressionAttributeNames:{
       "#name": "name",
     },
@@ -324,6 +412,13 @@ router.put('/:id', function(req, res) {
       ":first_name": first_name,
       ":last_name": last_name,
       ":email": email,
+      ":administrators": administrators,
+      ":assessments": assessments,
+      ":inspections": inspections,
+      ":hazards": hazards,
+      ":incidents": incidents,
+      ":managements": managements,
+      ":plannings": plannings,
       ":updated_ts": moment().format(),
       ":updated_by": req['user'].email,
     },
@@ -348,11 +443,11 @@ router.put('/:id', function(req, res) {
 /* DELETE delete client. */
 router.delete('/:clientId', function(req, res) {
   let adminId = 'ALL';
-  let clientId = req.params.id;
+  let clientId = req.params.clientId;
 
   let client = undefined;
 
-  new SequentialExecutor()
+  let chain = new SequentialExecutor()
   .chain((resolve, reject) => {
     getClient(clientId, 
       (data) => {
@@ -363,27 +458,33 @@ router.delete('/:clientId', function(req, res) {
         reject(error);
       }
     );
-  })
-  .then((resolve, reject) => {
-    deleteAuthByEmail(client.email, 
-      (data) => {
-        resolve(true);
-      }, 
-      (error) => {
-        reject(error);
-      }
-    );
-  })
-  .then((resolve, reject) => {
-    deleteUsers(clientId, 
-      (data) => {
-        resolve(true);
-      }, 
-      (error) => {
-        reject(error);
-      }
-    );
-  })
+  });
+
+  let parallels = [];
+  getAllUsers(clientId, 
+    (data) => {
+      data.forEach(user => {
+        parallels.push((resolve, reject) => {
+          deleteUser(clientId, user.id, 
+            (data) => {
+              resolve(true);
+            }, 
+            (error) => {
+              reject(error);
+            }
+          );
+        });
+
+      })
+    }, 
+    (error) => {
+      res.status(500);
+      res.json(error);
+      return;
+    }
+  );
+
+  chain.parallel(parallels)
   .then((resolve, reject) => {
     var params:any = {
       TableName: tableName,

@@ -22,8 +22,9 @@ export class SequentialExecutor {
         () => {
           res(true);
         },
-        () => {
-          rej("Parallel execution failed");
+        (error) => {
+          console.log("Parallel execution failed", error, executeThese.toString());
+          rej(error);
         }
       )
     });
@@ -88,7 +89,7 @@ export class SequentialExecutor {
           }
         }
       }).catch((error) => {
-        console.log("error in sequential executor", error);
+        console.log("error in sequential executor", error, execution.toString());
         if(onFail != undefined) {
           onFail(error);
         }
@@ -104,7 +105,7 @@ export class SequentialExecutor {
   private executeParallel (
     executionList: ((resolve: (value: boolean) => void, reject: (reason?: any) => void) => void)[],
     onSuccess ?: () => void,
-    onFail ?: () => void,
+    onFail ?: (error) => void,
     onAlways ?: () => void
   ) {
 
@@ -116,6 +117,7 @@ export class SequentialExecutor {
         try {
           execution(resolve, reject); 
         } catch(e) {
+          console.log("error in parallel execution", execution.toString());
           reject(e.message);
         }
       });
@@ -134,9 +136,9 @@ export class SequentialExecutor {
         }
       });
 
-      synCaller.catch(() => {
+      synCaller.catch((error) => {
         if(onFail != undefined) {
-          onFail();
+          onFail(error);
         }
         if(onAlways != undefined) {
           onAlways();
