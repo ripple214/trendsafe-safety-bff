@@ -16,6 +16,25 @@ var supportingDocumentsGroup = "supporting-documents/actions"
 /* GET actions listing. */
 router.get('/', function(req, res, next) {
   let clientId = req['user'].client_id;
+
+  getActions(clientId, 
+    (data) => {
+      data.sort(function (a, b) {
+        return moment(b.date_created).isAfter(moment(a.date_created));
+      });
+      
+      var resp = {"actions": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getActions = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   
   var params:any = {
     TableName: tableName,
@@ -32,20 +51,13 @@ router.get('/', function(req, res, next) {
 
   ddb.query(params, function(response) {
     
-    if (response.data) {
-      response.data.sort(function (a, b) {
-        return moment(b.date_created).isAfter(moment(a.date_created));
-      });
-
-      var resp = {"actions": response.data};
-      res.status(200);
-      res.json(resp);
+    if(response.data) {
+      onSuccess(response.data);
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+};
 
 /* GET action. */
 router.get('/:actionId', function(req, res) {

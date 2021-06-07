@@ -88,6 +88,7 @@ export class SequentialExecutor {
           }
         }
       }).catch((error) => {
+        console.log("error in sequential executor", error);
         if(onFail != undefined) {
           onFail(error);
         }

@@ -7,8 +7,10 @@ import { default as jwt } from 'jsonwebtoken';
 
 import { db_service as ddb } from '../services/ddb.service';
 import moment from "moment";
+import crypto from "crypto";
 import { email_service } from "../services/email.service";
 import { BffResponse } from "../common/bff.response";
+import { getActions } from "./actions.router";
 
 export const router = express.Router();
 
@@ -21,7 +23,7 @@ router.post("/login", (req, res, next) => {
 
   var authParams = {
     TableName: tableName,
-    ProjectionExpression: 'client_id, last_login, failed_attempts, user_id, #module',
+    ProjectionExpression: 'client_id, last_login, failed_attempts, user_id, administrator, #module, password_changed',
     KeyConditionExpression: '#partition_key = :email and #sort_key = :password',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -38,6 +40,7 @@ router.post("/login", (req, res, next) => {
     
     if (authResponse.data && authResponse.data.length == 1) {
       var authDetails = authResponse.data[0];
+      authDetails['email'] = email;
 
       var authToken:any = {
         session_id: uuid(),
@@ -124,26 +127,26 @@ router.post("/login", (req, res, next) => {
         
             //console.log("accessToken", accessToken)
 
-            var actionsParams = {
-              TableName: conf.get('TABLE_ACTIONS'),
-              ProjectionExpression: 'id, assigned_to, completed_date',
-              KeyConditionExpression: '#partition_key = :clientId',
-              ExpressionAttributeNames:{
-                "#partition_key": "partition_key",
-                "#name": "name",
-              },
-              ExpressionAttributeValues: {
-                ":clientId": clientId
-              },
-            };
+            getActions(clientId, 
+              (actions) => {
+                authDetails['assigned_actions'] = actions.filter(action => {
+                  return action.assigned_to && action.assigned_to.id == userId;
+                }).length;
 
-            res.status(200);
-            res.json(authDetails);
+                res.status(200);
+                res.json(authDetails);
+              }, 
+              (error) => {
+                res.status(500);
+                res.json(error);
+              }
+            );
+
           } else {
             res.status(403);
             res.json();
           }
-        });        
+        });
       } else {
         let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
         res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
@@ -165,19 +168,42 @@ router.post("/logout", (req, res, next) => {
     res.json();
 });
 
-router.post("/retrieve-password", (req, res, next) => {  
-  var response = {
-    account: {
-      email: req.body.email
-    }
+router.post("/retrieve-password", (req, res, next) => {
+  let email = req.body.email;
+
+  var authParams = {
+    TableName: tableName,
+    ProjectionExpression: '#sort_key',
+    KeyConditionExpression: '#partition_key = :email',
+    ExpressionAttributeNames:{
+      "#partition_key": "partition_key",
+      "#sort_key": "sort_key",
+    },
+    ExpressionAttributeValues: {
+      ":email": email
+    },
   };
 
-  res.json(response);
+  ddb.query(authParams, function(authResponse) {
+    if (authResponse.data && authResponse.data.length == 1) {
+      var authDetails = authResponse.data[0];
+      email_service.send_retrieve_password( 
+        {
+          toAddress: email,
+          name: email, 
+          password: authDetails['sort_key']
+        }
+      );
+    }
+    res.status(200);
+    res.json("Password sent to email address");
+  });
+
 });
 
 export const createAuth = (email: string, clientId: string, userId: string, userEmail:string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let createTime = moment().format();
-  let password = "Singapore1";
+  let password = crypto.randomBytes(12).toString("hex");
   
   var params:any = {
     TableName: tableName,
@@ -188,6 +214,7 @@ export const createAuth = (email: string, clientId: string, userId: string, user
       "client_id": clientId,
       "user_id": userId,
       "failed_attempts": 0,
+      "password_changed": false,
       "created_ts": createTime, 
       "created_by": userEmail,
       "updated_ts": createTime,
@@ -198,20 +225,65 @@ export const createAuth = (email: string, clientId: string, userId: string, user
   ddb.insert(params, function(response) {
     if(response.data) {
       let resp = response.data;
-      email_service.send_registration( 
-        {
-          toAddress: email,
-          username: email, 
-          password: password
-        }, (response: BffResponse) => {
-        if (response.data) {
-          onSuccess(resp);
+        email_service.send_registration( 
+          {
+            toAddress: email,
+            username: email, 
+            password: password
+          }, 
+          (response: BffResponse) => {
+            if (response.data) {
+              onSuccess(resp);
+            } else {
+              onError(response);
+            }
+          }
+        );
+      } else {
+        onError(response);
+      }
+    }
+  );  
+}
+
+export const deleteAuthByEmail = (email: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getAuthByEmail(email, 
+    (data) => {
+      var params = {
+        TableName: tableName,
+        Key: {
+          "partition_key": email,
+          "sort_key": data.sort_key
+        },
+      };
+      
+      ddb.delete(params, function(response) {
+        if(!response.error) {
+          onSuccess(response.data);
         } else {
           onError(response);
         }
       });
-    } else {
-      onError(response);
+    }, 
+    (error) => {
+      onError(error);
     }
-  });  
+  )
+}
+
+const getAuthByEmail = (email: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  ddb.queryAll(tableName, (auths) => {
+    let auth = auths.find(auth => {
+      //console.log("searching", email, auth.partition_key)
+      return auth.partition_key == email;
+    });
+
+    if(auth) {
+      onSuccess(auth);
+    } else {
+      onError({
+        message: "Not found: " + email
+      })
+    }
+  })
 }

@@ -1,5 +1,5 @@
 {
-    "BFF_URL": "http://nonprod-trendsafe-bff-263369121.ap-southeast-2.elb.amazonaws.com",
+    "BFF_URL": "http://nonprod-trendsafe-bff-1831860062.ap-southeast-2.elb.amazonaws.com",
     "APP_URL": "http://nonprod-trendsafe-app-1831860062.ap-southeast-2.elb.amazonaws.com",
     "CONTEXT_PATH": "/bff",
     "TABLE_KVPS": "KVPS",

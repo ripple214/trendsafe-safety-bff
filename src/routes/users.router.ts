@@ -5,7 +5,7 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { SequentialExecutor } from '../common/sequential-executor';
-import { createAuth } from './auth.router';
+import { createAuth, deleteAuthByEmail } from './auth.router';
 
 export const router = express.Router();
 
@@ -387,24 +387,86 @@ router.delete('/:userId', function(req, res) {
   let clientId = req['user'].client_id;
   let userId = req.params.userId;
 
-  var params:any = {
-    TableName: tableName,
-    Key: {
-      "partition_key": clientId,
-      "sort_key": userId,
-    },
-  };
-
-  ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
-    } else {
+  deleteUser(clientId, userId,
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
       res.status(400);
-      res.json(response);
+      res.json(error);
     }
-  });
+  );
 });
 
+export const deleteUser = (clientId: string, userId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let user = undefined;
+  new SequentialExecutor()
+  .chain((resolve, reject) => {
+    getUser(clientId, userId, 
+      (data) => {
+        user = data;
+        resolve(true);
+      }, 
+      (error) => {
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
+    var params = {
+      TableName: tableName,
+      Key: {
+        "partition_key": clientId,
+        "sort_key": userId
+      },
+    };
+    
+    ddb.delete(params, function(response) {
+      if(!response.error) {
+        resolve(true);
+      } else {
+        reject(response);
+      }
+    });
+  })
+  .then((resolve, reject) => {
+    let identifier = user.email;
+    if(user.administrator != 'Y') {
+      identifier = user.mobile_no;
+    }
+    deleteAuthByEmail(identifier,
+      (data) => {
+        resolve(true);
+      }, 
+      (error) => {
+        reject(error);
+      }
+    );
+  })
+  .success(() => {
+    onSuccess(user);
+  })
+  .fail((error) => {
+    onError(error);
+  })
+  .execute();
+}
 
+export const deleteUsers = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  var params = {
+    TableName: tableName,
+    Key: {
+      "partition_key": clientId
+    },
+  };
+  
+  ddb.delete(params, function(response) {
+    if(!response.error) {
+      onSuccess(response.data);
+    } else {
+      onError(response);
+    }
+  });
+}

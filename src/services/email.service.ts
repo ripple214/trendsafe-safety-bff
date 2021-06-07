@@ -64,7 +64,7 @@ export const email_service = {
             reportName: string;
             filePath: string;
         }, 
-        callback : (response: BffResponse) => void 
+        callback ?: (response: BffResponse) => void 
     ) {
         let toAddress = data.toAddress;
         let ccAddress = data.ccAddress;
@@ -129,6 +129,28 @@ export const email_service = {
             }
         );        
     }, 
+
+    send_retrieve_password: function(
+        data: {
+            toAddress: string;
+            name: string;
+            password: string;
+        }, 
+        callback ?: (response: BffResponse) => void 
+    ) {
+        let params = {
+            Destination: {
+                ToAddresses: [data.toAddress]
+            },
+            Source: FROM_ADDRESS,
+            Template: "_RETRIEVE_PASSWORD",
+            TemplateData: "{ \"name\":\"" + data.name + "\", \"password\":\"" + data.password + "\" }", 
+            ReplyToAddresses: [REPLY_TO_ADDRESS]
+        };
+        
+        send(params, callback);
+    }, 
+
 }
 
 const send = (params, callback : (response: BffResponse) => void) => {
@@ -144,7 +166,9 @@ const send = (params, callback : (response: BffResponse) => void) => {
                 MessageId: data.MessageId
             }
 
-            callback(response);
+            if(callback) {
+                callback(response);
+            }
         }
     ).catch(
         (err) => {
@@ -153,7 +177,9 @@ const send = (params, callback : (response: BffResponse) => void) => {
                 "message": "Error in email sending: " + err,
                 "code": "400",
             };
-            callback(response);
+            if(callback) {
+                callback(response);
+            }
         }
     );
 

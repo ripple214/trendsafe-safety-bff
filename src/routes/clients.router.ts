@@ -5,8 +5,8 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { SequentialExecutor } from '../common/sequential-executor';
-import { createUser } from './users.router';
-import { createAuth } from './auth.router';
+import { createUser, deleteUsers, getAllUsers } from './users.router';
+import { createAuth, deleteAuthByEmail } from './auth.router';
 import { createDefaultModules } from './modules.router';
 import { createDefaultKvps } from './kvps.router';
 import { createDefaultKpis } from './kpis.router';
@@ -18,6 +18,20 @@ var tableName = conf.get('TABLE_CLIENTS');
 
 /* GET clients listing. */
 router.get('/', function(req, res) {
+  getAllClients( 
+    (data) => {
+      var resp = {"clients": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getAllClients = (onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let adminId = 'ALL';
   
   var params:any = {
@@ -39,21 +53,56 @@ router.get('/', function(req, res) {
       response.data.sort(function (a, b) {
         return a.name.localeCompare(b.name);
       });
+   
+      let parallels = [];
+      parallels.push((resolve, reject) => {
+        response.data.forEach(client => {
+          getAllUsers(client.id, 
+            (data) => {
+              client.license_count = data.length;
 
-      var resp = {"clients": response.data};
-      res.status(200);
-      res.json(resp);
+              resolve(true);
+            }, 
+            (error) => {
+              reject(error);
+            }
+          );
+        });
+      });
+      new SequentialExecutor().chain()
+      .parallel(parallels)
+      .success(() => {
+        onSuccess(response.data);
+      })
+      .fail(error => {
+        onError(error);
+      })
+      .execute();
+
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+}
 
 /* GET client. */
 router.get('/:clientId', function(req, res) {
-  let adminId = 'ALL';
   let clientId = req.params.clientId;
+
+  getClient(clientId, 
+    (data) => {
+      res.status(200);
+      res.json(data);
+    }, 
+    (error) => {
+      res.status(404);
+      res.json(error);
+    }
+  );
+});
+
+export const getClient = (clientId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let adminId = 'ALL';
   
   var params:any = {
     TableName: tableName,
@@ -73,19 +122,40 @@ router.get('/:clientId', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data && response.data.length == 1) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
+      let parallels = [];
+      parallels.push((resolve, reject) => {
+        response.data.forEach(client => {
+          getAllUsers(client.id, 
+            (data) => {
+              client.license_count = data.length;
 
-      var resp = response.data[0];
-      res.status(200);
-      res.json(resp);
+              resolve(true);
+            }, 
+            (error) => {
+              reject(error);
+            }
+          );
+        });
+      });
+      new SequentialExecutor().chain()
+      .parallel(parallels)
+      .success(() => {
+        onSuccess(response.data[0]);
+      })
+      .fail(error => {
+        onError(error);
+      })
+      .execute();
     } else {
-      res.status(404);
-      res.json();
+      onError({
+        error: {
+            message: "Client not found",
+            id: clientId
+        }
+      });
     }
   });
-});
+}
 
 /* POST insert client. */
 router.post('/', function(req, res) {
@@ -276,28 +346,72 @@ router.put('/:id', function(req, res) {
 });
 
 /* DELETE delete client. */
-router.delete('/:id', function(req, res) {
+router.delete('/:clientId', function(req, res) {
   let adminId = 'ALL';
-  let id = req.params.id;
+  let clientId = req.params.id;
 
-  var params:any = {
-    TableName: tableName,
-    Key: {
-      "partition_key": adminId,
-      "sort_key": id,
-    },
-  };
+  let client = undefined;
 
-  ddb.delete(params, function(response) {
-    console.log("response", response);
-    if (!response.error) {
-      res.status(204);
-      res.json();
-    } else {
-      res.status(400);
-      res.json(response);
-    }
-  });
+  new SequentialExecutor()
+  .chain((resolve, reject) => {
+    getClient(clientId, 
+      (data) => {
+        client = data;
+        resolve(true);
+      }, 
+      (error) => {
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
+    deleteAuthByEmail(client.email, 
+      (data) => {
+        resolve(true);
+      }, 
+      (error) => {
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
+    deleteUsers(clientId, 
+      (data) => {
+        resolve(true);
+      }, 
+      (error) => {
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
+    var params:any = {
+      TableName: tableName,
+      Key: {
+        "partition_key": adminId,
+        "sort_key": clientId,
+      },
+    };
+  
+    ddb.delete(params, function(response) {
+      if (!response.error) {
+        resolve(true);
+      } else {
+        reject(response);
+      }
+    });
+  })
+  .success(() => {
+    res.status(204);
+    res.json();
+  })
+  .fail((error) => {
+    res.status(400);
+    res.json(error);
+  })
+  .execute();
+
+
 });
 
 
