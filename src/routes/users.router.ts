@@ -143,7 +143,7 @@ router.get('/:userId', function(req, res) {
   );
 });
 
-const getUser = (clientId: string, userId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+export const getUser = (clientId: string, userId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, last_name, first_name, email, administrator, leader, #user, authorizer, recipient, module_access, \

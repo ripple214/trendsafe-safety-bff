@@ -113,3 +113,19 @@ export const deleteAuth = (email: string, password: string, onSuccess: () => voi
     }    
   });  
 }
+
+export const getCredentials = (email: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  ddb.queryAll(tableName, (auths) => {
+    let auth = auths.find(auth => {
+      return auth.partition_key == email;
+    });
+
+    if(auth) {
+      onSuccess(auth);
+    } else {
+      onError({
+        message: "Not found: " + email
+      })
+    }
+  })
+}

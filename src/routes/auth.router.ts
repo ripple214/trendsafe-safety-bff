@@ -11,6 +11,7 @@ import crypto from "crypto";
 import { email_service } from "../services/email.service";
 import { BffResponse } from "../common/bff.response";
 import { getActions } from "./actions.router";
+import { getUser } from "./users.router";
 
 export const router = express.Router();
 
@@ -21,6 +22,20 @@ router.post("/login", (req, res, next) => {
   let email = req.body.email;
   let password = req.body.password;
 
+  login(email, password, res,
+    (data) => {
+      var resp = data;
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(403);
+      res.json(error);
+    }
+  );
+});
+
+export const login = (email: string, password: string, res, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var authParams = {
     TableName: tableName,
     ProjectionExpression: 'client_id, last_login, failed_attempts, user_id, administrator, #module, password_changed',
@@ -52,27 +67,8 @@ router.post("/login", (req, res, next) => {
         let clientId = authDetails.client_id;
         let userId = authDetails.user_id;
 
-        var userParams = {
-          TableName: conf.get('TABLE_USERS'),
-          ProjectionExpression: 'last_name, first_name, email, administrator, leader, #user, authorizer, recipient, module_access, \
-          dataEntryDivisionIds, dataEntryProjectIds, dataEntrySiteIds, dataEntrySubsiteIds, dataEntryDepartmentIds, \
-          reportingDivisionIds, reportingProjectIds, reportingSiteIds, reportingSubsiteIds, reportingDepartmentIds',
-          KeyConditionExpression: '#partition_key = :clientId and #sort_key = :userId',
-          ExpressionAttributeNames:{
-            "#partition_key": "partition_key",
-            "#sort_key": "sort_key",
-            "#user": "user"
-          },
-          ExpressionAttributeValues: {
-            ":clientId": clientId,
-            ":userId": userId
-          },
-        };
-      
-        ddb.query(userParams, function(usersResponse) {
-          if (usersResponse.data && usersResponse.data.length == 1) {
-            var userDetails = usersResponse.data[0];
-
+        getUser(clientId, userId,
+          (userDetails) => {
             authToken.client_id = clientId;
             authToken.user_id = userId;
             authToken.last_name = userDetails.last_name;
@@ -133,34 +129,33 @@ router.post("/login", (req, res, next) => {
                   return action.assigned_to && action.assigned_to.id == userId;
                 }).length;
 
-                res.status(200);
-                res.json(authDetails);
+                onSuccess(authDetails);
               }, 
               (error) => {
-                res.status(500);
-                res.json(error);
+                onError(error);
               }
             );
-
-          } else {
-            res.status(403);
-            res.json();
+          }, 
+          (error) => {
+            onError(error);
           }
-        });
+        );
       } else {
         let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
         res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax; ');
         
-        res.status(200);
-        res.json(authDetails);
+        onSuccess(authDetails);
       }
     } else {
-      res.status(403);
-      res.json();
+      onError({
+        error: {
+          message: "Invalid username / password", 
+          id: email
+        }
+      });
     }
   });
-
-});
+}
 
 router.post("/logout", (req, res, next) => {  
     res.cookie("Authorization", null, {maxAge: 0});
