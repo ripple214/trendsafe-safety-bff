@@ -11,7 +11,7 @@ import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_PERFORMANCES');
+const tableName = conf.get('TABLE_PERFORMANCES');
 
 /* GET performances listing. */
 router.get('/', function(req, res, next) {

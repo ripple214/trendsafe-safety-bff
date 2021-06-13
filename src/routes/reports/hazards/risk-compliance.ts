@@ -4,11 +4,15 @@ import { getRisks } from '../../risks.router';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
-import { IoTJobsDataPlane } from 'aws-sdk';
 import { isWithin } from '../../../common/date-util';
+
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'HR';
 
 /* GET risk compliance report */
 export const hazardsRiskCompliance = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getHazardsRiskCompliance(req, 
     (data) => {
       res.status(200);

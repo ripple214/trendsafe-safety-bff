@@ -5,8 +5,13 @@ import { getInspection, getInspections, getPhotographs } from '../../inspections
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'PAI';
+
 /* GET detailed report */
 export const inspectionsDetailedReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
 
   let id = req.query.id;

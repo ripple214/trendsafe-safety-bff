@@ -4,8 +4,13 @@ import { retrieve as getCauses } from '../../causes.router';
 import { checkNum } from '../../../common/checkNum';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'II';
+
 /* GET system-and-organization-causes report */
 export const incidentsSystemAndOrganizationCauses = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getIncidentsSystemAndOrganizationCauses(req, 
     (data) => {
       res.status(200);

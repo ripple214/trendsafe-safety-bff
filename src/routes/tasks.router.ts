@@ -7,7 +7,7 @@ import { db_service as ddb } from '../services/ddb.service';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_TASKS');
+const tableName = conf.get('TABLE_TASKS');
 var DELIMITER = "$";
 
 /* GET tasks listing. */

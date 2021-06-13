@@ -50,7 +50,7 @@ export const dashboardReport = (req, res) => {
       let executor = new SequentialExecutor().chain();
       let parallels = [];
       preferences.widgets.forEach(widget => {
-        if(widget.is_activated) {
+        if(widget.is_activated && hasReportAccess(req, widget.id)) {
           parallels.push((resolve, reject) => {
             getReport(req, widget.id,
               (data) => {
@@ -85,6 +85,7 @@ export const dashboardReport = (req, res) => {
 };
 
 const getReport = (req, widgetId, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+
   switch(widgetId) {
     case "TA-CE": getAssessmentsComplianceByElement(req, onSuccess, onError); break;
     case "TA-CC": getAssessmentsComplianceByCategory(req, onSuccess, onError); break;
@@ -132,4 +133,12 @@ const getReport = (req, widgetId, onSuccess: (data: any) => void, onError?: (err
     case "CCM-MRC": getCCMSRiskCompliance(req, onSuccess, onError);  break;
     case "CCM-SRB": getCCMSRuleCompliance(req, onSuccess, onError);  break;
   }
+}
+
+const hasReportAccess = (req, widgetId): boolean => {
+  let moduleId = widgetId.split('-')[0];
+  
+  let user = req['user'];
+
+  return (user.module_access != undefined && user.module_access.indexOf(moduleId) > -1);
 }

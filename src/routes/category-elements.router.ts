@@ -8,7 +8,7 @@ import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
+const tableName = conf.get('TABLE_CATEGORY_ELEMENTS');
 var DELIMITER = "$";
 var CATEGORY = "CATEGORY";
 var ELEMENT = "ELEMENT";
@@ -413,7 +413,7 @@ export const createDefaultCategoryElements = (clientId, string, userEmail: strin
     {"sort_num": 1,"parent": "","id": "1001","name": "Documentation","partition_key": "$assessments$CATEGORY"},
     {"sort_num": 7,"parent": "","id": "1007","name": "Physical Conditions","partition_key": "$assessments$CATEGORY"},
     {"sort_num": 8,"parent": "","id": "1021","name": "Accessibility and Operability","partition_key": "$inspections$CATEGORY"},
-    {"sort_num": 14,"parent": "","id": "1027","name": "Emergency Prepareness","partition_key": "$inspections$CATEGORY"},
+    {"sort_num": 14,"parent": "","id": "1027","name": "Emergency Preparedness","partition_key": "$inspections$CATEGORY"},
     {"sort_num": 1,"parent": "","id": "1014","name": "Functional Status","partition_key": "$inspections$CATEGORY"},
     {"sort_num": 5,"parent": "","id": "1018","name": "General Order","partition_key": "$inspections$CATEGORY"},
     {"sort_num": 11,"parent": "","id": "1024","name": "Notification","partition_key": "$inspections$CATEGORY"},
@@ -446,13 +446,13 @@ export const createDefaultCategoryElements = (clientId, string, userEmail: strin
     {"sort_num": 13,"parent": "1024","id": "1026","name": "Alarms and Signals","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 9,"parent": "1021","id": "1022","name": "Ergonomics","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 15,"parent": "1027","id": "1028","name": "Fire Equipment","partition_key": "$inspections$ELEMENT"},
-    {"sort_num": 16,"parent": "1027","id": "1029","name": "First-aid and Refuge","partition_key": "$inspections$ELEMENT"},
+    {"sort_num": 16,"parent": "1027","id": "1029","name": "First aid and Refuge","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 3,"parent": "1014","id": "1016","name": "Guarding","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 6,"parent": "1018","id": "1019","name": "Housekeeping","partition_key": "$inspections$ELEMENT"},
-    {"sort_num": 2,"parent": "1014","id": "1015","name": "Operational Conditions","partition_key": "$inspections$ELEMENT"},
+    {"sort_num": 2,"parent": "1014","id": "1015","name": "Operational Condition","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 12,"parent": "1024","id": "1025","name": "Signage","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 7,"parent": "1018","id": "1020","name": "Storage","partition_key": "$inspections$ELEMENT"},
-    {"sort_num": 4,"parent": "1014","id": "1017","name": "Ventillation","partition_key": "$inspections$ELEMENT"},
+    {"sort_num": 4,"parent": "1014","id": "1017","name": "Ventilation","partition_key": "$inspections$ELEMENT"},
     {"sort_num": 41,"parent": "1046","id": "1054","name": "Biological","partition_key": "$hazards$ELEMENT"},
     {"sort_num": 21,"parent": "1030","id": "1034","name": "Caught on / between","partition_key": "$hazards$ELEMENT"},
     {"sort_num": 34,"parent": "1046","id": "1047","name": "Chemical contact","partition_key": "$hazards$ELEMENT"},
@@ -560,7 +560,7 @@ export const createDefaultCategoryElements = (clientId, string, userEmail: strin
     {"sort_num": 78,"parent": "1076","id": "1091","name": "Tool layard","partition_key": "$controls$ELEMENT"},
     {"sort_num": 72,"parent": "1076","id": "1085","name": "Use mechanical lifting equipment","partition_key": "$controls$ELEMENT"},
     {"sort_num": 74,"parent": "1076","id": "1087","name": "User spotter","partition_key": "$controls$ELEMENT"},
-    {"sort_num": 85,"parent": "1093","id": "1098","name": "Ventillation","partition_key": "$controls$ELEMENT"},
+    {"sort_num": 85,"parent": "1093","id": "1098","name": "Ventilation","partition_key": "$controls$ELEMENT"},
     {"sort_num": 124,"parent": "1135","id": "1137","name": "Warning tape","partition_key": "$controls$ELEMENT"},
     {"sort_num": 140,"parent": "1143","id": "1153","name": "Welding gloves","partition_key": "$controls$ELEMENT"},
     {"sort_num": 142,"parent": "1143","id": "1155","name": "Welding helmet","partition_key": "$controls$ELEMENT"},

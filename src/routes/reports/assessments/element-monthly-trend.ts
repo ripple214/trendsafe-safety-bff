@@ -6,8 +6,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TA';
+
 /* GET compliance-by-element report */
 export const assessmentsElementMonthlyTrend = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getAssessmentsElementMonthlyTrend(req, 
     (data) => {
       res.status(200);

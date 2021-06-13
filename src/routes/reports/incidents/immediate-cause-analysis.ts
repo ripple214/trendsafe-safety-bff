@@ -5,8 +5,13 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { checkNum } from '../../../common/checkNum';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'II';
+
 /* GET immediate-cause-analysis report */
 export const incidentsImmediateCauseAnalysis = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getIncidentsImmediateCauseAnalysis(req, 
     (data) => {
       res.status(200);
@@ -152,7 +157,7 @@ const getChartData = (categories, headings, incidents, filter: IncidentFilter, o
     }
 
   });
-console.log("ok dito");
+  //console.log("ok dito");
   categories.forEach((category) => {
     let nonCompliantEquipmentCount = 0;
 
@@ -188,7 +193,7 @@ console.log("ok dito");
     }
 
   });
-  console.log("umabot dito");  
+  //console.log("umabot dito");  
   
   tableData.forEach(data => {
     data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))

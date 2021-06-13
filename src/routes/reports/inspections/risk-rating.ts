@@ -6,8 +6,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'PAI';
+
 /* GET risk rating report */
 export const inspectionsRiskRating = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getInspectionsRiskRating(req, 
     (data) => {
       res.status(200);

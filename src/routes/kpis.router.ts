@@ -7,7 +7,7 @@ import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_KPIS');
+const tableName = conf.get('TABLE_KPIS');
 
 /* GET kpis listing. */
 router.get('/', function(req, res, next) {

@@ -2,8 +2,13 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncident, getIncidents } from '../../incidents.router';
 import { getHierarchyFilter, isWithinBasicFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'II';
+
 /* GET detailed report */
 export const incidentsDetailedReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
 
   let id = req.query.id;

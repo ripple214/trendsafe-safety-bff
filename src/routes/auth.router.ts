@@ -15,7 +15,7 @@ import { getUser } from "./users.router";
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_AUTHS');
+const tableName = conf.get('TABLE_AUTHS');
 
 router.post("/login", (req, res, next) => {
 

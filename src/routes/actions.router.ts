@@ -8,14 +8,19 @@ import { s3_service as s3 } from '../services/s3.service';
 
 import { SequentialExecutor } from '../common/sequential-executor';
 import { isAfter } from '../common/date-util';
+import { hasModuleAccess } from '../common/access-util';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_ACTIONS');
+const tableName = conf.get('TABLE_ACTIONS');
+const moduleId = 'AM';
+
 var supportingDocumentsGroup = "supporting-documents/actions"
 
 /* GET actions listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   getActions(clientId, 
@@ -39,11 +44,12 @@ export const getActions = (clientId: string, onSuccess: (data: any) => void, onE
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, summary, assessor, assigned_to, date_created, date_due, email_text, completed_by, completed_date, actions_taken',
+    ProjectionExpression: 'id, #name, summary, assessor, #source, assigned_to, date_created, date_due, email_text, completed_by, completed_date, actions_taken',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#name": "name",
+      "#source": "source",
     },
     ExpressionAttributeValues: {
       ":clientId": clientId
@@ -62,6 +68,8 @@ export const getActions = (clientId: string, onSuccess: (data: any) => void, onE
 
 /* GET action. */
 router.get('/:actionId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -103,12 +111,13 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, summary, assessor, assigned_to, date_created, date_due, email_text, completed_by, completed_date, actions_taken',
+    ProjectionExpression: 'id, #name, summary, assessor, #source, assigned_to, date_created, date_due, email_text, completed_by, completed_date, actions_taken',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :actionId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
       "#sort_key": "sort_key",
       "#name": "name",
+      "#source": "source",
     },
     ExpressionAttributeValues: {
       ":clientId": clientId,
@@ -121,6 +130,8 @@ const getQueryParams = (req) => {
 
 /* PUT update action. */
 router.put('/:actionId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let actionId = req.params.actionId;
 
@@ -133,6 +144,7 @@ router.put('/:actionId', function(req, res, next) {
     UpdateExpression: 'set #name = :name, \
       summary = :summary, \
       assessor = :assessor, \
+      #source = :source, \
       assigned_to = :assigned_to, \
       date_created = :date_created, \
       date_due = :date_due, \
@@ -144,16 +156,18 @@ router.put('/:actionId', function(req, res, next) {
       updated_by = :updated_by',
     ExpressionAttributeNames:{
       "#name": "name",
+      "#source": "source",
     },
     ExpressionAttributeValues: {
       ":name": req.body.name,
       ":summary": req.body.summary,
-      ":assessor": req.body.assessor,
-      ":assigned_to": req.body.assigned_to,
+      ":assessor": req.body.assessor || '',
+      ":source": req.body.source || '',
+      ":assigned_to": req.body.assigned_to || '',
       ":date_created": req.body.date_created,
       ":date_due": req.body.date_due,
       ":email_text": req.body.email_text,
-      ":completed_by": req.body.completed_by,
+      ":completed_by": req.body.completed_by || '',
       ":completed_date": req.body.completed_date,
       ":actions_taken": req.body.actions_taken,
       ":updated_ts": moment().format(),
@@ -179,6 +193,8 @@ router.put('/:actionId', function(req, res, next) {
 
 /* POST insert action. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
@@ -194,11 +210,12 @@ router.post('/', function(req, res, next) {
       "name": name,
       "summary": req.body.summary,
       "assessor": req.body.assessor,
+      "source": req.body.source,
       "assigned_to": req.body.assigned_to,
       "date_created": req.body.date_created,
       "date_due": req.body.date_due,
       "email_text": req.body.email_text,
-      "completed_by": req.body.completed_by,
+      "completed_by": req.body.completed_by || '',
       "completed_date": req.body.completed_date,
       "actions_taken": req.body.actions_taken,
       "created_ts": createTime, 
@@ -262,6 +279,8 @@ router.delete('/:actionId', function(req, res) {
 
 /* DELETE delete actions. */
 router.delete('/', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let ids = [].concat(req.query.ids || []);
 

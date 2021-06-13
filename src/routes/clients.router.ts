@@ -14,7 +14,7 @@ import { createDefaultCategoryElements } from './category-elements.router';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_CLIENTS');
+const tableName = conf.get('TABLE_CLIENTS');
 
 /* GET clients listing. */
 router.get('/', function(req, res) {
@@ -36,7 +36,7 @@ export const getAllClients = (onSuccess: (data: any) => void, onError?: (error: 
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings',
+    ProjectionExpression: 'id, #name, email, administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators',
     KeyConditionExpression: '#partition_key = :adminId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -91,7 +91,7 @@ export const getClient = (clientId, onSuccess: (data: any) => void, onError?: (e
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings',
+    ProjectionExpression: 'id, #name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators',
     KeyConditionExpression: '#partition_key = :adminId and #sort_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -149,8 +149,11 @@ const getCount = (client, resolve, reject) => {
   let inspections = 0;
   let hazards = 0;
   let incidents = 0;
+  let kpis = 0;
+  let actions = 0;
   let managements = 0;
   let plannings = 0;
+  let indicators = 0;
   getAllUsers(client.id, 
     (users) => {
       if(users) {
@@ -169,10 +172,16 @@ const getCount = (client, resolve, reject) => {
                 hazards++;
               } else if(access == 'II') {
                 incidents++;
+              } else if(access == 'KPI') {
+                kpis++;
+              } else if(access == 'AM') {
+                actions++;
               } else if(access == 'TRM') {
                 managements++;
               } else if(access == 'TP') {
                 plannings++;
+              } else if(access == 'LI') {
+                indicators++;
               }
             });
           }
@@ -204,6 +213,16 @@ const getCount = (client, resolve, reject) => {
         max: (client.incidents ? (client.incidents['max'] || 0) : 0) 
       }
 
+      client.kpis = {
+        count: kpis,
+        max: (client.kpis ? (client.kpis['max'] || 0) : 0) 
+      }
+
+      client.actions = {
+        count: actions,
+        max: (client.actions ? (client.actions['max'] || 0) : 0) 
+      }
+
       client.managements = {
         count: managements,
         max: (client.managements ? (client.managements['max'] || 0) : 0) 
@@ -212,6 +231,11 @@ const getCount = (client, resolve, reject) => {
       client.plannings = {
         count: plannings,
         max: (client.plannings ? (client.plannings['max'] || 0) : 0) 
+      }
+
+      client.indicators = {
+        count: indicators,
+        max: (client.indicators ? (client.indicators['max'] || 0) : 0) 
       }
 
       resolve(true);
@@ -233,8 +257,11 @@ router.post('/', function(req, res) {
   let inspections = req.body.inspections;
   let hazards = req.body.hazards;
   let incidents = req.body.incidents;
+  let kpis = req.body.kpis;
+  let actions = req.body.actions;
   let managements = req.body.managements;
   let plannings = req.body.plannings;
+  let indicators = req.body.indicators;
 
   let resp: any;
   let error: any;
@@ -242,7 +269,7 @@ router.post('/', function(req, res) {
   let userId: string;
   new SequentialExecutor()
   .chain((resolve, reject) => {
-    createClient(name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings, req['user'].email, 
+    createClient(name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators, req['user'].email, 
     (data) => {
       resp = data;
       clientId = data.sort_key;
@@ -340,7 +367,7 @@ router.post('/', function(req, res) {
   
 });
 
-const createClient = (name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, managements, plannings, userEmail, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+const createClient = (name, first_name, last_name, email, administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators, userEmail, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let adminId = 'ALL';
   let createTime = moment().format();
   let id = uuid();
@@ -360,8 +387,11 @@ const createClient = (name, first_name, last_name, email, administrators, assess
       "inspections": inspections,
       "hazards": hazards,
       "incidents": incidents,
+      "kpis": kpis,
+      "actions": actions,
       "managements": managements,
       "plannings": plannings,
+      "indicators": indicators,
       "created_ts": createTime, 
       "created_by": userEmail,
       "updated_ts": createTime,
@@ -391,8 +421,11 @@ router.put('/:id', function(req, res) {
   let inspections = req.body.inspections;
   let hazards = req.body.hazards;
   let incidents = req.body.incidents;
+  let kpis = req.body.kpis;
+  let actions = req.body.actions;
   let managements = req.body.managements;
   let plannings = req.body.plannings;
+  let indicators = req.body.indicators;
 
   var params:any = {
     TableName: tableName,
@@ -402,7 +435,7 @@ router.put('/:id', function(req, res) {
     },
     UpdateExpression: 'set #name = :name, first_name = :first_name, last_name = :last_name, email = :email, \
     administrators = :administrators, assessments = :assessments, inspections = :inspections, hazards = :hazards, \
-    incidents = :incidents, managements = :managements, plannings = :plannings, \
+    incidents = :incidents, kpis = :kpis, actions = :actions, managements = :managements, plannings = :plannings, indicators = :indicators, \
     updated_ts = :updated_ts, updated_by = :updated_by',
     ExpressionAttributeNames:{
       "#name": "name",
@@ -417,8 +450,11 @@ router.put('/:id', function(req, res) {
       ":inspections": inspections,
       ":hazards": hazards,
       ":incidents": incidents,
+      ":kpis": kpis,
+      ":actions": actions,
       ":managements": managements,
       ":plannings": plannings,
+      ":indicators": indicators,
       ":updated_ts": moment().format(),
       ":updated_by": req['user'].email,
     },

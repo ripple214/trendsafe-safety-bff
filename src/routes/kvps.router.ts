@@ -7,7 +7,7 @@ import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_KVPS');
+const tableName = conf.get('TABLE_KVPS');
 
 /* GET kvps listing. */
 router.get('/', function(req, res, next) {

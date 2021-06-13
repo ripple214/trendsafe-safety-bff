@@ -5,8 +5,13 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'HR';
+
 /* GET rule compliance report */
 export const hazardsByDepartment = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getHazardsByDepartment(req, 
     (data) => {
       res.status(200);

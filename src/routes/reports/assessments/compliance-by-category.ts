@@ -6,8 +6,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TA';
+
 /* GET compliance-by-element report */
 export const assessmentsComplianceByCategory = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getAssessmentsComplianceByCategory(req, 
     (data) => {
       res.status(200);

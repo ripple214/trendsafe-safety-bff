@@ -7,8 +7,13 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 import { getTop10Hazards } from './top-hazards';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'HR';
+
 /* GET compliance-by-element report */
 export const hazardsComplianceByElement = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getHazardsComplianceByElement(req, 
     (data) => {
       res.status(200);

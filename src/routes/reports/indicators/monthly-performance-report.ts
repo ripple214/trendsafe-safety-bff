@@ -3,8 +3,13 @@ import { getIndicators } from '../../indicators.router';
 import { dateFormat, isSameMonth } from '../../../common/date-util';
 import { getEntities, getFilteredSites, getSites } from '../../../routes/hierarchies.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'LI';
+
 /* GET monthly-performance-report */
 export const indicatorsMonthlyPerformanceReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getIndicatorsMonthlyPerformanceReport(req, 
     (data) => {
       res.status(200);

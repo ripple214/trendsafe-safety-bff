@@ -7,8 +7,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { IoTJobsDataPlane } from 'aws-sdk';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'PAI';
+
 /* GET risk compliance report */
 export const inspectionsRiskCompliance = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getInspectionsRiskCompliance(req, 
     (data) => {
       res.status(200);

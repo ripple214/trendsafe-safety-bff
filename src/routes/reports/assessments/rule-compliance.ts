@@ -6,8 +6,13 @@ import { getAssessments } from '../../assessments.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TA';
+
 /* GET rule compliance report */
 export const assessmentsRuleCompliance = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getAssessmentsRuleCompliance(req, 
     (data) => {
       res.status(200);

@@ -6,7 +6,7 @@ import { db_service as ddb } from '../services/ddb.service';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_PREFERENCES');
+const tableName = conf.get('TABLE_PREFERENCES');
 
 /* GET preferences */
 router.get('/', function(req, res) {

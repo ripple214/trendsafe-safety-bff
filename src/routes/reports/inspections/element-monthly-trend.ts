@@ -6,8 +6,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { retrieve as getCategories } from '../../category-elements.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'PAI';
+
 /* GET compliance-by-element report */
 export const inspectionsElementMonthlyTrend = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getInspectionsElementMonthlyTrend(req, 
     (data) => {
       res.status(200);

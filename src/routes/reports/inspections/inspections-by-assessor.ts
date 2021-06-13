@@ -6,8 +6,13 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { getAllUsers } from '../../users.router';
 import { isWithin } from '../../../common/date-util';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'PAI';
+
 /* GET rule compliance report */
 export const inspectionsByAssessor = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getInspectionsByAssessor(req, 
     (data) => {
       res.status(200);

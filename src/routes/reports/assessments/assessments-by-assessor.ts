@@ -1,13 +1,17 @@
 import { isWithin } from '../../../common/date-util';
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { getAllUsers } from '../../users.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TA';
+
 /* GET rule compliance report */
 export const assessmentsByAssessor = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getAssessmentsByAssessor(req, 
     (data) => {
       res.status(200);

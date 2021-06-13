@@ -7,7 +7,7 @@ import { db_service as ddb } from '../services/ddb.service';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_LOCATION_AREAS');
+const tableName = conf.get('TABLE_LOCATION_AREAS');
 var DELIMITER = "$";
 var LOCATION = "LOCATION";
 var AREA = "AREA";

@@ -5,15 +5,18 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { isAfter } from '../common/date-util';
-
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_MANAGEMENTS');
+const tableName = conf.get('TABLE_MANAGEMENTS');
+const moduleId = 'TRM';
 
 /* GET managements listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   getManagements(clientId, 
@@ -58,6 +61,8 @@ export const getManagements = (clientId: string, onSuccess: (data: any) => void,
 
 /* GET management. */
 router.get('/:managementId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -97,6 +102,8 @@ const getQueryParams = (req) => {
 
 /* PUT update management. */
 router.put('/:managementId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let managementId = req.params.managementId;
 
@@ -155,6 +162,8 @@ router.put('/:managementId', function(req, res, next) {
 
 /* POST insert management. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
@@ -202,6 +211,8 @@ router.post('/', function(req, res, next) {
 
 /* DELETE delete management. */
 router.delete('/:managementId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let managementId = req.params.managementId;
 

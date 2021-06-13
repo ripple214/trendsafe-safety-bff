@@ -7,8 +7,13 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 import { getTop10Hazards } from '../hazards/top-hazards';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TRM';
+
 /* GET compliance-by-category report */
 export const managementsComplianceByCategory = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getManagementsComplianceByCategory(req, 
     (data) => {
       res.status(200);

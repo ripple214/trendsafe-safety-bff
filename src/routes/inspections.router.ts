@@ -6,15 +6,19 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
+import { hasModuleAccess } from '../common/access-util';
 
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_INSPECTIONS');
+const tableName = conf.get('TABLE_INSPECTIONS');
+const moduleId = 'PAI';
 
 /* GET inspections listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   let siteId = req.query.site_id;
@@ -80,6 +84,8 @@ export const getInspections = (clientId: string, siteId: any, onSuccess: (data: 
 
 /* GET inspection. */
 router.get('/:inspectionId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let inspectionId = req.params.inspectionId;
 
@@ -161,6 +167,8 @@ const getQueryParams = (clientId, inspectionId) => {
 
 /* PUT update inspection. */
 router.put('/:inspectionId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let inspectionId = req.params.inspectionId;
 
@@ -262,6 +270,8 @@ router.put('/:inspectionId', function(req, res, next) {
 
 /* POST insert inspection. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
@@ -366,6 +376,8 @@ const movePhotographs = (fromKey, toKey, callback) => {
 
 /* DELETE delete inspection. */
 router.delete('/:inspectionId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let inspectionId = req.params.inspectionId;
 

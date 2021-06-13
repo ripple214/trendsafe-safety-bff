@@ -4,8 +4,13 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getHazard, getHazards, getPhotographs } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'HR';
+
 /* GET detailed report */
 export const hazardsDetailedReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
 
   let id = req.query.id;

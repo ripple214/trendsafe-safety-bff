@@ -6,17 +6,21 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
-
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_INCIDENTS');
+const tableName = conf.get('TABLE_INCIDENTS');
+const moduleId = 'II';
+
 var documentsGroup = "documents/incidents"
 var supportingDocumentsGroup = "supporting-documents/incidents"
 
 /* GET incidents listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   let siteId = req.query.site_id;
@@ -94,6 +98,8 @@ export const getIncidents = (clientId: string, siteId: any, onSuccess: (data: an
 
 /* GET incident. */
 router.get('/:incidentId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let incidentId = req.params.incidentId;
 
@@ -195,6 +201,8 @@ const getQueryParams = (clientId, incidentId) => {
 
 /* PUT update incident. */
 router.put('/:incidentId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let incidentId = req.params.incidentId;
 
@@ -309,6 +317,8 @@ router.put('/:incidentId', function(req, res, next) {
 
 /* POST insert incident. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();

@@ -6,12 +6,13 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
-
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_HAZARDS');
+const tableName = conf.get('TABLE_HAZARDS');
+const moduleId = 'HR';
 
 /* GET hazards listing. */
 router.get('/', function(req, res, next) {

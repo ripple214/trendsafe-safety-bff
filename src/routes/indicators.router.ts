@@ -4,15 +4,18 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
-
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_INDICATORS');
+const tableName = conf.get('TABLE_INDICATORS');
+const moduleId = 'LI';
 
 /* GET indicators listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   getIndicators(clientId, 
@@ -61,6 +64,8 @@ export const getIndicators = (clientId: string, onSuccess: (data: any) => void, 
 
 /* GET indicator. */
 router.get('/:indicatorId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   var params = getQueryParams(req);
 
   ddb.query(params, function(response) {
@@ -100,6 +105,8 @@ const getQueryParams = (req) => {
 
 /* PUT update indicator. */
 router.put('/:indicatorId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let indicatorId = req.params.indicatorId;
 
@@ -186,6 +193,8 @@ router.put('/:indicatorId', function(req, res, next) {
 
 /* POST insert indicator. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
@@ -244,6 +253,8 @@ router.post('/', function(req, res, next) {
 
 /* DELETE delete indicator. */
 router.delete('/:indicatorId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let indicatorId = req.params.indicatorId;
 

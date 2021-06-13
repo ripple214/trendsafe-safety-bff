@@ -5,8 +5,13 @@ import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessment, getAssessments, getPhotographs } from '../../assessments.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'TA';
+
 /* GET detailed report */
 export const assessmentsDetailedReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
 
   let id = req.query.id;

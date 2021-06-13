@@ -9,7 +9,7 @@ import { BffResponse } from '../common/bff.response';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_AUTHS');
+const tableName = conf.get('TABLE_AUTHS');
 
 /* PUT change password. */
 router.put('/', (req, res) => {

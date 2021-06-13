@@ -25,7 +25,7 @@ export const getTop10Hazards = (categories, hazards, filter: HierarchyFilter): {
                 }
             });
         });
-        console.log("top", topData);
+        //console.log("top", topData);
         topData = topData.sort((obj1, obj2) => {
             let diff = obj2.value - obj1.value;
             if(diff == 0) {

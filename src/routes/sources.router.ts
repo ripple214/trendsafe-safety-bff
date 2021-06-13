@@ -7,7 +7,7 @@ import { db_service as ddb } from '../services/ddb.service';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_SOURCES');
+const tableName = conf.get('TABLE_SOURCES');
 
 /* GET sources listing. */
 router.get('/', function(req, res) {

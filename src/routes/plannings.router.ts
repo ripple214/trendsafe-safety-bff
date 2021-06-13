@@ -5,6 +5,7 @@ import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
 import { isAfter } from '../common/date-util';
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 import { getAssessmentsComplianceByElement } from './reports/assessments/compliance-by-element';
@@ -12,7 +13,8 @@ import { getHazardsComplianceByElement } from './reports/hazards/compliance-by-e
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_PLANNINGS');
+const tableName = conf.get('TABLE_PLANNINGS');
+const moduleId = 'TP';
 
 /* GET plannings listing. */
 router.get('/', function(req, res, next) {

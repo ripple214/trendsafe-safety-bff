@@ -8,8 +8,14 @@ import { getTop10Hazards } from '../hazards/top-hazards';
 import { getManagements } from '../../managements.router';
 import { getHazards } from '../../hazards.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleIdHazards = 'HR';
+const moduleIdManagement = 'TRM';
+
 /* GET compliance-by-category report */
 export const ccmsComplianceByCategory = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleIdHazards) || !hasModuleAccess(req, res, moduleIdManagement)) return;
+
   getCCMSComplianceByCategory(req, 
     (data) => {
       res.status(200);

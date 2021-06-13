@@ -5,8 +5,13 @@ import { getIncidents } from '../../incidents.router';
 import { getHierarchyFilter, HierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 import { checkNum } from '../../../common/checkNum';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'II';
+
 /* GET risk compliance report */
 export const incidentsRiskCompliance = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getIncidentsRiskCompliance(req, 
     (data) => {
       res.status(200);

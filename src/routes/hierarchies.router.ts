@@ -8,9 +8,12 @@ import { SequentialExecutor } from '../common/sequential-executor';
 import { EntityMap } from 'common/entity-map';
 import { Entity } from 'common/entity';
 
+import { hasClientAdminAccess } from '../common/access-util';
+import { getUser } from './users.router';
+
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_HIERARCHIES');
+const tableName = conf.get('TABLE_HIERARCHIES');
 var DELIMITER = "$";
 var DIVISION = "DIVISION";
 var PROJECT = "PROJECT";
@@ -29,6 +32,7 @@ var LEVEL_DESCRIPTIONS = {
 
 /* GET hierarchies listing. */
 router.get('/', function(req, res, next) {
+  if(!hasClientAdminAccess(req, res)) return;
 
   getEntityMap(req, 
     (entityMap) => {
@@ -259,76 +263,106 @@ const getParams = (req, level) => {
 
 /* POST insert division. */
 router.post('/divisions', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   insertHierarchy(DIVISION, req.body.name, "", req, res);
 });
 
 /* PUT update division. */
 router.put('/divisions/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   updateHierarchy(DIVISION, req, res);
 });
 
 /* DELETE delete division. */
 router.delete('/divisions/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   deleteHierarchy(DIVISION, req, res);
 });
 
 /* POST insert project. */
 router.post('/projects', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   insertHierarchy(PROJECT, req.body.name, req.body.parents, req, res);
 });
 
 /* PUT update project. */
 router.put('/projects/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   updateHierarchy(PROJECT, req, res);
 });
 
 /* DELETE delete project. */
 router.delete('/projects/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   deleteHierarchy(PROJECT, req, res);
 });
 
 /* POST insert site. */
 router.post('/sites', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   insertHierarchy(SITE, req.body.name, req.body.parents, req, res);
 });
 
 /* PUT update site. */
 router.put('/sites/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   updateHierarchy(SITE, req, res);
 });
 
 /* DELETE delete site. */
 router.delete('/sites/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   deleteHierarchy(SITE, req, res);
 });
 
 /* POST insert subsite. */
 router.post('/subsites', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   insertHierarchy(SUBSITE, req.body.name, req.body.parents, req, res);
 });
 
 /* PUT update subsite. */
 router.put('/subsites/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   updateHierarchy(SUBSITE, req, res);
 });
 
 /* DELETE delete subsite. */
 router.delete('/subsites/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   deleteHierarchy(SUBSITE, req, res);
 });
 
 /* POST insert department. */
 router.post('/departments', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   insertHierarchy(DEPARTMENT, req.body.name, req.body.parents, req, res);
 });
 
 /* PUT update department. */
 router.put('/departments/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   updateHierarchy(DEPARTMENT, req, res);
 });
 
 /* DELETE delete department. */
 router.delete('/departments/:hierarchyId', function(req, res) {
+  if(!hasClientAdminAccess(req, res)) return;
+
   deleteHierarchy(DEPARTMENT, req, res);
 });
 
@@ -648,38 +682,92 @@ const getFilter = (req): {parentField: string, parentFieldValue: string} => {
   }
 };
 
-export const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
-  let filter = getFilter(req);
-  getEntityMap(req, 
-    (entityMap) => {
-      if(entityMap[level] != undefined) {
-        onSuccess(
-          Object.values(entityMap[level])
-          .filter(entity => {
-            let isMatch = entity.id != "-1";
-            if(filter != undefined) {
-              isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
-            }
-            return isMatch;
-          })
-          .map(entity => {
-            return {
-              id: entity.id,
-              name: entity.name,
-              parents: entity.parents,
-              parentNames: entity.parentNames,
-              division_id: entity.division_id,
-              project_id: entity.project_id,
-              site_id: entity.site_id,
-              subsite_id: entity.subsite_id,
-              department_id: entity.department_id
-            }
-          })
-        );
-      } else {
-        onSuccess([]);
-      }
+const getUserHierarchyAccess = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let clientId = req['user'].client_id;
+  let userId = req['user'].user_id;
+  let accessType = req.query["access"] || 'data';
+
+  getUser(clientId, userId,
+    (user) => {
+      if(level == DIVISION) {
+        if(accessType == 'data') {
+          onSuccess(user['dataEntryDivisionIds'] || []);
+        } else {
+          onSuccess(user['reportingDivisionIds'] || []);
+        }
+      } else if(level == PROJECT) {
+        if(accessType == 'data') {
+          onSuccess(user['dataEntryProjectIds'] || []);
+        } else {
+          onSuccess(user['reportingProjectIds'] || []);
+        }
+      } else if(level == SITE) {
+        if(accessType == 'data') {
+          onSuccess(user['dataEntrySiteIds'] || []);
+        } else {
+          onSuccess(user['reportingSiteIds'] || []);
+        }
+      } else if(level == SUBSITE) {
+        if(accessType == 'data') {
+          onSuccess(user['dataEntrySubsiteIds'] || []);
+        } else {
+          onSuccess(user['reportingSubsiteIds'] || []);
+        }
+      } else if(level == DEPARTMENT) {
+        if(accessType == 'data') {
+          onSuccess(user['dataEntryDepartmentIds'] || []);
+        } else {
+          onSuccess(user['reportingDepartmentIds'] || []);
+        }
+      } 
     }, 
+    (error) => {
+      onError(error);
+    }
+  );
+}
+
+export const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getUserHierarchyAccess(req, level, 
+    (hiearchyAccess) => {
+      let filter = getFilter(req);
+      getEntityMap(req, 
+        (entityMap) => {
+          if(entityMap[level] != undefined) {
+            onSuccess(
+              Object.values(entityMap[level])
+              .filter(entity => {
+                let isMatch = entity.id != "-1";
+                if(filter != undefined) {
+                  isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
+                }
+                return isMatch && hiearchyAccess.find(ha => {
+                  return ha.id == entity.id;
+                }) != undefined;
+              })
+              .map(entity => {
+                return {
+                  id: entity.id,
+                  name: entity.name,
+                  parents: entity.parents,
+                  parentNames: entity.parentNames,
+                  division_id: entity.division_id,
+                  project_id: entity.project_id,
+                  site_id: entity.site_id,
+                  subsite_id: entity.subsite_id,
+                  department_id: entity.department_id
+                }
+              })
+            );
+          } else {
+            onSuccess([]);
+          }
+        }, 
+        (error) => {
+          onError(error);
+        }
+      );
+    },
     (error) => {
       onError(error);
     }

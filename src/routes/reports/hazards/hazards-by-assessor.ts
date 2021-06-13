@@ -6,8 +6,13 @@ import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 import { getAllUsers } from '../../users.router';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'HR';
+
 /* GET rule compliance report */
 export const hazardsByAssessor = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getHazardsByAssessor(req, 
     (data) => {
       res.status(200);

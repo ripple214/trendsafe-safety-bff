@@ -121,34 +121,39 @@ const authenticateJWT = (req, res, next) => {
 
           req['user'] = user;
 
-          let response:any = {
+          let authToken:any = {
             session_id: user.session_id,
             client_id: user.client_id,
             email: user.email,
             module: user.module
           };
+          //console.log("user.module", user.module, user.module_access);
           if(user.module == 'CLIENT') {
-            response.user_id = user.user_id;
-            response.last_name = user.last_name;
-            response.first_name = user.first_name;
-            response.email = user.email;
-            response.administrator = user.administrator;
-            response.leader = user.leader;
-            response.user = user.user;
-            response.authorizer = user.authorizer;
-            response.recipient = user.recipient;
-            response.dataEntryDivisionIds = user.dataEntryDivisionIds;
-            response.dataEntryProjectIds = user.dataEntryProjectIds;
-            response.dataEntrySiteIds = user.dataEntrySiteIds;
-            response.dataEntrySubsiteIds = user.dataEntrySubsiteIds;
-            response.dataEntryDepartmentIds = user.dataEntryDepartmentIds;
-            response.reportingDivisionIds = user.reportingDivisionIds;
-            response.reportingProjectIds = user.reportingProjectIds;
-            response.reportingSiteIds = user.reportingSiteIds;
-            response.reportingSubsiteIds = user.reportingSubsiteIds;
-            response.reportingDepartmentIds = user.reportingDepartmentIds;
+            authToken.user_id = user.user_id;
+            authToken.last_name = user.last_name;
+            authToken.first_name = user.first_name;
+            authToken.email = user.email;
+            authToken.administrator = user.administrator;
+            authToken.leader = user.leader;
+            authToken.user = user.user;
+            authToken.authorizer = user.authorizer;
+            authToken.recipient = user.recipient;
+            authToken.module_access = user.module_access;
+
+            /*
+            authToken.dataEntryDivisionIds = user.dataEntryDivisionIds;
+            authToken.dataEntryProjectIds = user.dataEntryProjectIds;
+            authToken.dataEntrySiteIds = user.dataEntrySiteIds;
+            authToken.dataEntrySubsiteIds = user.dataEntrySubsiteIds;
+            authToken.dataEntryDepartmentIds = user.dataEntryDepartmentIds;
+            authToken.reportingDivisionIds = user.reportingDivisionIds;
+            authToken.reportingProjectIds = user.reportingProjectIds;
+            authToken.reportingSiteIds = user.reportingSiteIds;
+            authToken.reportingSubsiteIds = user.reportingSubsiteIds;
+            authToken.reportingDepartmentIds = user.reportingDepartmentIds;
+            */
           }
-          let accessToken = jwt.sign(response, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
+          let accessToken = jwt.sign(authToken, ACCESS_TOKEN_SECRET, {expiresIn: "30m"});
           res.setHeader('Set-Cookie', 'Authorization=' + accessToken + '; HttpOnly; Path=/; SameSite=Lax;');
           
           next();

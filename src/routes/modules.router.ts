@@ -7,7 +7,7 @@ import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_MODULES');
+const tableName = conf.get('TABLE_MODULES');
 
 /* GET modules listing. */
 router.get('/', function(req, res, next) {
@@ -50,10 +50,9 @@ router.put('/:moduleId', function(req, res, next) {
       "partition_key": clientId,
       "sort_key": moduleId,
     },
-    UpdateExpression: 'set is_activated = :is_activated, max_licenses = :max_licenses, updated_ts = :updated_ts, updated_by = :updated_by',
+    UpdateExpression: 'set is_activated = :is_activated, updated_ts = :updated_ts, updated_by = :updated_by',
     ExpressionAttributeValues: {
       ":is_activated": req.body.is_activated,
-      ":max_licenses": req.body.max_licenses,
       ":updated_ts": moment().format(),
       ":updated_by": req['user'].email,
     },

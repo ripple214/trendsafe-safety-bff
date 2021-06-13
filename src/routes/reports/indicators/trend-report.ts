@@ -5,8 +5,13 @@ import moment from 'moment';
 import { FilterType, getHierarchyFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
 import { checkNum } from '../../../common/checkNum';
 
+import { hasModuleAccess } from '../../../common/access-util';
+const moduleId = 'LI';
+
 /* GET trend-report */
 export const indicatorsTrendReport = (req, res) => {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   getIndicatorsTrendReport(req, 
     (data) => {
       res.status(200);

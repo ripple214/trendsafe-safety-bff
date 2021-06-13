@@ -6,14 +6,18 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { s3_service as s3 } from '../services/s3.service';
 import { isAfter } from '../common/date-util';
+import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
 
 export const router = express.Router();
 
-var tableName = conf.get('TABLE_ASSESSMENTS');
+const tableName = conf.get('TABLE_ASSESSMENTS');
+const moduleId = 'TA';
 
 /* GET assessments listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   let siteId = req.query.site_id;
@@ -79,6 +83,8 @@ export const getAssessments = (clientId: string, siteId: any, onSuccess: (data: 
 
 /* GET assessment. */
 router.get('/:assessmentId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let assessmentId = req.params.assessmentId;
 
@@ -159,6 +165,8 @@ const getQueryParams = (clientId, assessmentId) => {
 
 /* PUT update assessment. */
 router.put('/:assessmentId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let assessmentId = req.params.assessmentId;
 
@@ -260,6 +268,8 @@ router.put('/:assessmentId', function(req, res, next) {
 
 /* POST insert assessment. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
