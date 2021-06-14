@@ -65,17 +65,22 @@ export const dashboardReport = (req, res) => {
         }
       });
 
-      executor
-      .parallel(parallels)
-      .fail((error) => {
-        res.status(400);
-        res.json(error);
-      })
-      .success(() => {
+      if(parallels.length > 0) {
+        executor
+        .parallel(parallels)
+        .fail((error) => {
+          res.status(400);
+          res.json(error);
+        })
+        .success(() => {
+          res.status(200);
+          res.json(resp);
+        })
+        .execute();
+      } else {
         res.status(200);
-        res.json(resp);
-      })
-      .execute();
+        res.json();
+      }
     }, 
     (error) => {
       res.status(400);
