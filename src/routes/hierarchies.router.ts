@@ -686,48 +686,58 @@ const getUserHierarchyAccess = (req, level, onSuccess: (data: any) => void, onEr
   let clientId = req['user'].client_id;
   let userId = req['user'].user_id;
   let accessType = req.query["access"] || 'data';
+  let doNotFilter = req.query["doNotFilter"];
 
-  getUser(clientId, userId,
-    (user) => {
-      if(level == DIVISION) {
-        if(accessType == 'data') {
-          onSuccess(user['dataEntryDivisionIds'] || []);
-        } else {
-          onSuccess(user['reportingDivisionIds'] || []);
-        }
-      } else if(level == PROJECT) {
-        if(accessType == 'data') {
-          onSuccess(user['dataEntryProjectIds'] || []);
-        } else {
-          onSuccess(user['reportingProjectIds'] || []);
-        }
-      } else if(level == SITE) {
-        if(accessType == 'data') {
-          onSuccess(user['dataEntrySiteIds'] || []);
-        } else {
-          onSuccess(user['reportingSiteIds'] || []);
-        }
-      } else if(level == SUBSITE) {
-        if(accessType == 'data') {
-          onSuccess(user['dataEntrySubsiteIds'] || []);
-        } else {
-          onSuccess(user['reportingSubsiteIds'] || []);
-        }
-      } else if(level == DEPARTMENT) {
-        if(accessType == 'data') {
-          onSuccess(user['dataEntryDepartmentIds'] || []);
-        } else {
-          onSuccess(user['reportingDepartmentIds'] || []);
-        }
-      } 
-    }, 
-    (error) => {
-      onError(error);
-    }
-  );
+  if(doNotFilter) {
+    onSuccess([]);
+  } else {
+    getUser(clientId, userId,
+      (user) => {
+        if(level == DIVISION) {
+          if(accessType == 'data') {
+            onSuccess(user['dataEntryDivisionIds'] || []);
+          } else {
+            onSuccess(user['reportingDivisionIds'] || []);
+          }
+        } else if(level == PROJECT) {
+          if(accessType == 'data') {
+            onSuccess(user['dataEntryProjectIds'] || []);
+          } else {
+            onSuccess(user['reportingProjectIds'] || []);
+          }
+        } else if(level == SITE) {
+          if(accessType == 'data') {
+            onSuccess(user['dataEntrySiteIds'] || []);
+          } else {
+            onSuccess(user['reportingSiteIds'] || []);
+          }
+        } else if(level == SUBSITE) {
+          if(accessType == 'data') {
+            onSuccess(user['dataEntrySubsiteIds'] || []);
+          } else {
+            onSuccess(user['reportingSubsiteIds'] || []);
+          }
+        } else if(level == DEPARTMENT) {
+          if(accessType == 'data') {
+            onSuccess(user['dataEntryDepartmentIds'] || []);
+          } else {
+            onSuccess(user['reportingDepartmentIds'] || []);
+          }
+        } 
+      }, 
+      (error) => {
+        onError(error);
+      }
+    );    
+  }
 }
 
 export const getEntities = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  let doNotFilter = req.query.doNotFilter;
+  let doNotApplyFilter = doNotFilter && req['user'].administrator == 'Y';
+
+  console.log("doNotApplyFilter", doNotApplyFilter, req['user'].administrator)
+
   getUserHierarchyAccess(req, level, 
     (hiearchyAccess) => {
       let filter = getFilter(req);
@@ -741,9 +751,9 @@ export const getEntities = (req, level, onSuccess: (data: any) => void, onError?
                 if(filter != undefined) {
                   isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
                 }
-                return isMatch && hiearchyAccess.find(ha => {
+                return isMatch && (doNotApplyFilter || hiearchyAccess.find(ha => {
                   return ha.id == entity.id;
-                }) != undefined;
+                }) != undefined);
               })
               .map(entity => {
                 return {
