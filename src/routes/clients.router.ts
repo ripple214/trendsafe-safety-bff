@@ -7,7 +7,7 @@ import { db_service as ddb } from '../services/ddb.service';
 import { SequentialExecutor } from '../common/sequential-executor';
 import { createUser, deleteUser, getAllUsers } from './users.router';
 import { createAuth } from './auth.router';
-import { createDefaultModules } from './modules.router';
+import { createModuleDefaults, updateModuleDefaults } from './modules.router';
 import { createDefaultKvps } from './kvps.router';
 import { createDefaultKpis } from './kpis.router';
 import { createDefaultCategoryElements } from './category-elements.router';
@@ -148,12 +148,23 @@ const getCount = (client, resolve, reject) => {
   let assessments = 0;
   let inspections = 0;
   let hazards = 0;
-  let incidents = 0;
   let kpis = 0;
   let actions = 0;
+  let incidents = 0;
   let managements = 0;
   let plannings = 0;
   let indicators = 0;
+
+  let assessments_is_activatable = (client.assessments ? (client.assessments['is_activatable'] || false) : false);
+  let inspections_is_activatable = (client.inspections ? (client.inspections['is_activatable'] || false) : false);
+  let hazards_is_activatable = (client.hazards ? (client.hazards['is_activatable'] || false) : false);
+  let kpis_is_activatable = (client.kpis ? (client.kpis['is_activatable'] || false) : false);
+  let actions_is_activatable = (client.actions ? (client.actions['is_activatable'] || false) : false);
+  let incidents_is_activatable = (client.incidents ? (client.incidents['is_activatable'] || false) : false);
+  let managements_is_activatable = (client.managements ? (client.managements['is_activatable'] || false) : false);
+  let plannings_is_activatable = (client.plannings ? (client.plannings['is_activatable'] || false) : false);
+  let indicators_is_activatable = (client.indicators ? (client.indicators['is_activatable'] || false) : false);
+
   getAllUsers(client.id, 
     (users) => {
       if(users) {
@@ -164,23 +175,23 @@ const getCount = (client, resolve, reject) => {
 
           if(user.module_access) {
             user.module_access.forEach(access => {
-              if(access == 'TA') {
+              if(access == 'TA' && assessments_is_activatable) {
                 assessments++;
-              } else if(access == 'PAI') {
+              } else if(access == 'PAI' && inspections_is_activatable) {
                 inspections++;
-              } else if(access == 'HR') {
+              } else if(access == 'HR' && hazards_is_activatable) {
                 hazards++;
-              } else if(access == 'II') {
-                incidents++;
-              } else if(access == 'KPI') {
+              } else if(access == 'KPI' && kpis_is_activatable) {
                 kpis++;
-              } else if(access == 'AM') {
+              } else if(access == 'AM' && actions_is_activatable) {
                 actions++;
-              } else if(access == 'TRM') {
+              } else if(access == 'II' && incidents_is_activatable) {
+                incidents++;
+              } else if(access == 'TRM' && managements_is_activatable) {
                 managements++;
-              } else if(access == 'TP') {
+              } else if(access == 'TP' && plannings_is_activatable) {
                 plannings++;
-              } else if(access == 'LI') {
+              } else if(access == 'LI' && indicators_is_activatable) {
                 indicators++;
               }
             });
@@ -189,53 +200,103 @@ const getCount = (client, resolve, reject) => {
       }
 
       client.administrators = {
-        count: administrators,
-        max: (client.administrators ? (client.administrators['max'] || 0) : 0) 
+        id: 'ADM',
+        name: 'Administrators',
+        sort_num: 1,
+        is_activatable: true,
+        is_activated: true,
+        no_of_users: administrators,
+        max_licenses: (client.administrators ? (client.administrators['max_licenses'] || 0) : 0) 
       }
 
       client.assessments = {
-        count: assessments,
-        max: (client.assessments ? (client.assessments['max'] || 0) : 0) 
+        id: 'TA',
+        name: 'Task Assessment',
+        sort_num: 2,
+        is_activatable: assessments_is_activatable,
+        is_activated: assessments_is_activatable,
+        no_of_users: assessments,
+        max_licenses: (assessments_is_activatable && client.assessments ? (client.assessments['max_licenses'] || 0) : 0) 
       }
 
       client.inspections = {
-        count: inspections,
-        max: (client.inspections ? (client.inspections['max'] || 0) : 0) 
+        id: 'PAI',
+        name: 'Plant / Area Inspection',
+        sort_num: 3,
+        is_activatable: inspections_is_activatable,
+        is_activated: inspections_is_activatable,
+        no_of_users: inspections,
+        max_licenses: (inspections_is_activatable && client.inspections ? (client.inspections['max_licenses'] || 0) : 0) 
       }
 
       client.hazards = {
-        count: hazards,
-        max: (client.hazards ? (client.hazards['max'] || 0) : 0) 
-      }
-
-      client.incidents = {
-        count: incidents,
-        max: (client.incidents ? (client.incidents['max'] || 0) : 0) 
+        id: 'HR',
+        name: 'Hazard Report',
+        sort_num: 4,
+        is_activatable: hazards_is_activatable,
+        is_activated: hazards_is_activatable,
+        no_of_users: hazards,
+        max_licenses: (hazards_is_activatable && client.hazards ? (client.hazards['max_licenses'] || 0) : 0) 
       }
 
       client.kpis = {
-        count: kpis,
-        max: (client.kpis ? (client.kpis['max'] || 0) : 0) 
+        id: 'KPI',
+        name: 'Key Performance Indicators',
+        sort_num: 5,
+        is_activatable: kpis_is_activatable,
+        is_activated: kpis_is_activatable,
+        no_of_users: kpis,
+        max_licenses: (kpis_is_activatable && client.kpis ? (client.kpis['max_licenses'] || 0) : 0) 
       }
 
       client.actions = {
-        count: actions,
-        max: (client.actions ? (client.actions['max'] || 0) : 0) 
+        id: 'AM',
+        name: 'Action Management',
+        sort_num: 6,
+        is_activatable: actions_is_activatable,
+        is_activated: actions_is_activatable,
+        no_of_users: actions,
+        max_licenses: (actions_is_activatable && client.actions ? (client.actions['max_licenses'] || 0) : 0) 
+      }
+
+      client.incidents = {
+        id: 'II',
+        name: 'Incident Investigation',
+        sort_num: 7,
+        is_activatable: incidents_is_activatable,
+        is_activated: incidents_is_activatable,
+        no_of_users: incidents,
+        max_licenses: (incidents_is_activatable && client.incidents ? (client.incidents['max_licenses'] || 0) : 0) 
       }
 
       client.managements = {
-        count: managements,
-        max: (client.managements ? (client.managements['max'] || 0) : 0) 
+        id: 'TRM',
+        name: 'Task Risk Management',
+        sort_num: 8,
+        is_activatable: managements_is_activatable,
+        is_activated: managements_is_activatable,
+        no_of_users: managements,
+        max_licenses: (managements_is_activatable && client.managements ? (client.managements['max_licenses'] || 0) : 0) 
       }
 
       client.plannings = {
-        count: plannings,
-        max: (client.plannings ? (client.plannings['max'] || 0) : 0) 
+        id: 'TP',
+        name: 'Task Planning',
+        sort_num: 9,
+        is_activatable: plannings_is_activatable,
+        is_activated: plannings_is_activatable,
+        no_of_users: plannings,
+        max_licenses: (plannings_is_activatable && client.plannings ? (client.plannings['max_licenses'] || 0) : 0) 
       }
 
       client.indicators = {
-        count: indicators,
-        max: (client.indicators ? (client.indicators['max'] || 0) : 0) 
+        id: 'LI',
+        name: 'Lead Indicators',
+        sort_num: 10,
+        is_activatable: indicators_is_activatable,
+        is_activated: indicators_is_activatable,
+        no_of_users: indicators,
+        max_licenses: (indicators_is_activatable && client.indicators ? (client.indicators['max_licenses'] || 0) : 0) 
       }
 
       resolve(true);
@@ -281,6 +342,16 @@ router.post('/', function(req, res) {
     });
   })
   .then((resolve, reject) => {
+    createModuleDefaults(clientId, req['user'].email,
+    administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators, 
+    (data) => {
+      resolve(true);
+    }, (err) => {
+      error = err;
+      reject(err);
+    });
+  })
+  .then((resolve, reject) => {
     createUser(clientId, {
       body: {
         last_name: last_name, 
@@ -315,15 +386,6 @@ router.post('/', function(req, res) {
     }
   )
   .parallel([
-    (resolve, reject) => {
-      createDefaultModules(clientId, userId, req['user'].email, 
-      (data) => {
-        resolve(true);
-      }, (err) => {
-        error = err;
-        reject(err);
-      });
-    },
     (resolve, reject) => {
       createDefaultKvps(clientId, userId, req['user'].email, 
       (data) => {
@@ -467,8 +529,17 @@ router.put('/:id', function(req, res) {
       var resp = response.data;
       delete resp['partition_key'];
       delete resp['sort_key'];
-      res.status(200);
-      res.json(resp);
+
+      updateModuleDefaults(id, req['user'].email,
+      administrators, assessments, inspections, hazards, incidents, kpis, actions, managements, plannings, indicators, 
+      (data) => {
+        res.status(200);
+        res.json(resp);
+      }, (err) => {
+        res.status(400);
+        res.json(response);
+      });
+
     } else {
       res.status(400);
       res.json(response);

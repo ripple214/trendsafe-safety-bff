@@ -1,11 +1,32 @@
-export const hasModuleAccess = (req, res, module: string): boolean => {
+import { getModules } from "../routes/modules.router";
+
+export const hasModuleAccess = async (req, res, module: string): Promise<boolean> => {
   let user = req['user'];
+  let clientId = req['user'].client_id;
 
   if(user.module_access == undefined || user.module_access.indexOf(module) == -1) {
     noAccess(res);
     return false;
+  } else {
+    getModules(clientId,
+      (modules) => {
+        let m = modules.find(m => {
+          return m.id == module;
+        });
+        if (m && m.is_activatable && m.is_activated) {
+          return true;
+        } else {
+          noAccess(res);
+          return false;
+        }
+      },
+      (error) => {
+        console.log(error);
+        noAccess(res);
+        return false;
+      }
+    );
   }
-  return true;
 }
 
 export const hasClientAdminAccess = (req, res): boolean => {
