@@ -9,7 +9,6 @@ import { createUser, deleteUser, getAllUsers } from './users.router';
 import { createAuth } from './auth.router';
 import { createModuleDefaults, updateModuleDefaults } from './modules.router';
 import { createDefaultKvps } from './kvps.router';
-import { createDefaultKpis } from './kpis.router';
 import { createDefaultCategoryElements } from './category-elements.router';
 
 export const router = express.Router();
@@ -175,23 +174,23 @@ const getCount = (client, resolve, reject) => {
 
           if(user.module_access) {
             user.module_access.forEach(access => {
-              if(access == 'TA' && assessments_is_activatable) {
+              if(access == 'TA') {
                 assessments++;
-              } else if(access == 'PAI' && inspections_is_activatable) {
+              } else if(access == 'PAI') {
                 inspections++;
-              } else if(access == 'HR' && hazards_is_activatable) {
+              } else if(access == 'HR') {
                 hazards++;
-              } else if(access == 'KPI' && kpis_is_activatable) {
+              } else if(access == 'KPI') {
                 kpis++;
-              } else if(access == 'AM' && actions_is_activatable) {
+              } else if(access == 'AM') {
                 actions++;
-              } else if(access == 'II' && incidents_is_activatable) {
+              } else if(access == 'II') {
                 incidents++;
-              } else if(access == 'TRM' && managements_is_activatable) {
+              } else if(access == 'TRM') {
                 managements++;
-              } else if(access == 'TP' && plannings_is_activatable) {
+              } else if(access == 'TP') {
                 plannings++;
-              } else if(access == 'LI' && indicators_is_activatable) {
+              } else if(access == 'LI') {
                 indicators++;
               }
             });
@@ -216,7 +215,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: assessments_is_activatable,
         is_activated: assessments_is_activatable,
         no_of_users: assessments,
-        max_licenses: (assessments_is_activatable && client.assessments ? (client.assessments['max_licenses'] || 0) : 0) 
+        max_licenses: (client.assessments ? (client.assessments['max_licenses'] || 0) : 0) 
       }
 
       client.inspections = {
@@ -226,7 +225,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: inspections_is_activatable,
         is_activated: inspections_is_activatable,
         no_of_users: inspections,
-        max_licenses: (inspections_is_activatable && client.inspections ? (client.inspections['max_licenses'] || 0) : 0) 
+        max_licenses: (client.inspections ? (client.inspections['max_licenses'] || 0) : 0) 
       }
 
       client.hazards = {
@@ -236,7 +235,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: hazards_is_activatable,
         is_activated: hazards_is_activatable,
         no_of_users: hazards,
-        max_licenses: (hazards_is_activatable && client.hazards ? (client.hazards['max_licenses'] || 0) : 0) 
+        max_licenses: (client.hazards ? (client.hazards['max_licenses'] || 0) : 0) 
       }
 
       client.kpis = {
@@ -246,7 +245,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: kpis_is_activatable,
         is_activated: kpis_is_activatable,
         no_of_users: kpis,
-        max_licenses: (kpis_is_activatable && client.kpis ? (client.kpis['max_licenses'] || 0) : 0) 
+        max_licenses: (client.kpis ? (client.kpis['max_licenses'] || 0) : 0) 
       }
 
       client.actions = {
@@ -256,7 +255,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: actions_is_activatable,
         is_activated: actions_is_activatable,
         no_of_users: actions,
-        max_licenses: (actions_is_activatable && client.actions ? (client.actions['max_licenses'] || 0) : 0) 
+        max_licenses: (client.actions ? (client.actions['max_licenses'] || 0) : 0) 
       }
 
       client.incidents = {
@@ -266,7 +265,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: incidents_is_activatable,
         is_activated: incidents_is_activatable,
         no_of_users: incidents,
-        max_licenses: (incidents_is_activatable && client.incidents ? (client.incidents['max_licenses'] || 0) : 0) 
+        max_licenses: (client.incidents ? (client.incidents['max_licenses'] || 0) : 0) 
       }
 
       client.managements = {
@@ -276,7 +275,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: managements_is_activatable,
         is_activated: managements_is_activatable,
         no_of_users: managements,
-        max_licenses: (managements_is_activatable && client.managements ? (client.managements['max_licenses'] || 0) : 0) 
+        max_licenses: (client.managements ? (client.managements['max_licenses'] || 0) : 0) 
       }
 
       client.plannings = {
@@ -286,7 +285,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: plannings_is_activatable,
         is_activated: plannings_is_activatable,
         no_of_users: plannings,
-        max_licenses: (plannings_is_activatable && client.plannings ? (client.plannings['max_licenses'] || 0) : 0) 
+        max_licenses: (client.plannings ? (client.plannings['max_licenses'] || 0) : 0) 
       }
 
       client.indicators = {
@@ -296,7 +295,7 @@ const getCount = (client, resolve, reject) => {
         is_activatable: indicators_is_activatable,
         is_activated: indicators_is_activatable,
         no_of_users: indicators,
-        max_licenses: (indicators_is_activatable && client.indicators ? (client.indicators['max_licenses'] || 0) : 0) 
+        max_licenses: (client.indicators ? (client.indicators['max_licenses'] || 0) : 0) 
       }
 
       resolve(true);
@@ -388,15 +387,6 @@ router.post('/', function(req, res) {
   .parallel([
     (resolve, reject) => {
       createDefaultKvps(clientId, userId, req['user'].email, 
-      (data) => {
-        resolve(true);
-      }, (err) => {
-        error = err;
-        reject(err);
-      });
-    },
-    (resolve, reject) => {
-      createDefaultKpis(clientId, userId, req['user'].email, 
       (data) => {
         resolve(true);
       }, (err) => {
