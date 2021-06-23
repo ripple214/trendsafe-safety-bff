@@ -1,1 +1,1 @@
-export const ACCESS_TOKEN_SECRET = 'f6a5bb06-2655-40d5-8ba3-711690a95558';
+export const ACCESS_TOKEN_SECRET = '4b8ace58-8139-43f4-9a80-8a84f23b8ddd';

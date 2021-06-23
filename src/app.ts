@@ -73,7 +73,7 @@ console.log("APP_URL", conf.get('APP_URL'));
 console.log("CONTEXT_PATH", conf.get('CONTEXT_PATH'));
 
 var originsWhitelist = [
-  'http://localhost:8100', //TODO remove this before going to prod
+  //'http://localhost:8100', //TODO remove this before going to prod
   conf.get('APP_URL'),
   conf.get('BFF_URL')
 ];
@@ -111,7 +111,8 @@ const authenticateJWT = (req, res, next) => {
   //req['user'] = {clientId: 'dummy-client', emailAddress: 'client'}; next(); //TODO remove these once ssl cert becomes available
 
   // TODO replace direct header retrieval of authorization before going to prod
-  const authorization = getAppCookies(req)['Authorization'] || (req.headers['authorization'] && req.headers['authorization'].replace('Bearer ', ''));
+  //const authorization = getAppCookies(req)['Authorization'] || (req.headers['authorization'] && req.headers['authorization'].replace('Bearer ', ''));
+  const authorization = getAppCookies(req)['Authorization'];
   //console.log("authorization is ", authorization);
   if (authorization) {
       jwt.verify(authorization, ACCESS_TOKEN_SECRET, (err, user) => {
