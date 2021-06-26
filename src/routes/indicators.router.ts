@@ -6,6 +6,7 @@ import { default as moment } from 'moment';
 import { db_service as ddb } from '../services/ddb.service';
 import { hasModuleAccess } from '../common/access-util';
 import { SequentialExecutor } from '../common/sequential-executor';
+import { isAfter } from '../common/date-util';
 
 export const router = express.Router();
 
@@ -34,7 +35,7 @@ router.get('/', function(req, res, next) {
 export const getIndicators = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, total_hours, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -49,7 +50,7 @@ export const getIndicators = (clientId: string, onSuccess: (data: any) => void, 
     
     if (response.data) {
       response.data.sort(function (a, b) {
-        return moment(b.report_date).isAfter(moment(a.report_date));
+        return isAfter(b.report_date, a.report_date) ? 1 : -1;
       });
 
       if(response.data) {
@@ -87,7 +88,7 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -137,6 +138,7 @@ router.put('/:indicatorId', function(req, res, next) {
       plannings = :plannings, \
       leader_plannings = :leader_plannings, \
       near_miss = :near_miss, \
+      actions_completed_by_due_date = :actions_completed_by_due_date, \
       total_ppifr = :total_ppifr, \
       total_lsi = :total_lsi, \
       total_bbsi = :total_bbsi, \
@@ -167,6 +169,7 @@ router.put('/:indicatorId', function(req, res, next) {
       ":plannings": req.body.plannings,
       ":leader_plannings": req.body.leader_plannings,
       ":near_miss": req.body.near_miss,
+      ":actions_completed_by_due_date": req.body.actions_completed_by_due_date,
       ":total_ppifr": req.body.total_ppifr,
       ":total_lsi": req.body.total_lsi,
       ":total_bbsi": req.body.total_bbsi,
@@ -227,6 +230,7 @@ router.post('/', function(req, res, next) {
       "plannings": req.body.plannings,
       "leader_plannings": req.body.leader_plannings,
       "near_miss": req.body.near_miss,
+      "actions_completed_by_due_date": req.body.actions_completed_by_due_date,
       "total_ppifr": req.body.total_ppifr,
       "total_lsi": req.body.total_lsi,
       "total_bbsi": req.body.total_bbsi,

@@ -49,6 +49,9 @@ import { ccmsRuleCompliance } from './reports/ccms/rule-compliance';
 import { indicatorsMonthlyPerformanceReport } from './reports/indicators/monthly-performance-report';
 import { indicatorsTrendReport } from './reports/indicators/trend-report';
 
+import { kpisMonthlyReport } from './reports/kpis/monthly-report';
+import { kpisMonthByMonthTrend } from './reports/kpis/month-by-month-trend';
+
 import { dashboardReport } from './reports/dashboard/dashboard';
 
 export const router = express.Router();
@@ -262,6 +265,16 @@ router.get('/indicators/monthly-performance-report', function(req, res, next) {
 /* GET trend-report */
 router.get('/indicators/trend-report', function(req, res, next) {
   indicatorsTrendReport(req, res);
+});
+
+/* GET monthly-report */
+router.get('/kpis/monthly-report', function(req, res, next) {
+  kpisMonthlyReport(req, res);
+});
+
+/* GET month-by-month-trend */
+router.get('/kpis/month-by-month-trend', function(req, res, next) {
+  kpisMonthByMonthTrend(req, res);
 });
 
 /* GET dashboard-report */

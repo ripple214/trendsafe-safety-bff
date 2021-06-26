@@ -14,6 +14,21 @@ router.get('/', function(req, res) {
   let clientId = req['user'].client_id;
   let siteId = req.query.siteId;
   
+  getKPIs(clientId, siteId, 
+    (data) => {
+      var resp = {"kpis": data};
+      res.status(200);
+      res.json(resp);
+    }, 
+    (error) => {
+      res.status(400);
+      res.json(error);
+    }
+  );
+});
+
+export const getKPIs = (clientId: string, siteId: any, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+
   var params:any = {
     TableName: tableName,
     ProjectionExpression: 'id, parent, kpi_date, targets',
@@ -40,15 +55,16 @@ router.get('/', function(req, res) {
         return isAfter(b.completed_date, a.completed_date) ? 1 : -1;
       });
 
-      var resp = {"kpis": response.data};
-      res.status(200);
-      res.json(resp);
+      if(response.data) {
+        onSuccess(response.data);
+      } else {
+        onError(response);
+      }
     } else {
-      res.status(400);
-      res.json(response);
+      onError(response);
     }
   });
-});
+};
 
 /* GET kpi. */
 router.get('/:kpiId', function(req, res) {
