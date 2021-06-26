@@ -33,6 +33,7 @@ export const getHazardsComplianceByElement = (req, onSuccess: (data: any) => voi
   let endDate = req.query.endDate;
   let chartType = req.query.chartType;
   let hazardType = req.query.hazardType;
+  let unsafeType = req.query.unsafeType;
 
   let resp = undefined;
   let error = undefined;
@@ -51,6 +52,7 @@ export const getHazardsComplianceByElement = (req, onSuccess: (data: any) => voi
         filter.endDate = endDate;
         filter.chartType = chartType;
         filter.hazardType = hazardType;
+        filter.unsafeType = unsafeType;
 
         resolve(true);
       }, 
@@ -201,7 +203,16 @@ const filterHazards = (hazards, filter: HierarchyFilter) => {
       }
     }
 
-    return isWithinHierarchy;
+    let isUnsafeTypeMatched = false;
+    if(isWithinHierarchy) {
+      if(filter.unsafeType) {
+        isUnsafeTypeMatched = hazard.hazard_type && hazard.hazard_type[filter.unsafeType];
+      } else {
+        isUnsafeTypeMatched = true
+      }
+    }
+
+    return isUnsafeTypeMatched;
   });
 
   return filteredHazards;
@@ -295,6 +306,7 @@ interface HierarchyFilter {
   endDate?: any;
   chartType?: any;
   hazardType?: any;
+  unsafeType?: any;
 }
 
 enum FilterType {

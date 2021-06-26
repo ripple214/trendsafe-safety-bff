@@ -52,7 +52,8 @@ import { indicatorsTrendReport } from './reports/indicators/trend-report';
 import { kpisMonthlyReport } from './reports/kpis/monthly-report';
 import { kpisMonthByMonthTrend } from './reports/kpis/month-by-month-trend';
 
-import { dashboardReport } from './reports/dashboard/dashboard';
+import { performanceDashboardReport } from './reports/dashboard/performance-dashboard';
+import { bbsDashboardReport } from './reports/dashboard/bbs-dashboard';
 
 export const router = express.Router();
 
@@ -277,7 +278,12 @@ router.get('/kpis/month-by-month-trend', function(req, res, next) {
   kpisMonthByMonthTrend(req, res);
 });
 
-/* GET dashboard-report */
-router.get('/dashboard/dashboard-report', function(req, res, next) {
-  dashboardReport(req, res);
+/* GET performance-dashboard-report */
+router.get('/dashboard/performance-dashboard-report', function(req, res, next) {
+  performanceDashboardReport(req, res);
+});
+
+/* GET bbs-dashboard-report */
+router.get('/dashboard/bbs-dashboard-report', function(req, res, next) {
+  bbsDashboardReport(req, res);
 });

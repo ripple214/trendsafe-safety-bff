@@ -1,6 +1,6 @@
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
-import { getPreferences } from '../../../routes/preferences.router';
+import { getPreferences } from '../../preferences.router';
 import { getAssessmentsComplianceByElement } from '../assessments/compliance-by-element';
 import { getAssessmentsComplianceByCategory } from '../assessments/compliance-by-category';
 import { getAssessmentsElementMonthlyTrend } from '../assessments/element-monthly-trend';
@@ -38,8 +38,8 @@ import { getCCMSRuleCompliance } from '../ccms/rule-compliance';
 import { getIndicatorsMonthlyPerformanceReport } from '../indicators/monthly-performance-report';
 import { getIndicatorsTrendReport } from '../indicators/trend-report';
 
-/* GET rule compliance report */
-export const dashboardReport = (req, res) => {
+/* GET performance dashboard report */
+export const performanceDashboardReport = (req, res) => {
 
   getPreferences(req, 
     (data) => {
