@@ -751,6 +751,7 @@ export const getEntities = (req, level, onSuccess: (data: any) => void, onError?
                 if(filter != undefined) {
                   isMatch = isMatch && entity[filter.parentField] == filter.parentFieldValue
                 }
+
                 return isMatch && (doNotApplyFilter || hiearchyAccess.find(ha => {
                   return ha.id == entity.id;
                 }) != undefined);

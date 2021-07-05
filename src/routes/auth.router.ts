@@ -54,6 +54,7 @@ export const login = (email: string, password: string, res, onSuccess: (data: an
   ddb.query(authParams, function(authResponse) {
     
     if (authResponse.data && authResponse.data.length == 1) {
+      console.log("authResponse", authResponse);
       var authDetails = authResponse.data[0];
       authDetails['email'] = email;
 
@@ -69,6 +70,7 @@ export const login = (email: string, password: string, res, onSuccess: (data: an
 
         getUser(clientId, userId,
           (userDetails) => {
+            console.log("userDetails", userDetails);
             authToken.client_id = clientId;
             authToken.user_id = userId;
             authToken.last_name = userDetails.last_name;

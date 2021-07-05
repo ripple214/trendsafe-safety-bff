@@ -19,12 +19,14 @@ router.post("/login-as-client", (req, res, next) => {
 
     getUsersByType(clientId, 'Y',
       (users) => {
+        console.log("users", users);
+
         let user = users.find(user => {
-          //console.log("looking for user", user.email, email);
+          console.log("looking for user", user.email, email);
           return user.email == email;
         });
 
-        //console.log("user", user);
+        console.log("user", user);
   
         if(user) {
           getCredentials(email,

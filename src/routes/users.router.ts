@@ -162,7 +162,7 @@ export const getUser = (clientId: string, userId: string, onSuccess: (data: any)
   };
 
   ddb.query(params, function(response) {
-    
+    console.log("response", clientId, userId, response);
     if (response.data) {
       onSuccess(response.data[0]);
     } else {
