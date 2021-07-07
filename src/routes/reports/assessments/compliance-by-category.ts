@@ -118,23 +118,25 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
         let isCompliant = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['Y'];
         if(isCompliant) {
           compliantCount++;
+          total++;
         }
 
         let isNonCompliant = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['N'];
         if(isNonCompliant) {
           nonCompliantCount++;
+          total++;
         }
 
         let isNotApplicable = assessment.element_compliance[element.id] && assessment.element_compliance[element.id]['NA'];
         if(isNotApplicable) {
           notApplicableCount++;
+          total++;
         }
 
-        total++;
       });
     });
 
-    var percentage = checkNum(+(compliantCount / total * 100).toFixed(2));
+    var percentage = checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2));
     chartData.push({
       name: category.name + ' ' + percentage + '%',
       value: percentage
@@ -145,17 +147,17 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
       compliance: {
         y: {
           total: compliantCount,
-          percent_total: checkNum(+(compliantCount / total * 100).toFixed(0)),
-          percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+          percent_total: checkNum(+(compliantCount / total * 100).toFixed(2)),
+          percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2)),
         },
         n: {
           total: nonCompliantCount,
-          percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(0)),
-          percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+          percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
+          percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(2)),
         },
         na: {
           total: notApplicableCount,
-          percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(0))
+          percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(2))
         }
       }
     });

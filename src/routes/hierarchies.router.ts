@@ -868,6 +868,7 @@ export const getFilteredSubsites = (req, onSuccess: (data: any) => void, onError
 export const getFilteredDepartments = (req, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   getEntities(req, DEPARTMENT,
     (data) => {
+  
       onSuccess(data);
     }, 
     (err) => {

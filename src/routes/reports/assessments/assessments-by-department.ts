@@ -6,6 +6,7 @@ import { getAssessments } from '../../assessments.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { FilterType, getHierarchyFilter } from '../../../common/hierarchy-filter';
 const moduleId = 'TA';
 
 /* GET rule compliance report */
@@ -37,15 +38,28 @@ export const getAssessmentsByDepartment = (req, onSuccess: (data: any) => void, 
   let assessments = undefined;
   let departments = undefined;
 
-  let filter: HierarchyFilter = {
-    startDate: startDate,
-    endDate: endDate
-  };
+  let filter: HierarchyFilter = undefined;
 
   new SequentialExecutor()
   .chain((resolve, reject) => {
-    filter.chartType = chartType;
+    getHierarchyFilter(req,  
+      (data) => {
 
+        filter = data;
+        filter.startDate = startDate;
+        filter.endDate = endDate;
+        filter.chartType = chartType;
+        
+        //console.log(filter);
+        resolve(true);
+      }, 
+      (err) => {
+        error = err;
+        reject(error);
+      }
+    );
+  })
+  .then((resolve, reject) => {
     getAssessments(clientId, undefined, 
       (data) => {
         assessments = data;
@@ -60,9 +74,22 @@ export const getAssessmentsByDepartment = (req, onSuccess: (data: any) => void, 
     );
   })
   .then((resolve, reject) => {
-    getFilteredDepartments(req,  
+    getFilteredDepartments(req, 
       (data) => {
         departments = data;
+
+        //console.log("raw departments", departments);
+        departments.filter(department => {
+          let isWithinHierarchy = false;
+          if(filter.filterType == FilterType.SITES) {
+            isWithinHierarchy = filter.filters.indexOf(department.site_id) > -1;
+          } else if(filter.filterType == FilterType.DEPARTMENTS) {
+            isWithinHierarchy = filter.filters.indexOf(department.id) > -1;
+          } else {
+            isWithinHierarchy = true;
+          }
+        });
+        //console.log("filtered departments", departments);
 
         resolve(true);
       }, 
@@ -164,6 +191,8 @@ const checkNum = (num: number): number => {
 }
 interface HierarchyFilter {
 
+  filterType: FilterType;
+  filters: string[];
   startDate?: any;
   endDate?: any;
   chartType?: any;
