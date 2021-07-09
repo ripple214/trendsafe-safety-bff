@@ -31,6 +31,7 @@ export const getInspectionsComplianceByCategory = (req, onSuccess: (data: any) =
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   let equipmentId = req.query.equipmentId;
+  let areaId = req.query.areaId;
 
   let resp = undefined;
   let error = undefined;
@@ -48,6 +49,7 @@ export const getInspectionsComplianceByCategory = (req, onSuccess: (data: any) =
         filter.startDate = startDate;
         filter.endDate = endDate;
         filter.equipmentId = equipmentId;
+        filter.areaId = areaId;
 
         console.log(filter);
         resolve(true);
@@ -199,9 +201,18 @@ const filterInspections = (inspections, filter: HierarchyFilter) => {
       }
     }
 
-    //console.log("did it match", isWithinDateRange, isWithinHierarchy, equipmentMatches);
+    let areaMatches = false;
+    if(equipmentMatches) {
+      if(filter.areaId) {
+        areaMatches = inspection.area_id == filter.areaId;
+      } else {
+        areaMatches = true;
+      }
+    }
 
-    return equipmentMatches;
+    //console.log("did it match", isWithinDateRange, isWithinHierarchy, equipmentMatches, areaMatches);
+
+    return areaMatches;
   });
 
   return filteredInspections;
@@ -294,6 +305,7 @@ interface HierarchyFilter {
   startDate?: any;
   endDate?: any;
   equipmentId?: any;
+  areaId?: any;
 }
 
 enum FilterType {

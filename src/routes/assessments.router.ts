@@ -377,6 +377,8 @@ const movePhotographs = (fromKey, toKey, callback) => {
 
 /* DELETE delete assessment. */
 router.delete('/:assessmentId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let assessmentId = req.params.assessmentId;
 

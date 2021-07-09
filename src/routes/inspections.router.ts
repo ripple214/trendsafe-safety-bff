@@ -47,7 +47,7 @@ export const getInspections = (clientId: string, siteId: any, onSuccess: (data: 
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required, captions',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -61,7 +61,7 @@ export const getInspections = (clientId: string, siteId: any, onSuccess: (data: 
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, equipment_id, area_id, actions_taken, further_actions_required, captions',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -149,7 +149,7 @@ export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => voi
 const getQueryParams = (clientId, inspectionId) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, area_id, equipment_id, assessor, person_responsible, recipients, risk_rating, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, captions, completed_date, due_date, summary, site_id, department_id, area_id, equipment_id, assessor, person_responsible, recipients, risk_rating, element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :inspectionId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -182,6 +182,7 @@ router.put('/:inspectionId', function(req, res, next) {
       actions_taken = :actions_taken, \
       key_findings = :key_findings, \
       further_actions_required = :further_actions_required, \
+      captions = :captions, \
       completed_date = :completed_date, \
       due_date = :due_date, \
       summary = :summary, \
@@ -206,6 +207,7 @@ router.put('/:inspectionId', function(req, res, next) {
       ":actions_taken": req.body.actions_taken,
       ":key_findings": req.body.key_findings,
       ":further_actions_required": req.body.further_actions_required,
+      ":captions": req.body.captions || {},
       ":completed_date": req.body.completed_date,
       ":due_date": req.body.due_date,
       ":summary": req.body.summary,
@@ -289,6 +291,7 @@ router.post('/', function(req, res, next) {
       "actions_taken": req.body.actions_taken,
       "key_findings": req.body.key_findings,
       "further_actions_required": req.body.further_actions_required,
+      "captions": req.body.captions || {},
       "completed_date": req.body.completed_date,
       "due_date": req.body.due_date,
       "summary": req.body.summary,

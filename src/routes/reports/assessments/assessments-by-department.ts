@@ -88,6 +88,7 @@ export const getAssessmentsByDepartment = (req, onSuccess: (data: any) => void, 
           } else {
             isWithinHierarchy = true;
           }
+          return isWithinHierarchy;
         });
         //console.log("filtered departments", departments);
 
