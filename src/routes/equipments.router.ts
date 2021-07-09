@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { getUserHierarchyAccess, SITE } from './hierarchies.router';
 
 export const router = express.Router();
 
@@ -38,19 +39,49 @@ router.get('/', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"equipments": response.data};
-      res.status(200);
-      res.json(resp);
+      let equipments = response.data;
+      filterEquipments(req, equipments, 
+        (filteredEquipments) => {
+          filteredEquipments.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+          });
+    
+          var resp = {"equipments": filteredEquipments};
+          res.status(200);
+          res.json(resp);
+        }, 
+        (error) => {
+          res.status(500);
+          res.json(error);
+        }
+      );
     } else {
       res.status(400);
       res.json(response);
     }
   });
 });
+
+const filterEquipments = (req, equipments, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getUserHierarchyAccess(req, SITE, 
+    (hierarchyAccess) => {
+      let filteredLocationAreas = equipments.filter(equipment => {
+        let isMatch = false;
+        for(let access of hierarchyAccess) {
+          if(equipment.parent == access.id) {
+            isMatch = true;
+            break;
+          }
+        }
+        return isMatch;
+      });
+      onSuccess(filteredLocationAreas);
+    },
+    (error) => {
+      onError(error);
+    }
+  );  
+}
 
 /* GET equipment. */
 router.get('/:equipmentId', function(req, res) {

@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { getUserHierarchyAccess, SITE } from './hierarchies.router';
 
 export const router = express.Router();
 
@@ -38,19 +39,49 @@ router.get('/', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"tasks": response.data};
-      res.status(200);
-      res.json(resp);
+      let tasks = response.data;
+      filterTasks(req, tasks, 
+        (filteredTasks) => {
+          filteredTasks.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+          });
+    
+          var resp = {"tasks": filteredTasks};
+          res.status(200);
+          res.json(resp);
+        }, 
+        (error) => {
+          res.status(500);
+          res.json(error);
+        }
+      );
     } else {
       res.status(400);
       res.json(response);
     }
   });
 });
+
+const filterTasks = (req, tasks, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getUserHierarchyAccess(req, SITE, 
+    (hierarchyAccess) => {
+      let filteredTasks = tasks.filter(task => {
+        let isMatch = false;
+        for(let access of hierarchyAccess) {
+          if(task.parent == access.id) {
+            isMatch = true;
+            break;
+          }
+        }
+        return isMatch;
+      });
+      onSuccess(filteredTasks);
+    },
+    (error) => {
+      onError(error);
+    }
+  );  
+}
 
 /* GET task. */
 router.get('/:taskId', function(req, res) {
