@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { default as moment } from 'moment';
 
 import { db_service as ddb } from '../services/ddb.service';
+import { getUserHierarchyAccess, SITE } from './hierarchies.router';
 
 export const router = express.Router();
 
@@ -106,13 +107,22 @@ router.get('/locations', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"locations": response.data};
-      res.status(200);
-      res.json(resp);
+      let locationAreas = response.data;
+      filterLocationAreas(req, locationAreas, 
+        (filteredLocationAreas) => {
+          filteredLocationAreas.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+          });
+    
+          var resp = {"locations": filteredLocationAreas};
+          res.status(200);
+          res.json(resp);
+        }, 
+        (error) => {
+          res.status(500);
+          res.json(error);
+        }
+      );
     } else {
       res.status(400);
       res.json(response);
@@ -127,13 +137,22 @@ router.get('/areas', function(req, res) {
   ddb.query(params, function(response) {
     
     if (response.data) {
-      response.data.sort(function (a, b) {
-        return a.name.localeCompare(b.name);
-      });
-
-      var resp = {"areas": response.data};
-      res.status(200);
-      res.json(resp);
+      let locationAreas = response.data;
+      filterLocationAreas(req, locationAreas, 
+        (filteredLocationAreas) => {
+          filteredLocationAreas.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+          });
+    
+          var resp = {"areas": filteredLocationAreas};
+          res.status(200);
+          res.json(resp);
+        }, 
+        (error) => {
+          res.status(500);
+          res.json(error);
+        }
+      );
     } else {
       res.status(400);
       res.json(response);
@@ -167,6 +186,28 @@ const getListParams = (req, level) =>  {
 
   return params;
 };
+
+const filterLocationAreas = (req, locationAreas, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+  getUserHierarchyAccess(req, SITE, 
+    (hierarchyAccess) => {
+      let filteredLocationAreas = locationAreas.filter(locationArea => {
+        let isMatch = false;
+        for(let access of hierarchyAccess) {
+          //console.log("looking for", access.id, locationArea.parents, locationArea.parents.indexOf(access.id) > -1);
+          if(locationArea.parents.indexOf(access.id) > -1) {
+            isMatch = true;
+            break;
+          }
+        }
+        return isMatch;
+      });
+      onSuccess(filteredLocationAreas);
+    },
+    (error) => {
+      onError(error);
+    }
+  );  
+}
 
 /* GET location. */
 router.get('/locations/:id', function(req, res) {

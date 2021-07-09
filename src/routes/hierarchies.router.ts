@@ -14,12 +14,12 @@ import { getUser } from './users.router';
 export const router = express.Router();
 
 const tableName = conf.get('TABLE_HIERARCHIES');
-var DELIMITER = "$";
-var DIVISION = "DIVISION";
-var PROJECT = "PROJECT";
-var SITE = "SITE";
-var SUBSITE = "SUBSITE";
-var DEPARTMENT = "DEPARTMENT";
+export const DELIMITER = "$";
+export const DIVISION = "DIVISION";
+export const PROJECT = "PROJECT";
+export const SITE = "SITE";
+export const SUBSITE = "SUBSITE";
+export const DEPARTMENT = "DEPARTMENT";
 
 var LEVELS = [DIVISION, PROJECT, SITE, SUBSITE, DEPARTMENT];
 var LEVEL_DESCRIPTIONS = {
@@ -682,7 +682,7 @@ const getFilter = (req): {parentField: string, parentFieldValue: string} => {
   }
 };
 
-const getUserHierarchyAccess = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+export const getUserHierarchyAccess = (req, level, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let clientId = req['user'].client_id;
   let userId = req['user'].user_id;
   let accessType = req.query["access"] || 'data';

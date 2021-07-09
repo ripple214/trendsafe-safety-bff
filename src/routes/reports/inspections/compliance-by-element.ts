@@ -85,12 +85,17 @@ export const getInspectionsComplianceByElement = (req, onSuccess: (data: any) =>
       resolve(true);
     });
   })
-  .then((resolve) => {
+  .then((resolve, reject) => {
     getChartData(categories, inspections, filter,  
       (data) => {
         resp = {"report-data": data};
 
         resolve(true);
+      }, 
+      (err) => {
+        error = err;
+
+        reject(error);
       }
     );
   })
@@ -103,75 +108,84 @@ export const getInspectionsComplianceByElement = (req, onSuccess: (data: any) =>
   .execute();
 };
 
-const getChartData = (categories, inspections, filter: HierarchyFilter, onSuccess: (data: any) => void) => {
+const getChartData = (categories, inspections, filter: HierarchyFilter, onSuccess: (data: any) => void, onFailure: (error: any) => void) => {
   let chartData = [];
   let tableData = [];
   let inspection_summaries = {};
 
-  categories.forEach((category) => {
-    category.elements.forEach((element) => {
-      let compliantCount = 0;
-      let nonCompliantCount = 0;
-      let notApplicableCount = 0;
-      let total = 0;
+  try {
+    categories.forEach((category) => {
+      category.elements.forEach((element) => {
+        let compliantCount = 0;
+        let nonCompliantCount = 0;
+        let notApplicableCount = 0;
+        let total = 0;
 
-      inspections.forEach((inspection) => {
-        let isCompliant = inspection.element_compliance[element.id]['Y'];
-        if(isCompliant) {
-          compliantCount++;
-        }
-
-        let isNonCompliant = inspection.element_compliance[element.id]['N'];
-        if(isNonCompliant) {
-          nonCompliantCount++;
-        }
-
-        let isNotApplicable = inspection.element_compliance[element.id]['NA'];
-        if(isNotApplicable) {
-          notApplicableCount++;
-        }
-
-        inspection_summaries[inspection.name] = inspection.summary;
-
-        total++;
-      });
-      var percentage = checkNum(+(compliantCount / total * 100).toFixed(2));
-      chartData.push({
-        name: element.name + ' ' + percentage + '%',
-        value: percentage
-      });
-
-      tableData.push({
-        category: category.name,
-        element: element.name,
-        compliance: {
-          y: {
-            total: compliantCount,
-            percent_total: checkNum(+(compliantCount / total * 100).toFixed(0)),
-            percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(0)),
-          },
-          n: {
-            total: nonCompliantCount,
-            percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(0)),
-            percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(0)),
-          },
-          na: {
-            total: notApplicableCount,
-            percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(0))
+        inspections.forEach((inspection) => {
+          let isCompliant = inspection.element_compliance[element.id] && inspection.element_compliance[element.id]['Y'];
+          if(isCompliant) {
+            compliantCount++;
+            total++;
           }
-        }
+
+          let isNonCompliant = inspection.element_compliance[element.id] && inspection.element_compliance[element.id]['N'];
+          if(isNonCompliant) {
+            nonCompliantCount++;
+            total++;
+          }
+
+          let isNotApplicable = inspection.element_compliance[element.id] && inspection.element_compliance[element.id]['NA'];
+          if(isNotApplicable) {
+            notApplicableCount++;
+            total++;
+          }
+
+          inspection_summaries[inspection.name] = inspection.summary;
+
+        });
+        var percentage = checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2));
+        chartData.push({
+          name: element.name + ' ' + percentage + '%',
+          value: percentage
+        });
+
+        tableData.push({
+          category: category.name,
+          element: element.name,
+          compliance: {
+            y: {
+              total: compliantCount,
+              percent_total: checkNum(+(compliantCount / total * 100).toFixed(2)),
+              percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2)),
+            },
+            n: {
+              total: nonCompliantCount,
+              percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
+              percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(2)),
+            },
+            na: {
+              total: notApplicableCount,
+              percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(2))
+            }
+          }
+        });
       });
     });
-  });
 
-  onSuccess({
-    start_date: filter.startDate,
-    end_date: filter.endDate,
-    no_of_inspections: inspections.length, 
-    summary: chartData,
-    inspection_summaries: inspection_summaries,
-    details: tableData
-  });  
+    onSuccess({
+      start_date: filter.startDate,
+      end_date: filter.endDate,
+      no_of_inspections: inspections.length, 
+      summary: chartData,
+      inspection_summaries: inspection_summaries,
+      details: tableData
+    });  
+  
+  } catch(e) {
+    console.log("Error occurred", e);
+    onFailure(e);
+  }
+  
 }
 
 const filterInspections = (inspections, filter: HierarchyFilter) => {

@@ -143,7 +143,6 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
           assessment_summaries[assessment.name] = assessment.summary;
   
         });
-        console.log(element.name, compliantCount, total, notApplicableCount, (total-notApplicableCount))
         var percentage = checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2));
         chartData.push({
           name: element.name + ' ' + percentage + '%',
