@@ -399,7 +399,7 @@ const deleteLocationArea = (level, req, res) => {
   let siteId = undefined;
   var synCaller = new Promise((resolveCall:any, rejectCall:any) => {
     ddb.query(queryParams, function(response) {
-      console.log("sa delete", response);
+      //console.log("sa delete", response);
       if (response.data && response.data.length == 1) {
         let locationArea = response.data[0];
         let parents = locationArea.parents;

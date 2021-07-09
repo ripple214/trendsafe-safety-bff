@@ -6,6 +6,7 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { isWithin } from '../../../common/date-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { FilterType, getHierarchyFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
 const moduleId = 'PAI';
 
 /* GET detailed report */
@@ -26,7 +27,7 @@ export const inspectionsDetailedReport = (req, res) => {
   let error = undefined;
 
   let inspections = undefined;
-  let filter: HierarchyFilter = undefined;
+  let filter: InspectionsFilter = undefined;
   
   new SequentialExecutor()
   .chain((resolve, reject) => {
@@ -108,7 +109,7 @@ export const inspectionsDetailedReport = (req, res) => {
   .execute();
 };
 
-const getChartData = (clientId, inspections, filter: HierarchyFilter, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
+const getChartData = (clientId, inspections, filter: InspectionsFilter, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   let chartData = [];
   let tableData = [];
 
@@ -149,7 +150,7 @@ const getChartData = (clientId, inspections, filter: HierarchyFilter, onSuccess:
   .execute();
 }
 
-const filterInspections = (inspections, filter: HierarchyFilter) => {
+const filterInspections = (inspections, filter: InspectionsFilter) => {
   let filteredInspections = inspections.filter(inspection => {
     let isWithinDateRange = isWithin(inspection.completed_date, filter.startDate, filter.endDate);
 
@@ -209,94 +210,11 @@ const filterInspections = (inspections, filter: HierarchyFilter) => {
   return filteredInspections;
 }
 
-const getHierarchyFilter = (req, onSuccess: (filter: HierarchyFilter) => void, onError?: (error: any) => void) => {
-  let divisionId = req.query.divisionId;
-  let projectId = req.query.projectId;
-  let siteId = req.query.siteId;
-  let subsiteId = req.query.subsiteId;
-  let departmentId = req.query.departmentId;
+interface InspectionsFilter extends HierarchyFilter {
 
-  let filters: string[] = [];
-  if(departmentId) {
-    filters.push(departmentId);
-    onSuccess({
-      filterType: FilterType.DEPARTMENTS,
-      filters: filters
-    });
-  } else if(subsiteId) {
-    getFilteredDepartments(req, 
-      (data) => {
-        onSuccess({
-          filterType: FilterType.DEPARTMENTS,
-          filters: mapHierarchy(data)
-        });
-      }, 
-      (err) => {
-        onError(err);
-      }
-    );
-  } else if(siteId) {
-    filters.push(siteId);
-    onSuccess({
-      filterType: FilterType.SITES,
-      filters: filters
-    });
-  } else if(projectId) {
-    getFilteredSites(req, 
-      (data) => {
-        onSuccess({
-          filterType: FilterType.SITES,
-          filters: mapHierarchy(data)
-        });
-      }, 
-      (err) => {
-        onError(err);
-      }
-    );
-  } else if(divisionId) {
-    getFilteredSites(req, 
-      (data) => {
-        onSuccess({
-          filterType: FilterType.SITES,
-          filters: mapHierarchy(data)
-        });
-      }, 
-      (err) => {
-        onError(err);
-      }
-    );
-  } else {
-    onSuccess({
-      filterType: FilterType.NONE,
-      filters: []
-    });
-  }
-}
-
-const mapHierarchy = (data: any) => {
-  let filters = data.map(hierarchy => {
-    return hierarchy.id
-  })
-
-  return filters;
-}
-
-interface HierarchyFilter {
-
-  filterType: FilterType;
-  filters: string[];
   id?: any;
-  startDate?: any;
-  endDate?: any;
   equipmentId?: any;
   locationId?: any;
   riskRating?: any;
   nonCompliantElement?: any;
-}
-
-enum FilterType {
-  NONE,
-  ID, 
-  SITES,
-  DEPARTMENTS
 }

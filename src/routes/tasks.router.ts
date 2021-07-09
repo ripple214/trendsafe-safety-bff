@@ -253,7 +253,7 @@ router.delete('/:taskId', function(req, res) {
     };
 
     ddb.delete(deleteParams, function(response) {
-      console.log("response", response);
+      //console.log("response", response);
       if (!response.error) {
         res.status(204);
         res.json();

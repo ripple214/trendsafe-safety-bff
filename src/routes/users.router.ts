@@ -162,7 +162,7 @@ export const getUser = (clientId: string, userId: string, onSuccess: (data: any)
   };
 
   ddb.query(params, function(response) {
-    console.log("response", clientId, userId, response);
+    //console.log("response", clientId, userId, response);
     if (response.data) {
       onSuccess(response.data[0]);
     } else {
@@ -265,12 +265,12 @@ router.post('/', function(req, res, next) {
         users = data.filter(user => {
           return user.email.toLowerCase() == (req.body.email || "").toLowerCase();
         });
-        console.log("success get users");
+        //console.log("success get users");
 
         resolve(true);
       }, 
       (err) => {
-        console.log("error get users");
+        //console.log("error get users");
 
         error = err;
         reject(error);
@@ -286,12 +286,12 @@ router.post('/', function(req, res, next) {
           delete resp['partition_key'];
           delete resp['sort_key'];
   
-          console.log("success create user");
+          //console.log("success create user");
 
           resolve(true);
         }, 
         (err) => {
-          console.log("error create user");
+          //console.log("error create user");
 
           error = err;
   
@@ -299,7 +299,7 @@ router.post('/', function(req, res, next) {
         }    
       );
     } else {
-      console.log("error already exists");
+      //console.log("error already exists");
       error = {
         message: "User already exists", 
         email: req.body.email
@@ -310,11 +310,11 @@ router.post('/', function(req, res, next) {
   .then((resolve, reject) => {
     createAuth(user.email, clientId, user.id, req['user'].email, 
       (data) => {
-        console.log("success create auth");
+        //console.log("success create auth");
 
         resolve(true);
       }, (err) => {
-        console.log("error create auth");
+        //console.log("error create auth");
 
         error = err;
         reject(err);
@@ -322,7 +322,7 @@ router.post('/', function(req, res, next) {
     );
   })
   .fail((error) => {
-    console.log("error", error)
+    //console.log("error", error)
     res.status(400);
     res.json(error);
   })

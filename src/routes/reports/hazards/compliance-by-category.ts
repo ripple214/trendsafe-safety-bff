@@ -137,7 +137,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
     if(nonCompliantCount > 0) {
       chartData.push({
         id: category.id,
-        name: category.name + ' ' + nonCompliantCount,
+        name: category.name,
         value: nonCompliantCount
       });
 

@@ -135,7 +135,7 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
     if(nonCompliantCount > 0) {
       chartData.push({
         id: category.id,
-        name: category.name + ' ' + nonCompliantCount,
+        name: category.name,
         value: nonCompliantCount
       });
 

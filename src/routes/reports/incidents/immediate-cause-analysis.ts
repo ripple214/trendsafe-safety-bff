@@ -1,6 +1,5 @@
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncidents } from '../../incidents.router';
-import { retrieve as getCauses } from '../../causes.router';
 import { retrieve as getCategories } from '../../category-elements.router';
 import { checkNum } from '../../../common/checkNum';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
@@ -34,7 +33,7 @@ export const getIncidentsImmediateCauseAnalysis = (req, onSuccess: (data: any) =
   let resp = undefined;
   let error = undefined;
 
-  let headings = undefined;
+  let causes = undefined;
   let categories = undefined;
   let incidents = undefined;
   let filter: IncidentFilter = undefined;
@@ -85,15 +84,15 @@ export const getIncidentsImmediateCauseAnalysis = (req, onSuccess: (data: any) =
       });
     },
     (resolve) => {
-      getCauses(req, (data) => {
-        headings = data;
+      getCategories(req, "assessments", (data) => {
+        causes = data;
 
         resolve(true);
       });
     }
   ])
   .then((resolve) => {
-    getChartData(categories, headings, incidents, filter,  
+    getChartData(categories, causes, incidents, filter,  
       (data) => {
         resp = {"report-data": data};
 
@@ -110,43 +109,45 @@ export const getIncidentsImmediateCauseAnalysis = (req, onSuccess: (data: any) =
   .execute();
 };
 
-const getChartData = (categories, headings, incidents, filter: IncidentFilter, onSuccess: (data: any) => void) => {
+const getChartData = (categories, causes, incidents, filter: IncidentFilter, onSuccess: (data: any) => void) => {
   let chartData = [];
   let tableData = [];
 
   let total = 0;
 
-  headings.forEach((heading) => {
+  causes.forEach((cause) => {
     let nonCompliantHeadingCount = 0;
 
-    if(heading.items) {
-      heading.items.forEach((item) => {
+    if(cause.elements) {
+      cause.elements.forEach((element) => {
 
         incidents.forEach((incident) => {
+          console.log("incident.task_causes[item.id]", incident.task_causes[element.id], nonCompliantHeadingCount, element);
+
           let isNonCompliant = 
             incident.task_causes && 
-            incident.task_causes[item.id] &&
-            incident.task_causes[item.id]['N'];
+            incident.task_causes[element.id] &&
+            incident.task_causes[element.id]['N'];
   
           if(isNonCompliant) {
             nonCompliantHeadingCount++;
             total++;
-          }
+          } 
         });
       });
     }
 
     if(nonCompliantHeadingCount > 0) {
       chartData.push({
-        id: heading.id,
-        name: heading.name + ' ' + nonCompliantHeadingCount,
+        id: cause.id,
+        name: cause.name,
         value: nonCompliantHeadingCount
       });
 
       tableData.push({
         type: "heading",
-        id: heading.id,
-        name: heading.name,
+        id: cause.id,
+        name: cause.name,
         compliance: {
           n: {
             total: nonCompliantHeadingCount,
@@ -175,7 +176,7 @@ const getChartData = (categories, headings, incidents, filter: IncidentFilter, o
     if(nonCompliantEquipmentCount > 0) {
       chartData.push({
         id: category.id,
-        name: category.name + ' ' + nonCompliantEquipmentCount,
+        name: category.name,
         value: nonCompliantEquipmentCount
       });
 

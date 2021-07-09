@@ -75,7 +75,9 @@ export const incidentsDetailedReport = (req, res) => {
     }
   })
   .then((resolve) => {
-    incidents = filterIncidents(incidents, filter);
+    if(!filter.id) {
+      incidents = filterIncidents(incidents, filter);
+    }
     resolve(true);
   })
   .then((resolve, reject) => {

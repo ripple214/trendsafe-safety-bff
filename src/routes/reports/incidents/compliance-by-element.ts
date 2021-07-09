@@ -136,7 +136,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
         if(nonCompliantCount > 0) {
           chartData.push({
             id: element.id,
-            name: element.name + ' ' + nonCompliantCount,
+            name: element.name,
             value: nonCompliantCount
           });
   
