@@ -35,7 +35,7 @@ router.get('/', function(req, res, next) {
 export const getIndicators = (clientId: string, onSuccess: (data: any) => void, onError?: (error: any) => void) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, total_hours, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, bbsi_contributors, total_hours, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -88,7 +88,7 @@ const getQueryParams = (req) => {
   
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, report_date, site, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
+    ProjectionExpression: 'id, #name, report_date, site, weightings, assessments, leader_assessments, inspections, leader_inspections, hazards, leader_hazards, unsafe_acts, plannings, leader_plannings, near_miss, actions_completed_by_due_date, bbsi_contributors, total_hours, total_assessments, total_inspections, total_hazards, total_unsafe_acts, total_plannings, total_near_miss, total_ppifr, total_lsi, total_bbsi',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :indicatorId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -120,6 +120,7 @@ router.put('/:indicatorId', function(req, res, next) {
     UpdateExpression: 'set #name = :name, \
       report_date = :report_date, \
       site = :site, \
+      bbsi_contributors = :bbsi_contributors, \
       total_hours = :total_hours, \
       total_assessments = :total_assessments, \
       total_inspections = :total_inspections, \
@@ -151,6 +152,7 @@ router.put('/:indicatorId', function(req, res, next) {
       ":name": req.body.name,
       ":report_date": req.body.report_date,
       ":site": req.body.site,
+      ":bbsi_contributors": req.body.bbsi_contributors, 
       ":total_hours": req.body.total_hours,
       ":total_assessments": req.body.total_assessments,
       ":total_inspections": req.body.total_inspections,
@@ -212,6 +214,7 @@ router.post('/', function(req, res, next) {
       "name": name,
       "report_date": req.body.report_date,
       "site": req.body.site,
+      "bbsi_contributors": req.body.bbsi_contributors,
       "total_hours": req.body.total_hours,
       "total_assessments": req.body.total_assessments,
       "total_inspections": req.body.total_inspections,
