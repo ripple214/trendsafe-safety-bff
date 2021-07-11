@@ -1,4 +1,3 @@
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getInspections } from '../../inspections.router';
@@ -7,6 +6,8 @@ import { getAllUsers } from '../../users.router';
 import { isWithin } from '../../../common/date-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'PAI';
 
 /* GET rule compliance report */
@@ -252,13 +253,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

@@ -7,6 +7,8 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'HR';
 
 /* GET compliance-by-element report */
@@ -175,7 +177,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
             compliance: {
               n: {
                 total: nonCompliantCount,
-                percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(0)),
+                percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
               }
             }
           });
@@ -299,13 +301,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

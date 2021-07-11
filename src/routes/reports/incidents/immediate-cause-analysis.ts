@@ -1,7 +1,7 @@
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncidents } from '../../incidents.router';
 import { retrieve as getCategories } from '../../category-elements.router';
-import { checkNum } from '../../../common/checkNum';
+import { checkNum } from '../../../common/number-util';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 
 import { hasModuleAccess } from '../../../common/access-util';
@@ -197,7 +197,7 @@ const getChartData = (categories, causes, incidents, filter: IncidentFilter, onS
   //console.log("umabot dito");  
   
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({

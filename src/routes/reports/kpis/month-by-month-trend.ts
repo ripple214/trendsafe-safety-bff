@@ -3,7 +3,6 @@ import { getIndicators } from '../../indicators.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 import moment from 'moment';
 import { FilterType, getHierarchyFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
-import { checkNum } from '../../../common/checkNum';
 
 import { hasModuleAccess } from '../../../common/access-util';
 import { getKPIs } from '../../../routes/kpis.router';

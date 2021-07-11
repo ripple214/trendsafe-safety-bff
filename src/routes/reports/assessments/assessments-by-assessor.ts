@@ -6,6 +6,7 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { getAllUsers } from '../../users.router';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
 const moduleId = 'TA';
 
 /* GET rule compliance report */
@@ -251,13 +252,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

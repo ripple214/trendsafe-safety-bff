@@ -9,6 +9,8 @@ import { getManagements } from '../../managements.router';
 import { getHazards } from '../../hazards.router';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleIdHazards = 'HR';
 const moduleIdManagement = 'TRM';
 
@@ -147,7 +149,7 @@ const getChartData = (categories, ccms, filter: HierarchyFilter, onSuccess: (dat
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
           },
         }
       });
@@ -156,7 +158,7 @@ const getChartData = (categories, ccms, filter: HierarchyFilter, onSuccess: (dat
   });
 
   chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(2))
   });
 
   chartData = chartData.sort((obj1, obj2) => {
@@ -169,7 +171,7 @@ const getChartData = (categories, ccms, filter: HierarchyFilter, onSuccess: (dat
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({
@@ -317,13 +319,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 export interface HierarchyFilter {
 
   filterType: FilterType;

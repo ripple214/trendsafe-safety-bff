@@ -16,6 +16,8 @@ const moduleId = 'HR';
 
 /* GET hazards listing. */
 router.get('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
 
   let siteId = req.query.site_id;
@@ -45,7 +47,7 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
     params = {
       TableName: tableName,
       IndexName: "SiteIndex",
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, hazard_type',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, captions, hazard_type',
       KeyConditionExpression: '#partition_key = :clientId and site_id = :site_id',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -59,7 +61,7 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
   } else {
     params = {
       TableName: tableName,
-      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, hazard_type',
+      ProjectionExpression: 'id, #name, created_by, created_ts, completed_date, summary, assessor, element_compliance, risk_rating, risk_compliance, rule_compliance, site_id, department_id, task_id, location_id, equipment_id, actions_taken, further_actions_required, captions, hazard_type',
       KeyConditionExpression: '#partition_key = :clientId',
       ExpressionAttributeNames:{
         "#partition_key": "partition_key",
@@ -82,6 +84,8 @@ export const getHazards = (clientId: string, siteId: any, onSuccess: (data: any)
 
 /* GET hazard. */
 router.get('/:hazardId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let hazardId = req.params.hazardId;
 
@@ -112,6 +116,7 @@ export const getHazard = (clientId: string, hazardId: string, onSuccess: (data: 
         (data => {
           resp.photographs = data;
           onSuccess(resp);
+
         }), 
         (error) => {
           onError(error);
@@ -144,7 +149,7 @@ export const getPhotographs = (clientId, subgroup, onSuccess: (data: any) => voi
 const getQueryParams = (clientId, hazardId) => {
   var params:any = {
     TableName: tableName,
-    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, completed_date, due_date, summary, site_id, department_id, location_id, task_id, equipment_id, assessor, person_responsible, recipients, risk_rating, hazard_type, element_compliance, risk_compliance, rule_compliance',
+    ProjectionExpression: 'id, #name, actions_taken, key_findings, further_actions_required, captions, completed_date, due_date, summary, site_id, department_id, location_id, task_id, equipment_id, assessor, person_responsible, recipients, risk_rating, hazard_type, element_compliance, risk_compliance, rule_compliance',
     KeyConditionExpression: '#partition_key = :clientId and #sort_key = :hazardId',
     ExpressionAttributeNames:{
       "#partition_key": "partition_key",
@@ -162,6 +167,8 @@ const getQueryParams = (clientId, hazardId) => {
 
 /* PUT update hazard. */
 router.put('/:hazardId', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let hazardId = req.params.hazardId;
 
@@ -175,6 +182,7 @@ router.put('/:hazardId', function(req, res, next) {
       actions_taken = :actions_taken, \
       key_findings = :key_findings, \
       further_actions_required = :further_actions_required, \
+      captions = :captions, \
       completed_date = :completed_date, \
       due_date = :due_date, \
       summary = :summary, \
@@ -201,6 +209,7 @@ router.put('/:hazardId', function(req, res, next) {
       ":actions_taken": req.body.actions_taken,
       ":key_findings": req.body.key_findings,
       ":further_actions_required": req.body.further_actions_required,
+      ":captions": req.body.captions || {},
       ":completed_date": req.body.completed_date,
       ":due_date": req.body.due_date,
       ":summary": req.body.summary,
@@ -267,6 +276,8 @@ router.put('/:hazardId', function(req, res, next) {
 
 /* POST insert hazard. */
 router.post('/', function(req, res, next) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+
   let clientId = req['user'].client_id;
   let createTime = moment().format();
   let id = uuid();
@@ -284,6 +295,7 @@ router.post('/', function(req, res, next) {
       "actions_taken": req.body.actions_taken,
       "key_findings": req.body.key_findings,
       "further_actions_required": req.body.further_actions_required,
+      "captions": req.body.captions || {},
       "completed_date": req.body.completed_date,
       "due_date": req.body.due_date,
       "summary": req.body.summary,
@@ -373,6 +385,8 @@ const movePhotographs = (fromKey, toKey, callback) => {
 
 /* DELETE delete hazard. */
 router.delete('/:hazardId', function(req, res) {
+  if(!hasModuleAccess(req, res, moduleId)) return;
+  
   let clientId = req['user'].client_id;
   let hazardId = req.params.hazardId;
 

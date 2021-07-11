@@ -1,4 +1,3 @@
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
@@ -6,6 +5,7 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 import { getCCMs } from './compliance-by-category';
 import { getTop10Hazards } from '../hazards/top-hazards';
+import { checkNum } from '../../../common/number-util';
 
 /* GET compliance-by-element report */
 export const ccmsComplianceByElement = (req, res) => {
@@ -138,7 +138,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
             compliance: {
               n: {
                 total: nonCompliantCount,
-                percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+                percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
               },
             }
           });
@@ -148,7 +148,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
   });
 
   chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(2))
   });
 
   chartData = chartData.sort((obj1, obj2) => {
@@ -161,7 +161,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({
@@ -271,13 +271,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

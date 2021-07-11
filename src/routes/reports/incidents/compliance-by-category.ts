@@ -1,7 +1,7 @@
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncidents } from '../../incidents.router';
 import { retrieve as getCategories } from '../../category-elements.router';
-import { checkNum } from '../../../common/checkNum';
+import { checkNum } from '../../../common/number-util';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 import { getTop10Hazards } from '../hazards/top-hazards';
 
@@ -146,7 +146,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
           },
         }
       });
@@ -155,7 +155,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
   });
 
   chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(2))
   });
 
   chartData = chartData.sort((obj1, obj2) => {
@@ -168,7 +168,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({

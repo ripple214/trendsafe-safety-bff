@@ -7,6 +7,8 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'PAI';
 
 /* GET compliance-by-element report */
@@ -186,17 +188,17 @@ const getChartData = (categories, inspections, filter: HierarchyFilter, onSucces
             compliance: {
               y: {
                 total: compliantCount,
-                percent_total: checkNum(+(compliantCount / total * 100).toFixed(0)),
-                percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+                percent_total: checkNum(+(compliantCount / total * 100).toFixed(2)),
+                percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2)),
               },
               n: {
                 total: nonCompliantCount,
-                percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(0)),
-                percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(0)),
+                percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
+                percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(2)),
               },
               na: {
                 total: notApplicableCount,
-                percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(0))
+                percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(2))
               }
             }
           });
@@ -314,13 +316,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

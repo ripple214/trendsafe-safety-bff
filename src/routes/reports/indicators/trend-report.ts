@@ -3,7 +3,7 @@ import { getIndicators } from '../../indicators.router';
 import { isSameMonth, isWithin } from '../../../common/date-util';
 import moment from 'moment';
 import { FilterType, getHierarchyFilter, HierarchyFilter } from '../../../common/hierarchy-filter';
-import { checkNum } from '../../../common/checkNum';
+import { checkNum } from '../../../common/number-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
 const moduleId = 'LI';

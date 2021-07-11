@@ -3,7 +3,7 @@ import { getRisks } from '../../risks.router';
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncidents } from '../../incidents.router';
 import { getHierarchyFilter, HierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
-import { checkNum } from '../../../common/checkNum';
+import { checkNum } from '../../../common/number-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
 const moduleId = 'II';

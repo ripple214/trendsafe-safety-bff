@@ -436,7 +436,7 @@ export const createDefaultCategoryElements = (clientId, string, userEmail: strin
     {"sort_num": 3,"parent": "1001","id": "1003","name": "Hazard ID and Control","partition_key": "$assessments$ELEMENT"},
     {"sort_num": 6,"parent": "1004","id": "1006","name": "Health Compliance","partition_key": "$assessments$ELEMENT"},
     {"sort_num": 10,"parent": "1007","id": "1010","name": "Housekeeping","partition_key": "$assessments$ELEMENT"},
-    {"sort_num": 2,"parent": "1001","id": "1002","name": "Permit and Authorization","partition_key": "$assessments$ELEMENT"},
+    {"sort_num": 2,"parent": "1001","id": "1002","name": "Permits and Authorisation","partition_key": "$assessments$ELEMENT"},
     {"sort_num": 9,"parent": "1007","id": "1009","name": "PPE Condition and Suitability","partition_key": "$assessments$ELEMENT"},
     {"sort_num": 5,"parent": "1004","id": "1005","name": "Safety Compliance","partition_key": "$assessments$ELEMENT"},
     {"sort_num": 7,"parent": "1007","id": "1158","name": "Isolations","partition_key": "$assessments$ELEMENT"},

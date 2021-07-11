@@ -1,7 +1,7 @@
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getIncidents } from '../../incidents.router';
 import { retrieve as getCauses } from '../../causes.router';
-import { checkNum } from '../../../common/checkNum';
+import { checkNum } from '../../../common/number-util';
 import { HierarchyFilter, getHierarchyFilter, isWithinBasicFilter } from '../../../common/hierarchy-filter';
 
 import { hasModuleAccess } from '../../../common/access-util';
@@ -137,7 +137,7 @@ const getChartData = (headings, incidents, filter: IncidentFilter, onSuccess: (d
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
           },
         }
       });
@@ -146,7 +146,7 @@ const getChartData = (headings, incidents, filter: IncidentFilter, onSuccess: (d
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({

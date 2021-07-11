@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { getRisks } from '../../risks.router';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
@@ -8,6 +7,7 @@ import { isWithin } from '../../../common/date-util';
 import { getAssessments } from '../../assessments.router';
 import { getInspections } from '../../inspections.router';
 import { getIncidents } from '../../incidents.router';
+import { checkNum } from '../../../common/number-util';
 
 /* GET risk compliance report */
 export const ccmsRiskCompliance = (req, res) => {
@@ -326,13 +326,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

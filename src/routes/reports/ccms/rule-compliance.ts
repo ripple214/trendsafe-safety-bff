@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { getRules } from '../../rules.router';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
@@ -7,6 +6,7 @@ import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.rout
 import { isWithin } from '../../../common/date-util';
 import { getAssessments } from '../../assessments.router';
 import { getIncidents } from '../../incidents.router';
+import { checkNum } from '../../../common/number-util';
 
 /* GET rule compliance report */
 export const ccmsRuleCompliance = (req, res) => {
@@ -313,13 +313,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

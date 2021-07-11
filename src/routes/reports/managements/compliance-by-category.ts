@@ -1,4 +1,3 @@
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getManagements } from '../../managements.router';
@@ -8,6 +7,8 @@ import { isWithin } from '../../../common/date-util';
 import { getTop10Hazards } from '../hazards/top-hazards';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'TRM';
 
 /* GET compliance-by-category report */
@@ -145,7 +146,7 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(0))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
           },
         }
       });
@@ -154,7 +155,7 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
   });
 
   chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(0))
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(2))
   });
 
   chartData = chartData.sort((obj1, obj2) => {
@@ -167,7 +168,7 @@ const getChartData = (categories, managements, filter: HierarchyFilter, onSucces
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(0))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
   });
 
   onSuccess({
@@ -277,13 +278,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 export interface HierarchyFilter {
 
   filterType: FilterType;

@@ -7,6 +7,8 @@ import { retrieve as getCategories } from '../../category-elements.router';
 import { isWithin } from '../../../common/date-util';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'PAI';
 
 /* GET compliance-by-element report */
@@ -291,13 +293,7 @@ const mapHierarchy = (data: any) => {
   return filters;
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;

@@ -6,6 +6,8 @@ import { getHazards } from '../../hazards.router';
 import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
 
 import { hasModuleAccess } from '../../../common/access-util';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'HR';
 
 /* GET rule compliance report */
@@ -156,13 +158,7 @@ const getChartData = (hazards, departments, filter, onSuccess: (data: any) => vo
   });  
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   startDate?: any;

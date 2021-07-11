@@ -1,12 +1,13 @@
 import { isWithin } from '../../../common/date-util';
-import moment from 'moment';
 
 import { SequentialExecutor } from '../../../common/sequential-executor';
 import { getAssessments } from '../../assessments.router';
-import { getFilteredDepartments, getFilteredSites } from '../../hierarchies.router';
+import { getFilteredDepartments } from '../../hierarchies.router';
 
 import { hasModuleAccess } from '../../../common/access-util';
 import { FilterType, getHierarchyFilter } from '../../../common/hierarchy-filter';
+import { checkNum } from '../../../common/number-util';
+
 const moduleId = 'TA';
 
 /* GET rule compliance report */
@@ -183,13 +184,7 @@ const getChartData = (assessments, departments, filter, onSuccess: (data: any) =
   });  
 }
 
-const checkNum = (num: number): number => {
-  if(num == undefined || isNaN(num)) {
-    return 0;
-  } else {
-    return num;
-  }
-}
+
 interface HierarchyFilter {
 
   filterType: FilterType;
