@@ -137,7 +137,7 @@ const getChartData = (headings, incidents, filter: IncidentFilter, onSuccess: (d
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100))
           },
         }
       });
@@ -146,7 +146,7 @@ const getChartData = (headings, incidents, filter: IncidentFilter, onSuccess: (d
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100))
   });
 
   onSuccess({

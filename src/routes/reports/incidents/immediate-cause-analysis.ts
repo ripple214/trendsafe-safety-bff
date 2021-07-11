@@ -197,7 +197,7 @@ const getChartData = (categories, causes, incidents, filter: IncidentFilter, onS
   //console.log("umabot dito");  
   
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100))
   });
 
   onSuccess({

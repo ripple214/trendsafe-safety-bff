@@ -132,10 +132,10 @@ const getChartData = (inspections, filter: HierarchyFilter, onSuccess: (data: an
     total++;
   });
 
-  let majorPercentage = checkNum(+(major / total * 100).toFixed(2));
-  let moderatePercentage = checkNum(+(moderate / total * 100).toFixed(2));
-  let minorPercentage = checkNum(+(minor / total * 100).toFixed(2));
-  let acceptablePercentage = checkNum(+(acceptable / total * 100).toFixed(2));
+  let majorPercentage = checkNum(+(major / total * 100));
+  let moderatePercentage = checkNum(+(moderate / total * 100));
+  let minorPercentage = checkNum(+(minor / total * 100));
+  let acceptablePercentage = checkNum(+(acceptable / total * 100));
 
   chartData.push({
     name: 'Major Risk',

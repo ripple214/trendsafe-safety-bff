@@ -145,7 +145,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
     
             total++;
           });
-          var percentage = checkNum(+(compliantCount / total * 100).toFixed(2));
+          var percentage = checkNum(+(compliantCount / total * 100));
 
           let data = chartData.find(data => {
             return data.name == element.name;
@@ -177,7 +177,7 @@ const getChartData = (categories, hazards, filter: HierarchyFilter, onSuccess: (
             compliance: {
               n: {
                 total: nonCompliantCount,
-                percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
+                percent_total: checkNum(+(nonCompliantCount / total * 100)),
               }
             }
           });

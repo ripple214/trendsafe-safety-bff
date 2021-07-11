@@ -138,7 +138,7 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
       });
     });
 
-    var percentage = checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2));
+    var percentage = checkNum(+(compliantCount / (total-notApplicableCount) * 100));
     chartData.push({
       name: category.name + ' ' + percentage + '%',
       value: percentage
@@ -149,17 +149,17 @@ const getChartData = (categories, assessments, filter: HierarchyFilter, onSucces
       compliance: {
         y: {
           total: compliantCount,
-          percent_total: checkNum(+(compliantCount / total * 100).toFixed(2)),
-          percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100).toFixed(2)),
+          percent_total: checkNum(+(compliantCount / total * 100)),
+          percent_applicable: checkNum(+(compliantCount / (total-notApplicableCount) * 100)),
         },
         n: {
           total: nonCompliantCount,
-          percent_total: checkNum(+(nonCompliantCount / total * 100).toFixed(2)),
-          percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100).toFixed(2)),
+          percent_total: checkNum(+(nonCompliantCount / total * 100)),
+          percent_applicable: checkNum(+(nonCompliantCount / (total-notApplicableCount) * 100)),
         },
         na: {
           total: notApplicableCount,
-          percent_total: checkNum(+(notApplicableCount / total * 100).toFixed(2))
+          percent_total: checkNum(+(notApplicableCount / total * 100))
         }
       }
     });

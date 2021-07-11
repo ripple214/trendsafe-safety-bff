@@ -129,9 +129,9 @@ const getChartData = (indicators, filter: HierarchyFilter, onSuccess: (data: any
     tableData.push({
       report_date: reportDate,
       total_ppifr: total_ppifr, 
-      mat_ppifr: checkNum(overall_ppifr / (i+1)).toFixed(2), 
+      mat_ppifr: checkNum(overall_ppifr / (i+1)), 
       total_lsi: total_lsi,
-      mat_lsi: checkNum(overall_lsi / (i+1)).toFixed(2)
+      mat_lsi: checkNum(overall_lsi / (i+1))
     });
 
     if(total_ppifr > max_ppifr) {

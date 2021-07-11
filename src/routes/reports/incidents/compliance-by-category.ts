@@ -146,7 +146,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
         compliance: {
           n: {
             total: nonCompliantCount,
-            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100).toFixed(2))
+            percent_total: 0 //checkNum(+(nonCompliantCount / total * 100))
           },
         }
       });
@@ -155,7 +155,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
   });
 
   chartData.forEach(data => {
-    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100).toFixed(2))
+    data.value = filter.chartType == 'BAR' ? data.value : checkNum(+(data.value / total * 100))
   });
 
   chartData = chartData.sort((obj1, obj2) => {
@@ -168,7 +168,7 @@ const getChartData = (categories, incidents, filter: IncidentFilter, onSuccess: 
   });
 
   tableData.forEach(data => {
-    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100).toFixed(2))
+    data.compliance.n.percent_total = checkNum(+(data.compliance.n.total / total * 100))
   });
 
   onSuccess({

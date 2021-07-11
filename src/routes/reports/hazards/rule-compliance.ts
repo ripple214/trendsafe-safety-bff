@@ -135,7 +135,7 @@ const getChartData = (hazards, rules, filter: HierarchyFilter, onSuccess: (data:
   rules.forEach(rule => {
     chartData.push({
       name: rule.name,
-      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100))
     });
   });
 
@@ -143,7 +143,7 @@ const getChartData = (hazards, rules, filter: HierarchyFilter, onSuccess: (data:
     tableData.push({
       rule_compliance: rule.name,
       no_of_hazards: counts[rule.id],
-      percentage: checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+      percentage: checkNum(+(counts[rule.id] / total * 100))
     });
   });
 

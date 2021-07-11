@@ -134,7 +134,7 @@ const getChartData = (assessments, rules, filter: HierarchyFilter, onSuccess: (d
   rules.forEach(rule => {
     chartData.push({
       name: rule.name,
-      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+      value: filter.chartType == 'BAR' ? counts[rule.id] : checkNum(+(counts[rule.id] / total * 100))
     });
   });
 
@@ -142,7 +142,7 @@ const getChartData = (assessments, rules, filter: HierarchyFilter, onSuccess: (d
     tableData.push({
       rule_compliance: rule.name,
       no_of_assessments: counts[rule.id],
-      percentage: checkNum(+(counts[rule.id] / total * 100).toFixed(2))
+      percentage: checkNum(+(counts[rule.id] / total * 100))
     });
   });
 

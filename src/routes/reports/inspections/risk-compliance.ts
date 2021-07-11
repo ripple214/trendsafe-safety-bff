@@ -135,7 +135,7 @@ const getChartData = (inspections, risks, filter: HierarchyFilter, onSuccess: (d
   risks.forEach(risk => {
     chartData.push({
       name: risk.name,
-      value: filter.chartType == 'BAR' ? counts[risk.id] : checkNum(+(counts[risk.id] / total * 100).toFixed(2))
+      value: filter.chartType == 'BAR' ? counts[risk.id] : checkNum(+(counts[risk.id] / total * 100))
     });
   });
 
@@ -143,7 +143,7 @@ const getChartData = (inspections, risks, filter: HierarchyFilter, onSuccess: (d
     tableData.push({
       risk_compliance: risk.name,
       no_of_inspections: counts[risk.id],
-      percentage: checkNum(+(counts[risk.id] / total * 100).toFixed(2))
+      percentage: checkNum(+(counts[risk.id] / total * 100))
     });
   });
 

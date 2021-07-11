@@ -165,12 +165,12 @@ const getChartData = (inspections, departments, filter, onSuccess: (data: any) =
 
   chartData.forEach(data => {
     let value = data.value;
-    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100).toFixed(2)),
+    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100)),
 
     tableData.push({
       department: data.name,
       no_of_inspections: value,
-      percentage: checkNum(+(value / total * 100).toFixed(2))
+      percentage: checkNum(+(value / total * 100))
     });
   });
 

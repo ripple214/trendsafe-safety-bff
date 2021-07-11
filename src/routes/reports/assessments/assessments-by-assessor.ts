@@ -139,12 +139,12 @@ const getChartData = (assessments, users, filter: HierarchyFilter, onSuccess: (d
 
   chartData.forEach(data => {
     let value = data.value;
-    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100).toFixed(2)),
+    data.value = filter.chartType == 'BAR' ? value : checkNum(+(value / total * 100)),
 
     tableData.push({
       assessor: data.name,
       no_of_assessments: value,
-      percentage: checkNum(+(value / total * 100).toFixed(2))
+      percentage: checkNum(+(value / total * 100))
     });
   });
 
